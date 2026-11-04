@@ -3,12 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Aplikasi E-Rapor Digital</title>
-  <!-- Tailwind CSS Framework CDN -->
+  <title>Aplikasi E-Rapor Web</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- FontAwesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <!-- Custom Style -->
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body class="bg-gray-100 font-sans text-gray-800 antialiased">
@@ -18,13 +15,12 @@
     <!-- SIDEBAR -->
     <aside class="w-64 bg-slate-900 text-white flex flex-col justify-between shadow-lg">
       <div>
-        <div class="h-16 flex items-center px-6 bg-slate-950 font-bold text-xl tracking-wider border-b border-slate-800">
-          <i class="fa-solid fa-graduation-cap text-indigo-400 mr-3"></i> E-RAPOR WEB
+        <div class="h-16 flex items-center px-6 bg-slate-950 font-bold text-xl tracking-wider border-b border-slate-800 text-indigo-400">
+          <i class="fa-solid fa-graduation-cap mr-3"></i> E-RAPOR WEB
         </div>
         
-        <!-- Identity Widget -->
         <div class="p-4 bg-slate-800/50 border-b border-slate-800 flex items-center space-x-3">
-          <div class="w-10 h-10 rounded-full bg-indigo-600 flex items-center justify-center font-bold text-white" id="user-avatar">
+          <div class="w-10 h-10 rounded-full bg-indigo-600 flex items-center justify-center font-bold text-white shrink-0" id="user-avatar">
             G
           </div>
           <div class="overflow-hidden">
@@ -33,66 +29,87 @@
           </div>
         </div>
 
-        <!-- Navigation Menu -->
-        <nav class="p-4 space-y-1">
+        <nav class="p-4">
           <a href="#" onclick="switchMenu('dashboard')" class="menu-item active">
-            <i class="fa-solid fa-gauge w-6"></i> Dashboard
+            <i class="fa-solid fa-gauge w-5 text-center"></i> <span>Dashboard</span>
           </a>
           <a href="#" onclick="switchMenu('tp')" class="menu-item">
-            <i class="fa-solid fa-list-check w-6"></i> Setting CP / TP
+            <i class="fa-solid fa-list-check w-5 text-center"></i> <span>Setting CP / TP</span>
           </a>
           <a href="#" onclick="switchMenu('sumatif')" class="menu-item">
-            <i class="fa-solid fa-file-pen w-6"></i> Nilai Sumatif
+            <i class="fa-solid fa-file-pen w-5 text-center"></i> <span>Nilai Sumatif</span>
           </a>
           <a href="#" onclick="switchMenu('formatif')" class="menu-item">
-            <i class="fa-solid fa-table-list w-6"></i> Nilai Formatif
+            <i class="fa-solid fa-table-list w-5 text-center"></i> <span>Nilai Formatif</span>
           </a>
           <a href="#" onclick="switchMenu('katrol')" class="menu-item">
-            <i class="fa-solid fa-sliders w-6"></i> Pengolahan Katrol
+            <i class="fa-solid fa-sliders w-5 text-center"></i> <span>Pengolahan Katrol</span>
           </a>
         </nav>
       </div>
 
       <div class="p-4 border-t border-slate-800">
-        <button id="btn-logout" onclick="logout()" class="w-full py-2 px-4 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm transition font-medium flex items-center justify-center space-x-2">
+        <button id="btn-logout" onclick="logout()" class="w-full py-2.5 px-4 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium flex items-center justify-center space-x-2 transition">
           <i class="fa-solid fa-right-from-bracket"></i>
           <span>Keluar</span>
         </button>
       </div>
     </aside>
 
-    <!-- MAIN CONTENT AREA -->
+    <!-- MAIN CONTENT -->
     <main class="flex-1 flex flex-col overflow-y-auto">
-      
-      <!-- TOPBAR -->
       <header class="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-6 shadow-sm">
         <div class="flex items-center space-x-4">
-          <!-- Selection Controls -->
           <div class="flex items-center space-x-2">
             <label class="text-xs font-bold text-gray-500 uppercase">Mapel:</label>
-            <select id="select-mapel" class="form-select border border-gray-300 rounded px-3 py-1.5 text-sm bg-white focus:outline-none focus:border-indigo-500">
+            <select id="select-mapel" class="form-select border border-gray-300 rounded-lg px-3 py-1.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
               <option value="">-- Pilih Mapel --</option>
             </select>
           </div>
 
           <div class="flex items-center space-x-2">
             <label class="text-xs font-bold text-gray-500 uppercase">Kelas:</label>
-            <select id="select-kelas" class="form-select border border-gray-300 rounded px-3 py-1.5 text-sm bg-white focus:outline-none focus:border-indigo-500">
+            <select id="select-kelas" class="form-select border border-gray-300 rounded-lg px-3 py-1.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
               <option value="">-- Pilih Kelas --</option>
             </select>
           </div>
         </div>
 
-        <div id="connection-status" class="text-xs px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 font-medium">
-          ● API Connected
+        <div id="connection-status" class="text-xs px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 font-medium flex items-center space-x-1.5">
+          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+          <span>API Connected</span>
         </div>
       </header>
 
-      <!-- DYNAMIC CONTENT CONTAINER -->
       <div class="p-6 flex-1">
-        
+        <!-- VIEW: DASHBOARD (PANEL UTAMA) -->
+        <div id="view-dashboard" class="space-y-6">
+          <div class="bg-indigo-600 text-white p-6 rounded-2xl shadow-md">
+            <h2 class="text-2xl font-bold mb-2">Selamat Datang di Aplikasi E-Rapor</h2>
+            <p class="text-indigo-100 text-sm">Silakan pilih Mata Pelajaran dan Kelas pada menu drop-down di atas untuk mulai menginput nilai.</p>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm">
+              <i class="fa-solid fa-list-check text-indigo-600 text-2xl mb-3"></i>
+              <h4 class="font-bold text-slate-800 mb-1">1. Setting CP / TP</h4>
+              <p class="text-xs text-gray-500">Input Tujuan Pembelajaran per tingkat kelas (7, 8, 9).</p>
+            </div>
+            <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm">
+              <i class="fa-solid fa-file-pen text-indigo-600 text-2xl mb-3"></i>
+              <h4 class="font-bold text-slate-800 mb-1">2. Nilai Sumatif</h4>
+              <p class="text-xs text-gray-500">Input nilai Tugas Harian (TH), PH, dan SAS Non-Tes.</p>
+            </div>
+            <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm">
+              <i class="fa-solid fa-table-list text-indigo-600 text-2xl mb-3"></i>
+              <h4 class="font-bold text-slate-800 mb-1">3. Nilai Formatif</h4>
+              <p class="text-xs text-gray-500">Input capaian formatif skala 1-4 / 1-100 (TP 1 - TP 20).</p>
+            </div>
+          </div>
+        </div>
+
         <!-- VIEW: LOGIN MODAL -->
-        <div id="view-login" class="max-w-md mx-auto mt-16 bg-white p-8 rounded-xl shadow-md border border-gray-100">
+        <div id="view-login" class="hidden max-w-md mx-auto mt-16 bg-white p-8 rounded-xl shadow-md border border-gray-100">
           <h2 class="text-2xl font-bold text-center text-slate-800 mb-6">Masuk E-Rapor</h2>
           <div class="space-y-4">
             <div>
@@ -126,12 +143,9 @@
                     <th class="p-3 border-r w-12 text-center bg-slate-100 sticky left-0 z-20">NO</th>
                     <th class="p-3 border-r w-28 bg-slate-100 sticky left-12 z-20">NISN</th>
                     <th class="p-3 border-r w-48 bg-slate-100 sticky left-40 z-20">NAMA SISWA</th>
-                    <!-- Dynamic Headers TP1 - TP20 injected via JS -->
                   </tr>
                 </thead>
-                <tbody id="table-formatif-body" class="divide-y divide-gray-200">
-                  <!-- Dynamic Rows injected via JS -->
-                </tbody>
+                <tbody id="table-formatif-body" class="divide-y divide-gray-200"></tbody>
               </table>
             </div>
           </div>
@@ -141,7 +155,6 @@
     </main>
   </div>
 
-  <!-- Scripts -->
   <script src="js/config.js"></script>
   <script src="js/api.js"></script>
   <script src="js/app.js"></script>
