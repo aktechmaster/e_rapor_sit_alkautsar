@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Aplikasi E-Rapor Digital</title>
+  <!-- Tailwind CSS Framework CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Custom Style -->
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="bg-gray-100 font-sans text-gray-800 antialiased">
+
+  <div id="app" class="flex h-screen overflow-hidden">
+    
+    <!-- SIDEBAR -->
+    <aside class="w-64 bg-slate-900 text-white flex flex-col justify-between shadow-lg">
+      <div>
+        <div class="h-16 flex items-center px-6 bg-slate-950 font-bold text-xl tracking-wider border-b border-slate-800">
+          <i class="fa-solid fa-graduation-cap text-indigo-400 mr-3"></i> E-RAPOR WEB
+        </div>
+        
+        <!-- Identity Widget -->
+        <div class="p-4 bg-slate-800/50 border-b border-slate-800 flex items-center space-x-3">
+          <div class="w-10 h-10 rounded-full bg-indigo-600 flex items-center justify-center font-bold text-white" id="user-avatar">
+            G
+          </div>
+          <div class="overflow-hidden">
+            <p class="text-sm font-semibold truncate" id="user-name">Belum Login</p>
+            <p class="text-xs text-slate-400 truncate" id="user-role">Guru Mata Pelajaran</p>
+          </div>
+        </div>
+
+        <!-- Navigation Menu -->
+        <nav class="p-4 space-y-1">
+          <a href="#" onclick="switchMenu('dashboard')" class="menu-item active">
+            <i class="fa-solid fa-gauge w-6"></i> Dashboard
+          </a>
+          <a href="#" onclick="switchMenu('tp')" class="menu-item">
+            <i class="fa-solid fa-list-check w-6"></i> Setting CP / TP
+          </a>
+          <a href="#" onclick="switchMenu('sumatif')" class="menu-item">
+            <i class="fa-solid fa-file-pen w-6"></i> Nilai Sumatif
+          </a>
+          <a href="#" onclick="switchMenu('formatif')" class="menu-item">
+            <i class="fa-solid fa-table-list w-6"></i> Nilai Formatif
+          </a>
+          <a href="#" onclick="switchMenu('katrol')" class="menu-item">
+            <i class="fa-solid fa-sliders w-6"></i> Pengolahan Katrol
+          </a>
+        </nav>
+      </div>
+
+      <div class="p-4 border-t border-slate-800">
+        <button id="btn-logout" onclick="logout()" class="w-full py-2 px-4 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm transition font-medium flex items-center justify-center space-x-2">
+          <i class="fa-solid fa-right-from-bracket"></i>
+          <span>Keluar</span>
+        </button>
+      </div>
+    </aside>
+
+    <!-- MAIN CONTENT AREA -->
+    <main class="flex-1 flex flex-col overflow-y-auto">
+      
+      <!-- TOPBAR -->
+      <header class="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-6 shadow-sm">
+        <div class="flex items-center space-x-4">
+          <!-- Selection Controls -->
+          <div class="flex items-center space-x-2">
+            <label class="text-xs font-bold text-gray-500 uppercase">Mapel:</label>
+            <select id="select-mapel" class="form-select border border-gray-300 rounded px-3 py-1.5 text-sm bg-white focus:outline-none focus:border-indigo-500">
+              <option value="">-- Pilih Mapel --</option>
+            </select>
+          </div>
+
+          <div class="flex items-center space-x-2">
+            <label class="text-xs font-bold text-gray-500 uppercase">Kelas:</label>
+            <select id="select-kelas" class="form-select border border-gray-300 rounded px-3 py-1.5 text-sm bg-white focus:outline-none focus:border-indigo-500">
+              <option value="">-- Pilih Kelas --</option>
+            </select>
+          </div>
+        </div>
+
+        <div id="connection-status" class="text-xs px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 font-medium">
+          ● API Connected
+        </div>
+      </header>
+
+      <!-- DYNAMIC CONTENT CONTAINER -->
+      <div class="p-6 flex-1">
+        
+        <!-- VIEW: LOGIN MODAL -->
+        <div id="view-login" class="max-w-md mx-auto mt-16 bg-white p-8 rounded-xl shadow-md border border-gray-100">
+          <h2 class="text-2xl font-bold text-center text-slate-800 mb-6">Masuk E-Rapor</h2>
+          <div class="space-y-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">ID Guru / NIP</label>
+              <input type="text" id="input-idguru" placeholder="Contoh: gr_011" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+            </div>
+            <button onclick="handleLogin()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2.5 rounded-lg transition">
+              Masuk Aplikasi
+            </button>
+          </div>
+        </div>
+
+        <!-- VIEW: INPUT FORMATIF GRID -->
+        <div id="view-formatif" class="hidden space-y-4">
+          <div class="flex items-center justify-between bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
+            <div>
+              <h3 class="font-bold text-lg text-slate-800">Form Input Nilai Formatif (TP 1 - TP 20)</h3>
+              <p class="text-xs text-gray-500">Isi nilai skala 1-4 atau 1-100 pada koordinat sel AS8:BL47</p>
+            </div>
+            <button onclick="simpanFormatif()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2 rounded-lg font-medium shadow-sm transition flex items-center space-x-2">
+              <i class="fa-solid fa-floppy-disk"></i>
+              <span>Simpan Formatif</span>
+            </button>
+          </div>
+
+          <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+            <div class="table-container overflow-x-auto max-h-[70vh]">
+              <table class="w-full text-left border-collapse text-xs">
+                <thead class="bg-slate-100 sticky top-0 z-10 border-b border-gray-200">
+                  <tr id="table-formatif-header">
+                    <th class="p-3 border-r w-12 text-center bg-slate-100 sticky left-0 z-20">NO</th>
+                    <th class="p-3 border-r w-28 bg-slate-100 sticky left-12 z-20">NISN</th>
+                    <th class="p-3 border-r w-48 bg-slate-100 sticky left-40 z-20">NAMA SISWA</th>
+                    <!-- Dynamic Headers TP1 - TP20 injected via JS -->
+                  </tr>
+                </thead>
+                <tbody id="table-formatif-body" class="divide-y divide-gray-200">
+                  <!-- Dynamic Rows injected via JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <!-- Scripts -->
+  <script src="js/config.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
