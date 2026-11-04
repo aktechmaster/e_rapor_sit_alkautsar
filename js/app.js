@@ -1,12 +1,22 @@
 document.addEventListener("DOMContentLoaded", () => {
   renderFormatifHeaders();
 
-  // Hubungkan event change pada dropdown Mapel dan Kelas
-  document.getElementById('select-mapel').addEventListener('change', loadDataKelas);
-  document.getElementById('select-kelas').addEventListener('change', loadDataKelas);
+  document.getElementById('select-mapel').addEventListener('change', loadActiveMenuData);
+  document.getElementById('select-kelas').addEventListener('change', loadActiveMenuData);
 });
 
-// Fungsi Navigasi Pindah Halaman / View
+// Cache Data Nilai Kelas dari GAS
+let CURRENT_KELAS_DATA = null;
+
+// Fungsi Pembantu: Ekstrak Tingkat Kelas (misal "7A" -> "7", "8B" -> "8")
+function getTingkatKelas() {
+  const selectKelas = document.getElementById('select-kelas').value;
+  if (!selectKelas) return null;
+  const match = selectKelas.match(/\d+/);
+  return match ? match[0] : null;
+}
+
+// Navigasi Pindah View / Menu
 function switchMenu(viewName) {
   const views = ['dashboard', 'tp', 'sumatif', 'formatif', 'katrol'];
   views.forEach(v => {
@@ -23,20 +33,27 @@ function switchMenu(viewName) {
   const targetNav = document.getElementById(`nav-${viewName}`);
   if (targetNav) targetNav.classList.add('active');
 
-  // Jika pindah ke Formatif dan kelas sudah dipilih, muat data
-  if (viewName === 'formatif') {
-    loadDataKelas();
-  }
+  loadActiveMenuData();
 }
 
-// Handle Authentikasi Login Guru
+// Muat Data Otomatis Sesuai Menu Aktif
+function loadActiveMenuData() {
+  const activeView = document.querySelector('main > div > div:not(.hidden)');
+  if (!activeView) return;
+
+  const viewId = activeView.id;
+  if (viewId === 'view-tp') loadSettingTP();
+  else if (viewId === 'view-sumatif') loadNilaiSumatif();
+  else if (viewId === 'view-formatif') loadDataKelas();
+  else if (viewId === 'view-katrol') loadKatrol();
+}
+
+// Handle Login Guru
 async function handleLogin() {
   const idGuruInput = document.getElementById('input-idguru').value.trim();
   const btnLogin = document.getElementById('btn-login-submit');
 
-  if (!idGuruInput) {
-    return alert("Silakan masukkan ID Guru!");
-  }
+  if (!idGuruInput) return alert("Silakan masukkan ID Guru!");
 
   btnLogin.disabled = true;
   btnLogin.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> <span>Memeriksa...</span>`;
@@ -63,11 +80,10 @@ async function handleLogin() {
     document.getElementById('app-container').classList.remove('hidden');
     switchMenu('dashboard');
   } else {
-    alert("ID Guru tidak ditemukan! Pastikan ID sesuai dengan data sheet Dist_Mengajar (Contoh: gr_008).");
+    alert("ID Guru tidak ditemukan dalam sheet Dist_Mengajar (Contoh: gr_008).");
   }
 }
 
-// Populate Dropdown Mapel & Kelas Sesuai Hak Akses Guru
 function populateDropdowns(user) {
   const selectMapel = document.getElementById('select-mapel');
   const selectKelas = document.getElementById('select-kelas');
@@ -93,15 +109,200 @@ function populateDropdowns(user) {
   }
 }
 
-// Render Header Kolom TP 1 - TP 20
+// ----------------------------------------------------
+// MODUL 1: SETTING CP / TP
+// ----------------------------------------------------
+async function loadSettingTP() {
+  const selectMapel = document.getElementById('select-mapel').value;
+  const tingkat = getTingkatKelas();
+
+  if (!selectMapel || !tingkat) {
+    document.getElementById('tp-tingkat-info').innerText = "Pilih Mapel & Kelas terlebih dahulu!";
+    return;
+  }
+
+  document.getElementById('tp-tingkat-info').innerText = `Tingkat Kelas: ${tingkat}`;
+
+  const mapelInfo = CONFIG.MAPEL_DB[selectMapel];
+  const res = await callGASAPI("getSettingTP", {
+    spreadsheetId: mapelInfo.id,
+    tingkat: tingkat
+  });
+
+  const cpContainer = document.getElementById('container-input-cp');
+  const lmContainer = document.getElementById('container-input-lm');
+  cpContainer.innerHTML = '';
+  lmContainer.innerHTML = '';
+
+  for (let i = 0; i < 10; i++) {
+    const cpVal = (res && res.cp && res.cp[i]) ? res.cp[i][0] : '';
+    const lmVal = (res && res.lm && res.lm[i]) ? res.lm[i][0] : '';
+
+    cpContainer.innerHTML += `
+      <div class="flex items-center space-x-2">
+        <span class="text-xs font-bold text-gray-400 w-6">${i+1}.</span>
+        <input type="text" class="input-cp-item w-full border border-gray-300 rounded px-3 py-1.5 text-xs focus:ring-1 focus:ring-indigo-500" value="${cpVal}" placeholder="Isi CP/ATP ${i+1}">
+      </div>
+    `;
+
+    lmContainer.innerHTML += `
+      <div class="flex items-center space-x-2">
+        <span class="text-xs font-bold text-gray-400 w-6">${i+1}.</span>
+        <input type="text" class="input-lm-item w-full border border-gray-300 rounded px-3 py-1.5 text-xs focus:ring-1 focus:ring-indigo-500" value="${lmVal}" placeholder="Isi Lingkup Materi ${i+1}">
+      </div>
+    `;
+  }
+}
+
+async function simpanTP() {
+  const selectMapel = document.getElementById('select-mapel').value;
+  const tingkat = getTingkatKelas();
+  if (!selectMapel || !tingkat) return alert("Pilih Mapel & Kelas terlebih dahulu!");
+
+  const cpValues = Array.from(document.querySelectorAll('.input-cp-item')).map(el => [el.value]);
+  const lmValues = Array.from(document.querySelectorAll('.input-lm-item')).map(el => [el.value]);
+
+  const mapelInfo = CONFIG.MAPEL_DB[selectMapel];
+  const res = await callGASAPI("saveTP", {
+    spreadsheetId: mapelInfo.id,
+    tingkat: tingkat,
+    data: { cp: cpValues, lm: lmValues }
+  });
+
+  if (res) alert(res.message);
+}
+
+// ----------------------------------------------------
+// MODUL 2: NILAI SUMATIF
+// ----------------------------------------------------
+async function loadNilaiSumatif() {
+  const selectKelas = document.getElementById('select-kelas').value;
+  const selectMapel = document.getElementById('select-mapel').value;
+  if (!selectKelas || !selectMapel) return;
+
+  const mapelInfo = CONFIG.MAPEL_DB[selectMapel];
+  const response = await callGASAPI("getNilaiKelas", {
+    spreadsheetId: mapelInfo.id,
+    sheetName: selectKelas
+  });
+
+  if (response && response.status === "success") {
+    CURRENT_KELAS_DATA = response;
+    renderSumatifTable();
+  }
+}
+
+function renderSumatifTable() {
+  if (!CURRENT_KELAS_DATA) return;
+
+  const tpKey = document.getElementById('select-sumatif-tp').value;
+  const headerRow = document.getElementById('table-sumatif-header');
+  const tbody = document.getElementById('table-sumatif-body');
+
+  headerRow.querySelectorAll('.dynamic-header').forEach(el => el.remove());
+  tbody.innerHTML = '';
+
+  if (tpKey === 'SAS') {
+    headerRow.innerHTML += `<th class="dynamic-header p-3 border-r w-32 text-center bg-slate-100">SAS NON-TES</th>`;
+  } else {
+    headerRow.innerHTML += `
+      <th class="dynamic-header p-3 border-r w-20 text-center bg-slate-100">TH 1</th>
+      <th class="dynamic-header p-3 border-r w-20 text-center bg-slate-100">TH 2</th>
+      <th class="dynamic-header p-3 border-r w-20 text-center bg-slate-100">TH 3</th>
+      <th class="dynamic-header p-3 border-r w-20 text-center bg-emerald-100 text-emerald-800">PH</th>
+    `;
+  }
+
+  let rowCount = 0;
+  CURRENT_KELAS_DATA.siswa.forEach((siswa, rowIndex) => {
+    const nisn = siswa[0] || '';
+    const nama = siswa[1] || '';
+    if (!nisn && !nama) return;
+
+    rowCount++;
+    const tr = document.createElement('tr');
+    tr.className = "hover:bg-slate-50 border-b border-gray-200";
+
+    let rowHTML = `
+      <td class="p-2 border-r text-center sticky-col left-0 font-semibold text-gray-600">${rowCount}</td>
+      <td class="p-2 border-r text-center sticky-col left-12 font-mono text-gray-700">${nisn}</td>
+      <td class="p-2 border-r sticky-col left-40 font-medium text-gray-800 truncate max-w-[200px]">${nama}</td>
+    `;
+
+    if (tpKey === 'SAS') {
+      const val = (CURRENT_KELAS_DATA.sasNonTes && CURRENT_KELAS_DATA.sasNonTes[rowIndex]) ? CURRENT_KELAS_DATA.sasNonTes[rowIndex][0] : '';
+      rowHTML += `
+        <td class="p-0 border-r w-32">
+          <input type="number" min="0" max="100" class="cell-input sumatif-input" value="${val}" placeholder="-">
+        </td>
+      `;
+    } else {
+      const tpValues = (CURRENT_KELAS_DATA.sumatif && CURRENT_KELAS_DATA.sumatif[tpKey]) ? CURRENT_KELAS_DATA.sumatif[tpKey][rowIndex] : ['', '', '', ''];
+      for (let c = 0; c < 4; c++) {
+        const val = tpValues ? tpValues[c] : '';
+        rowHTML += `
+          <td class="p-0 border-r w-20">
+            <input type="number" min="0" max="100" class="cell-input sumatif-input" value="${val}" placeholder="-">
+          </td>
+        `;
+      }
+    }
+
+    tr.innerHTML = rowHTML;
+    tbody.appendChild(tr);
+  });
+}
+
+async function simpanSumatif() {
+  const selectKelas = document.getElementById('select-kelas').value;
+  const selectMapel = document.getElementById('select-mapel').value;
+  const tpKey = document.getElementById('select-sumatif-tp').value;
+  if (!selectKelas || !selectMapel) return alert("Pilih Mapel & Kelas terlebih dahulu!");
+
+  const rows = document.querySelectorAll('#table-sumatif-body tr');
+  const mapelInfo = CONFIG.MAPEL_DB[selectMapel];
+
+  if (tpKey === 'SAS') {
+    const sasValues = [];
+    rows.forEach(row => {
+      const input = row.querySelector('.sumatif-input');
+      sasValues.push([input && input.value ? Number(input.value) : ""]);
+    });
+    while (sasValues.length < 40) sasValues.push([""]);
+
+    const res = await callGASAPI("saveNilaiSumatif", {
+      spreadsheetId: mapelInfo.id,
+      sheetName: selectKelas,
+      data: { sasNonTesValues: sasValues }
+    });
+    if (res) alert(res.message);
+  } else {
+    const sumatifMatrix = [];
+    rows.forEach(row => {
+      const inputs = row.querySelectorAll('.sumatif-input');
+      const rowVals = [];
+      inputs.forEach(inp => rowVals.push(inp.value ? Number(inp.value) : ""));
+      sumatifMatrix.push(rowVals);
+    });
+    while (sumatifMatrix.length < 40) sumatifMatrix.push(["", "", "", ""]);
+
+    const res = await callGASAPI("saveNilaiSumatif", {
+      spreadsheetId: mapelInfo.id,
+      sheetName: selectKelas,
+      data: { tpKey: tpKey, values: sumatifMatrix }
+    });
+    if (res) alert(res.message);
+  }
+}
+
+// ----------------------------------------------------
+// MODUL 3: NILAI FORMATIF
+// ----------------------------------------------------
 function renderFormatifHeaders() {
   const headerRow = document.getElementById('table-formatif-header');
   if (!headerRow) return;
 
-  // Bersihkan header TP lama jika ada
-  const existingTPs = headerRow.querySelectorAll('.tp-header');
-  existingTPs.forEach(el => el.remove());
-
+  headerRow.querySelectorAll('.tp-header').forEach(el => el.remove());
   for (let i = 1; i <= 20; i++) {
     const th = document.createElement('th');
     th.className = "tp-header p-3 border-r w-16 text-center text-slate-600 font-bold bg-slate-100";
@@ -110,31 +311,24 @@ function renderFormatifHeaders() {
   }
 }
 
-// MEMUAT DATA SISWA & NILAI DARI BACKEND SPREADSHEET
 async function loadDataKelas() {
   const selectKelas = document.getElementById('select-kelas').value;
   const selectMapel = document.getElementById('select-mapel').value;
-
   if (!selectKelas || !selectMapel) return;
 
   const mapelInfo = CONFIG.MAPEL_DB[selectMapel];
-  if (!mapelInfo || !mapelInfo.id) {
-    return alert("ID Spreadsheet untuk Mapel ini belum diatur di config.js!");
-  }
-
   const tbody = document.getElementById('table-formatif-body');
   if (tbody) {
     tbody.innerHTML = `
       <tr>
         <td colspan="23" class="p-8 text-center text-gray-500 font-medium">
           <i class="fa-solid fa-spinner animate-spin text-indigo-600 text-xl mr-2"></i>
-          <span>Mengambil data siswa kelas ${selectKelas} dari Spreadsheet...</span>
+          <span>Mengambil data siswa kelas ${selectKelas}...</span>
         </td>
       </tr>
     `;
   }
 
-  // Panggil API Backend GAS
   const response = await callGASAPI("getNilaiKelas", {
     spreadsheetId: mapelInfo.id,
     sheetName: selectKelas
@@ -145,34 +339,27 @@ async function loadDataKelas() {
   }
 }
 
-// RENDER TABEL INPUT FORMATIF (40 BARIS SISWA x 20 KOLOM TP)
 function renderFormatifTable(siswaData, formatifData) {
   const tbody = document.getElementById('table-formatif-body');
   if (!tbody) return;
-
   tbody.innerHTML = '';
 
   let rowCount = 0;
-
   siswaData.forEach((siswa, rowIndex) => {
     const nisn = siswa[0] || '';
     const nama = siswa[1] || '';
-
-    // Hanya tampilkan baris yang memiliki data nama/NISN
     if (!nisn && !nama) return;
 
     rowCount++;
     const tr = document.createElement('tr');
     tr.className = "hover:bg-slate-50 border-b border-gray-200";
 
-    // Kolom Sticky: NO, NISN, NAMA
     let rowHTML = `
       <td class="p-2 border-r text-center sticky-col left-0 font-semibold text-gray-600">${rowCount}</td>
       <td class="p-2 border-r text-center sticky-col left-12 font-mono text-gray-700">${nisn}</td>
-      <td class="p-2 border-r sticky-col left-40 font-medium text-gray-800 truncate max-w-[200px]" title="${nama}">${nama}</td>
+      <td class="p-2 border-r sticky-col left-40 font-medium text-gray-800 truncate max-w-[200px]">${nama}</td>
     `;
 
-    // 20 Kolom Sel Input Formatif (TP 1 - TP 20)
     for (let colIndex = 0; colIndex < 20; colIndex++) {
       const val = (formatifData[rowIndex] && formatifData[rowIndex][colIndex] !== undefined) 
         ? formatifData[rowIndex][colIndex] 
@@ -188,26 +375,12 @@ function renderFormatifTable(siswaData, formatifData) {
     tr.innerHTML = rowHTML;
     tbody.appendChild(tr);
   });
-
-  if (rowCount === 0) {
-    tbody.innerHTML = `
-      <tr>
-        <td colspan="23" class="p-6 text-center text-red-500 font-medium">
-          Tidak ada data siswa ditemukan pada tab sheet "${document.getElementById('select-kelas').value}".
-        </td>
-      </tr>
-    `;
-  }
 }
 
-// Simpan Data Formatif Matrix Ke Spreadsheet
 async function simpanFormatif() {
   const selectKelas = document.getElementById('select-kelas').value;
   const selectMapel = document.getElementById('select-mapel').value;
-
-  if (!selectKelas || !selectMapel) {
-    return alert("Pilih Mapel dan Kelas terlebih dahulu pada header di atas!");
-  }
+  if (!selectKelas || !selectMapel) return alert("Pilih Mapel & Kelas terlebih dahulu!");
 
   const matrix20Cols = [];
   const rows = document.querySelectorAll('#table-formatif-body tr');
@@ -218,23 +391,62 @@ async function simpanFormatif() {
     inputs.forEach(input => {
       rowValues.push(input.value ? Number(input.value) : "");
     });
-    // Hanya masukkan baris yang memiliki sel input
-    if (inputs.length > 0) {
-      matrix20Cols.push(rowValues);
-    }
+    if (inputs.length > 0) matrix20Cols.push(rowValues);
   });
 
-  // Lengkapi sisa baris kosong hingga 40 baris agar sesuai range AS8:BL47 di GAS
-  while (matrix20Cols.length < 40) {
-    matrix20Cols.push(new Array(20).fill(""));
-  }
+  while (matrix20Cols.length < 40) matrix20Cols.push(new Array(20).fill(""));
 
-  const targetSpreadsheetId = CONFIG.MAPEL_DB[selectMapel].id;
-
+  const mapelInfo = CONFIG.MAPEL_DB[selectMapel];
   const res = await callGASAPI("saveNilaiFormatif", {
-    spreadsheetId: targetSpreadsheetId,
+    spreadsheetId: mapelInfo.id,
     sheetName: selectKelas,
     data: matrix20Cols
+  });
+
+  if (res) alert(res.message);
+}
+
+// ----------------------------------------------------
+// MODUL 4: KATROL
+// ----------------------------------------------------
+async function loadKatrol() {
+  const selectMapel = document.getElementById('select-mapel').value;
+  const tingkat = getTingkatKelas();
+
+  if (!selectMapel || !tingkat) {
+    document.getElementById('katrol-tingkat-info').innerText = "Pilih Mapel & Kelas terlebih dahulu!";
+    return;
+  }
+
+  document.getElementById('katrol-tingkat-info').innerText = `Batas Katrol Nilai - Tingkat Kelas ${tingkat}`;
+
+  const mapelInfo = CONFIG.MAPEL_DB[selectMapel];
+  const res = await callGASAPI("getKatrol", {
+    spreadsheetId: mapelInfo.id,
+    tingkat: tingkat
+  });
+
+  if (res && res.status === "success") {
+    document.getElementById('input-katrol-max').value = res.max || '';
+    document.getElementById('input-katrol-min').value = res.min || '';
+  }
+}
+
+async function simpanKatrol() {
+  const selectMapel = document.getElementById('select-mapel').value;
+  const tingkat = getTingkatKelas();
+  if (!selectMapel || !tingkat) return alert("Pilih Mapel & Kelas terlebih dahulu!");
+
+  const maxVal = document.getElementById('input-katrol-max').value;
+  const minVal = document.getElementById('input-katrol-min').value;
+
+  if (!maxVal || !minVal) return alert("Isi batas nilai maksimal dan minimal katrol!");
+
+  const mapelInfo = CONFIG.MAPEL_DB[selectMapel];
+  const res = await callGASAPI("saveKatrol", {
+    spreadsheetId: mapelInfo.id,
+    tingkat: tingkat,
+    data: [[Number(maxVal)], [Number(minVal)]]
   });
 
   if (res) alert(res.message);
