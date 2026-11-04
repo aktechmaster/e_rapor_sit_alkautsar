@@ -1,4 +1,4 @@
-/* Perbaikan Navigasi Sidebar */
+/* Styling Navigasi Sidebar */
 .menu-item {
   display: flex !important;
   align-items: center !important;
@@ -23,6 +23,17 @@
   color: #ffffff;
 }
 
+/* Custom Scrollbar Tabel */
+.table-container::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.table-container::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
 /* Format Sel Tabel Input */
 .cell-input {
   width: 100%;
@@ -38,4 +49,11 @@
 .cell-input:focus {
   background-color: #e0e7ff;
   box-shadow: inset 0 0 0 2px #6366f1;
+}
+
+/* Freeze Status Kolom Utama */
+td.sticky-col, th.sticky-col {
+  position: sticky;
+  background-color: #ffffff;
+  z-index: 5;
 }
