@@ -3,14 +3,22 @@
 // ====================================================
 let CURRENT_KELAS_DATA = null;
 const KELAS_DATA_CACHE = {};  
-const TP_DATA_CACHE = {};     
+const TP_DATA_CACHE = {};      
 const KATROL_DATA_CACHE = {}; 
+
+// TAMBAHAN: Variabel penyimpan relasi Mapel ke Kelas
+let MAPEL_KELAS_MAPPING = {}; 
 
 document.addEventListener("DOMContentLoaded", () => {
   checkAuthSession();
   renderFormatifHeaders();
 
-  document.getElementById('select-mapel').addEventListener('change', () => loadActiveMenuData());
+  // PERUBAHAN: Saat Mapel berubah, perbarui dropdown Kelas terlebih dahulu, lalu load data
+  document.getElementById('select-mapel').addEventListener('change', (e) => {
+    updateKelasDropdown(e.target.value);
+    loadActiveMenuData();
+  });
+  
   document.getElementById('select-kelas').addEventListener('change', () => loadActiveMenuData());
 
   attachTableKeyboardNav('table-formatif-body');
@@ -63,29 +71,57 @@ function loadActiveMenuData() {
   else if (viewId === 'view-katrol') loadKatrol();
 }
 
+// PERUBAHAN: Memecah (parsing) string relasi dari Google Sheets
 function populateDropdowns(user) {
   const selectMapel = document.getElementById('select-mapel');
   const selectKelas = document.getElementById('select-kelas');
 
   selectMapel.innerHTML = '<option value="">-- Pilih Mapel --</option>';
-  if (user.mapel_diajar) {
-    const mapelList = user.mapel_diajar.split(',').map(s => s.trim());
-    mapelList.forEach(mpId => {
-      const mapelInfo = CONFIG.MAPEL_DB[mpId];
-      if (mapelInfo) {
-        selectMapel.innerHTML += `<option value="${mpId}">${mapelInfo.nama}</option>`;
+  selectKelas.innerHTML = '<option value="">-- Pilih Kelas --</option>';
+  
+  MAPEL_KELAS_MAPPING = {}; // Reset data tiap kali populate
+
+  // Asumsi data relasi masuk di user.mapel_diajar atau user.hak_akses_mengajar
+  // Contoh string: "mp-009:kls-8C | mp-015:kls-9A,kls-9B | mp-005:kls-9A,kls-9B"
+  const hakAksesString = user.hak_akses_mengajar || user.mapel_diajar; 
+
+  if (hakAksesString) {
+    const mapelGroups = hakAksesString.split('|').map(s => s.trim());
+    
+    mapelGroups.forEach(group => {
+      if (!group) return;
+      
+      const [mpId, kelasStr] = group.split(':');
+      if (mpId && kelasStr) {
+        const cleanMpId = mpId.trim();
+        
+        // Simpan array kelas yang spesifik untuk mapel ini ke global mapping
+        MAPEL_KELAS_MAPPING[cleanMpId] = kelasStr.split(',').map(k => k.trim());
+        
+        // Tambahkan ke dropdown Mapel
+        const mapelInfo = CONFIG.MAPEL_DB[cleanMpId];
+        if (mapelInfo) {
+          selectMapel.innerHTML += `<option value="${cleanMpId}">${mapelInfo.nama}</option>`;
+        }
       }
     });
   }
+}
 
+// TAMBAHAN: Fungsi untuk mengisi dropdown kelas secara dinamis
+function updateKelasDropdown(selectedMapel) {
+  const selectKelas = document.getElementById('select-kelas');
   selectKelas.innerHTML = '<option value="">-- Pilih Kelas --</option>';
-  if (user.kelas_diajar) {
-    const kelasList = user.kelas_diajar.split(',').map(s => s.trim());
-    kelasList.forEach(kls => {
-      const formattedKls = kls.replace('kls-', '').toUpperCase();
-      selectKelas.innerHTML += `<option value="${formattedKls}">${formattedKls}</option>`;
-    });
-  }
+  
+  // Jika tidak ada mapel dipilih atau mapel tidak memiliki relasi kelas, berhenti.
+  if (!selectedMapel || !MAPEL_KELAS_MAPPING[selectedMapel]) return;
+
+  // Render daftar kelas HANYA yang diajar pada mapel terpilih
+  const kelasList = MAPEL_KELAS_MAPPING[selectedMapel];
+  kelasList.forEach(kls => {
+    const formattedKls = kls.replace('kls-', '').toUpperCase();
+    selectKelas.innerHTML += `<option value="${formattedKls}">${formattedKls}</option>`;
+  });
 }
 
 function getTingkatKelas() {
