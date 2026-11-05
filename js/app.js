@@ -245,10 +245,37 @@ async function fetchKelasDataCached(forceRefresh = false) {
   return null;
 }
 
-// MODUL 2: NILAI SUMATIF
+// ----------------------------------------------------
+// MODUL 2: NILAI SUMATIF (DENGAN KALKULASI LIVE NS)
+// ----------------------------------------------------
 async function loadNilaiSumatif() {
   const data = await fetchKelasDataCached();
   if (data) renderSumatifTable();
+}
+
+function calculateRowNS(tr) {
+  const inputs = tr.querySelectorAll('.sumatif-input');
+  if (inputs.length < 4) return;
+
+  const thValues = [];
+  for (let i = 0; i < 3; i++) {
+    const v = inputs[i].value;
+    if (v !== '' && !isNaN(v)) thValues.push(Number(v));
+  }
+
+  const phValStr = inputs[3].value;
+  const phVal = (phValStr !== '' && !isNaN(phValStr)) ? Number(phValStr) : null;
+  const nsCell = tr.querySelector('.ns-cell');
+
+  if (!nsCell) return;
+
+  if (thValues.length > 0 && phVal !== null) {
+    const avgTH = thValues.reduce((a, b) => a + b, 0) / thValues.length;
+    const nsResult = (avgTH * 0.4) + (phVal * 0.6);
+    nsCell.innerText = nsResult.toFixed(2).replace('.', ',');
+  } else {
+    nsCell.innerText = '-';
+  }
 }
 
 function renderSumatifTable() {
@@ -262,13 +289,14 @@ function renderSumatifTable() {
   tbody.innerHTML = '';
 
   if (tpKey === 'SAS') {
-    headerRow.innerHTML += `<th class="dynamic-header p-2 border-r w-28 text-center bg-slate-100">SAS NON-TES</th>`;
+    headerRow.innerHTML += `<th class="dynamic-header p-2 border-r w-32 text-center bg-slate-100">SAS NON-TES</th>`;
   } else {
     headerRow.innerHTML += `
-      <th class="dynamic-header p-2 border-r w-16 text-center bg-slate-100">TH 1</th>
-      <th class="dynamic-header p-2 border-r w-16 text-center bg-slate-100">TH 2</th>
-      <th class="dynamic-header p-2 border-r w-16 text-center bg-slate-100">TH 3</th>
-      <th class="dynamic-header p-2 border-r w-16 text-center bg-emerald-100 text-emerald-800">PH</th>
+      <th class="dynamic-header p-2 border-r w-20 text-center bg-slate-100">TH 1</th>
+      <th class="dynamic-header p-2 border-r w-20 text-center bg-slate-100">TH 2</th>
+      <th class="dynamic-header p-2 border-r w-20 text-center bg-slate-100">TH 3</th>
+      <th class="dynamic-header p-2 border-r w-20 text-center bg-emerald-100 text-emerald-800">PH</th>
+      <th class="dynamic-header p-2 border-r w-24 text-center bg-indigo-100 text-indigo-900 font-bold" title="Rumus: (Rata TH x 40%) + (PH x 60%)">NS</th>
     `;
   }
 
@@ -291,7 +319,7 @@ function renderSumatifTable() {
     if (tpKey === 'SAS') {
       const val = (CURRENT_KELAS_DATA.sasNonTes && CURRENT_KELAS_DATA.sasNonTes[rowIndex]) ? CURRENT_KELAS_DATA.sasNonTes[rowIndex][0] : '';
       rowHTML += `
-        <td class="p-0 border-r w-28 h-9">
+        <td class="p-0 border-r w-32 h-9">
           <input type="number" min="0" max="100" class="sumatif-input" value="${val}" placeholder="-">
         </td>
       `;
@@ -300,14 +328,23 @@ function renderSumatifTable() {
       for (let c = 0; c < 4; c++) {
         const val = tpValues ? tpValues[c] : '';
         rowHTML += `
-          <td class="p-0 border-r w-16 h-9">
+          <td class="p-0 border-r w-20 h-9">
             <input type="number" min="0" max="100" class="sumatif-input" value="${val}" placeholder="-">
           </td>
         `;
       }
+      rowHTML += `<td class="p-0 border-r w-24 h-9 ns-cell">-</td>`;
     }
 
     tr.innerHTML = rowHTML;
+
+    if (tpKey !== 'SAS') {
+      tr.querySelectorAll('.sumatif-input').forEach(inp => {
+        inp.addEventListener('input', () => calculateRowNS(tr));
+      });
+      calculateRowNS(tr); // Hitung NS pertama kali render
+    }
+
     tbody.appendChild(tr);
   });
 }
@@ -362,7 +399,9 @@ async function simpanSumatif() {
   }
 }
 
+// ----------------------------------------------------
 // MODUL 3: NILAI FORMATIF
+// ----------------------------------------------------
 function renderFormatifHeaders() {
   const headerRow = document.getElementById('table-formatif-header');
   if (!headerRow) return;
@@ -370,7 +409,7 @@ function renderFormatifHeaders() {
   headerRow.querySelectorAll('.tp-header').forEach(el => el.remove());
   for (let i = 1; i <= 20; i++) {
     const th = document.createElement('th');
-    th.className = "tp-header p-2 border-r w-12 text-center text-slate-600 font-bold bg-slate-100 text-xs";
+    th.className = "tp-header p-2 border-r w-16 text-center text-slate-600 font-bold bg-slate-100 text-xs";
     th.innerText = `TP ${i}`;
     headerRow.appendChild(th);
   }
@@ -410,7 +449,7 @@ function renderFormatifTable(siswaData, formatifData) {
         : '';
 
       rowHTML += `
-        <td class="p-0 border-r w-12 h-9 text-center">
+        <td class="p-0 border-r w-16 h-9 text-center">
           <input type="number" min="1" max="100" class="cell-input" value="${val}" placeholder="-">
         </td>
       `;
