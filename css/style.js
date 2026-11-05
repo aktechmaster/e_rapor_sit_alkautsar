@@ -115,3 +115,24 @@ td.sticky-col, th.sticky-col {
 th.sticky-col {
   background-color: #f1f5f9 !important;
 }
+
+/* PAKSA RATA TENGAH UNTUK INPUT NILAI */
+.sumatif-input, .cell-input {
+  text-align: center !important;
+}
+
+/* HILANGKAN SPINNER DI CHROME, SAFARI, EDGE, OPERA */
+input.sumatif-input::-webkit-outer-spin-button,
+input.sumatif-input::-webkit-inner-spin-button,
+input.cell-input::-webkit-outer-spin-button,
+input.cell-input::-webkit-inner-spin-button {
+  -webkit-appearance: none !important;
+  margin: 0 !important;
+}
+
+/* HILANGKAN SPINNER DI FIREFOX */
+input.sumatif-input[type="number"],
+input.cell-input[type="number"] {
+  -moz-appearance: textfield !important;
+  appearance: textfield !important;
+}
