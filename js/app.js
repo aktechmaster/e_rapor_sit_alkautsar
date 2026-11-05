@@ -1,6 +1,10 @@
-// Cache Data Nilai Kelas dari GAS (Memory Cache Layer)
+// ====================================================
+// GLOBAL CACHE LAYER (Memory Cache)
+// ====================================================
 let CURRENT_KELAS_DATA = null;
-const KELAS_DATA_CACHE = {};
+const KELAS_DATA_CACHE = {};  // Cache untuk Formatif & Sumatif (Key: MAPEL_KELAS)
+const TP_DATA_CACHE = {};     // Cache untuk Setting TP (Key: MAPEL_TINGKAT)
+const KATROL_DATA_CACHE = {}; // Cache untuk Katrol (Key: MAPEL_TINGKAT)
 
 document.addEventListener("DOMContentLoaded", () => {
   checkAuthSession();
@@ -9,7 +13,7 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById('select-mapel').addEventListener('change', () => loadActiveMenuData());
   document.getElementById('select-kelas').addEventListener('change', () => loadActiveMenuData());
 
-  // Pasang listener navigasi keyboard panah di tabel
+  // Listener Navigasi Keyboard Panah & Enter ala Excel
   attachTableKeyboardNav('table-formatif-body');
   attachTableKeyboardNav('table-sumatif-body');
 });
@@ -112,7 +116,6 @@ function attachTableKeyboardNav(tbodyId) {
     const rows = Array.from(tbody.querySelectorAll('tr'));
     const rowIndex = rows.indexOf(tr);
 
-    // Cegah panah atas/bawah mengubah nilai di type="number"
     if (['ArrowUp', 'ArrowDown', 'Enter'].includes(e.key)) {
       e.preventDefault();
     }
@@ -137,7 +140,6 @@ function attachTableKeyboardNav(tbodyId) {
     }
   });
 
-  // Otomatis menyorot seluruh teks saat fokus (mudah langsung ketik)
   tbody.addEventListener('focusin', (e) => {
     if (e.target.tagName === 'INPUT') {
       e.target.select();
@@ -146,9 +148,9 @@ function attachTableKeyboardNav(tbodyId) {
 }
 
 // ----------------------------------------------------
-// MODUL 1: SETTING CP / TP
+// MODUL 1: SETTING CP / TP (WITH CACHE)
 // ----------------------------------------------------
-async function loadSettingTP() {
+async function loadSettingTP(forceRefresh = false) {
   const selectMapel = document.getElementById('select-mapel').value;
   const tingkat = getTingkatKelas();
 
@@ -158,12 +160,19 @@ async function loadSettingTP() {
   }
 
   document.getElementById('tp-tingkat-info').innerText = `Tingkat Kelas: ${tingkat}`;
+  const cacheKey = `${selectMapel}_${tingkat}`;
 
-  const mapelInfo = CONFIG.MAPEL_DB[selectMapel];
-  const res = await callGASAPI("getSettingTP", {
-    spreadsheetId: mapelInfo.id,
-    tingkat: tingkat
-  });
+  let res = null;
+  if (!forceRefresh && TP_DATA_CACHE[cacheKey]) {
+    res = TP_DATA_CACHE[cacheKey];
+  } else {
+    const mapelInfo = CONFIG.MAPEL_DB[selectMapel];
+    res = await callGASAPI("getSettingTP", {
+      spreadsheetId: mapelInfo.id,
+      tingkat: tingkat
+    });
+    if (res) TP_DATA_CACHE[cacheKey] = res;
+  }
 
   const cpContainer = document.getElementById('container-input-cp');
   const lmContainer = document.getElementById('container-input-lm');
@@ -205,11 +214,15 @@ async function simpanTP() {
     data: { cp: cpValues, lm: lmValues }
   });
 
-  if (res) alert(res.message);
+  if (res) {
+    alert(res.message);
+    // Invalidate Cache & Fetch ulang
+    await loadSettingTP(true);
+  }
 }
 
 // ----------------------------------------------------
-// MODUL 2 & 3: FETCH DATA DENGAN SISTEM CACHE CLIENT
+// FETCH DATA KELAS (FORMATIF & SUMATIF - WITH CACHE)
 // ----------------------------------------------------
 async function fetchKelasDataCached(forceRefresh = false) {
   const selectKelas = document.getElementById('select-kelas').value;
@@ -329,7 +342,7 @@ async function simpanSumatif() {
 
     if (res) {
       alert(res.message);
-      await fetchKelasDataCached(true); // Invalidate Cache & Refresh
+      await fetchKelasDataCached(true);
     }
   } else {
     const sumatifMatrix = [];
@@ -349,7 +362,7 @@ async function simpanSumatif() {
 
     if (res) {
       alert(res.message);
-      await fetchKelasDataCached(true); // Invalidate Cache & Refresh
+      await fetchKelasDataCached(true);
     }
   }
 }
@@ -441,14 +454,14 @@ async function simpanFormatif() {
 
   if (res) {
     alert(res.message);
-    await fetchKelasDataCached(true); // Invalidate Cache & Refresh
+    await fetchKelasDataCached(true);
   }
 }
 
 // ----------------------------------------------------
-// MODUL 4: KATROL
+// MODUL 4: KATROL (WITH CACHE)
 // ----------------------------------------------------
-async function loadKatrol() {
+async function loadKatrol(forceRefresh = false) {
   const selectMapel = document.getElementById('select-mapel').value;
   const tingkat = getTingkatKelas();
 
@@ -458,12 +471,21 @@ async function loadKatrol() {
   }
 
   document.getElementById('katrol-tingkat-info').innerText = `Batas Katrol Nilai - Tingkat Kelas ${tingkat}`;
+  const cacheKey = `${selectMapel}_${tingkat}`;
 
-  const mapelInfo = CONFIG.MAPEL_DB[selectMapel];
-  const res = await callGASAPI("getKatrol", {
-    spreadsheetId: mapelInfo.id,
-    tingkat: tingkat
-  });
+  let res = null;
+  if (!forceRefresh && KATROL_DATA_CACHE[cacheKey]) {
+    res = KATROL_DATA_CACHE[cacheKey];
+  } else {
+    const mapelInfo = CONFIG.MAPEL_DB[selectMapel];
+    res = await callGASAPI("getKatrol", {
+      spreadsheetId: mapelInfo.id,
+      tingkat: tingkat
+    });
+    if (res && res.status === "success") {
+      KATROL_DATA_CACHE[cacheKey] = res;
+    }
+  }
 
   if (res && res.status === "success") {
     document.getElementById('input-katrol-max').value = res.max || '';
@@ -488,7 +510,11 @@ async function simpanKatrol() {
     data: [[Number(maxVal)], [Number(minVal)]]
   });
 
-  if (res) alert(res.message);
+  if (res) {
+    alert(res.message);
+    // Invalidate Cache & Fetch ulang
+    await loadKatrol(true);
+  }
 }
 
 function logout() {
