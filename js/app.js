@@ -291,11 +291,12 @@ function renderSumatifTable() {
   if (tpKey === 'SAS') {
     headerRow.innerHTML += `<th class="dynamic-header p-2 border-r w-32 text-center bg-slate-100">SAS NON-TES</th>`;
   } else {
+    // PERUBAHAN: Lebar kolom diubah menjadi w-24 agar lebih lega
     headerRow.innerHTML += `
-      <th class="dynamic-header p-2 border-r w-20 text-center bg-slate-100">TH 1</th>
-      <th class="dynamic-header p-2 border-r w-20 text-center bg-slate-100">TH 2</th>
-      <th class="dynamic-header p-2 border-r w-20 text-center bg-slate-100">TH 3</th>
-      <th class="dynamic-header p-2 border-r w-20 text-center bg-emerald-100 text-emerald-800">PH</th>
+      <th class="dynamic-header p-2 border-r w-24 text-center bg-slate-100">TH 1</th>
+      <th class="dynamic-header p-2 border-r w-24 text-center bg-slate-100">TH 2</th>
+      <th class="dynamic-header p-2 border-r w-24 text-center bg-slate-100">TH 3</th>
+      <th class="dynamic-header p-2 border-r w-24 text-center bg-emerald-100 text-emerald-800">PH</th>
       <th class="dynamic-header p-2 border-r w-24 text-center bg-indigo-100 text-indigo-900 font-bold" title="Rumus: (Rata TH x 40%) + (PH x 60%)">NS</th>
     `;
   }
@@ -320,7 +321,7 @@ function renderSumatifTable() {
       const val = (CURRENT_KELAS_DATA.sasNonTes && CURRENT_KELAS_DATA.sasNonTes[rowIndex]) ? CURRENT_KELAS_DATA.sasNonTes[rowIndex][0] : '';
       rowHTML += `
         <td class="p-0 border-r w-32 h-9">
-          <input type="number" min="0" max="100" class="sumatif-input" value="${val}" placeholder="-">
+          <input type="number" min="0" max="100" class="sumatif-input text-center w-full h-full border-none outline-none bg-transparent" value="${val}" placeholder="-">
         </td>
       `;
     } else {
@@ -328,8 +329,9 @@ function renderSumatifTable() {
       for (let c = 0; c < 4; c++) {
         const val = tpValues ? tpValues[c] : '';
         rowHTML += `
-          <td class="p-0 border-r w-20 h-9">
-            <input type="number" min="0" max="100" class="sumatif-input" value="${val}" placeholder="-">
+          <td class="p-0 border-r w-24 h-9">
+            <!-- PERUBAHAN: Penambahan text-center langsung di elemen input -->
+            <input type="number" min="0" max="100" class="sumatif-input text-center w-full h-full border-none outline-none bg-transparent font-semibold text-gray-800" value="${val}" placeholder="-">
           </td>
         `;
       }
@@ -342,7 +344,7 @@ function renderSumatifTable() {
       tr.querySelectorAll('.sumatif-input').forEach(inp => {
         inp.addEventListener('input', () => calculateRowNS(tr));
       });
-      calculateRowNS(tr); // Hitung NS pertama kali render
+      calculateRowNS(tr); 
     }
 
     tbody.appendChild(tr);
