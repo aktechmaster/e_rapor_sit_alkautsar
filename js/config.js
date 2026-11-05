@@ -15,7 +15,7 @@ const CONFIG = {
     "mp-006":  { kode: "IPS",  nama: "Ilmu Pengetahuan Sosial",               id: "1eRovev0irskowR3XvoVwjPLUcDumgJKZrrmnea9djrw" },
     "mp-007":  { kode: "ING",  nama: "Bahasa Inggris",                        id: "1eRovev0irskowR3XvoVwjPLUcDumgJKZrrmnea9djrw" },
     "mp-008":  { kode: "PJOK", nama: "Pendidikan Jasmani Olahraga dan Kesehatan", id: "1eRovev0irskowR3XvoVwjPLUcDumgJKZrrmnea9djrw" },
-    "mp-009":  { kode: "TIK",  nama: "Teknologi Informasi dan Komunikasi",    id: "1eRovev0irskowR3XvoVwjPLUcDumgJKZrrmnea9djrw" },
+    "mp-009":  { kode: "TIK",  nama: "Teknologi Informasi dan Komunikasi",    id: "1JyvD9Tr1EZJq0-gjMSTAR3wLgQsRZsDRaZ2EvXK2MnA" },
     "mp-010":  { kode: "SBK",  nama: "Seni Budaya dan Keterampilan",          id: "1eRovev0irskowR3XvoVwjPLUcDumgJKZrrmnea9djrw" },
     "mp-011":  { kode: "ARAB", nama: "Bahasa Arab",                           id: "1By3iq25nEtTmYVSLpRz9J8Npj8BChCyVMnaoJ6S6vIg" },
     "mp-012":  { kode: "T2Q",  nama: "Tahsin dan Tahfidz Qur'an",             id: "1eRovev0irskowR3XvoVwjPLUcDumgJKZrrmnea9djrw" },
