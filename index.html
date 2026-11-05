@@ -21,11 +21,20 @@
   <!-- MAIN DASHBOARD CONTAINER -->
   <div id="app-container" class="flex h-screen overflow-hidden">
     
+    <!-- OVERLAY SIDEBAR UNTUK TAMPILAN HP -->
+    <div id="sidebar-overlay" onclick="toggleSidebar()" class="fixed inset-0 bg-slate-900/50 z-30 hidden md:hidden backdrop-blur-sm transition-opacity"></div>
+
     <!-- SIDEBAR -->
-    <aside class="w-64 bg-slate-900 text-white flex flex-col justify-between shadow-lg shrink-0">
+    <aside id="sidebar" class="fixed md:relative z-40 h-full w-64 bg-slate-900 text-white flex flex-col justify-between shadow-lg shrink-0 transition-all duration-300 -translate-x-full md:translate-x-0">
       <div>
-        <div class="h-16 flex items-center px-6 bg-slate-950 font-bold text-xl tracking-wider border-b border-slate-800 text-indigo-400">
-          <i class="fa-solid fa-graduation-cap mr-3"></i> E-RAPOR WEB
+        <div class="h-16 flex items-center justify-between px-6 bg-slate-950 font-bold text-xl tracking-wider border-b border-slate-800 text-indigo-400">
+          <div class="flex items-center">
+            <i class="fa-solid fa-graduation-cap mr-3"></i> E-RAPOR WEB
+          </div>
+          <!-- Tombol Tutup Sidebar Khusus HP -->
+          <button onclick="toggleSidebar()" class="md:hidden text-slate-400 hover:text-white">
+            <i class="fa-solid fa-xmark text-lg"></i>
+          </button>
         </div>
         
         <div class="p-4 bg-slate-800/50 border-b border-slate-800 flex items-center space-x-3">
@@ -67,26 +76,31 @@
 
     <!-- MAIN CONTENT -->
     <main class="flex-1 flex flex-col overflow-y-auto">
-      <header class="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-6 shadow-sm">
-        <div class="flex items-center space-x-4">
+      <header class="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-4 md:px-6 shadow-sm">
+        <div class="flex items-center space-x-3 md:space-x-4">
+          <!-- TOMBOL TOGGLE SIDEBAR (HAMBURGER MENU) -->
+          <button id="btn-toggle-sidebar" onclick="toggleSidebar()" class="p-2 rounded-lg text-slate-600 hover:bg-slate-100 hover:text-indigo-600 focus:outline-none transition">
+            <i class="fa-solid fa-bars text-lg"></i>
+          </button>
+
           <div class="flex items-center space-x-2">
-            <label class="text-xs font-bold text-gray-500 uppercase">Mapel:</label>
-            <select id="select-mapel" class="form-select border border-gray-300 rounded-lg px-3 py-1.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            <label class="text-xs font-bold text-gray-500 uppercase hidden sm:inline">Mapel:</label>
+            <select id="select-mapel" class="form-select border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs sm:text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 max-w-[130px] sm:max-w-none">
               <option value="">-- Pilih Mapel --</option>
             </select>
           </div>
 
           <div class="flex items-center space-x-2">
-            <label class="text-xs font-bold text-gray-500 uppercase">Kelas:</label>
-            <select id="select-kelas" class="form-select border border-gray-300 rounded-lg px-3 py-1.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            <label class="text-xs font-bold text-gray-500 uppercase hidden sm:inline">Kelas:</label>
+            <select id="select-kelas" class="form-select border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs sm:text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
               <option value="">-- Pilih Kelas --</option>
             </select>
           </div>
         </div>
 
-        <div id="connection-status" class="text-xs px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 font-medium flex items-center space-x-1.5">
+        <div id="connection-status" class="text-xs px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 font-medium flex items-center space-x-1.5 shrink-0">
           <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-          <span>API Connected</span>
+          <span class="hidden sm:inline">API Connected</span>
         </div>
       </header>
 
