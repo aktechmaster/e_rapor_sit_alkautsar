@@ -180,6 +180,14 @@ function attachTableKeyboardNav(tbodyId) {
 }
 
 // ----------------------------------------------------
+// HELPER AUTO RESIZE TEXTAREA
+// ----------------------------------------------------
+function autoResizeTextarea(el) {
+  el.style.height = 'auto';
+  el.style.height = el.scrollHeight + 'px';
+}
+
+// ----------------------------------------------------
 // MODUL 1: SETTING CP / TP
 // ----------------------------------------------------
 async function loadSettingTP(forceRefresh = false) {
@@ -215,20 +223,26 @@ async function loadSettingTP(forceRefresh = false) {
     const cpVal = (res && res.cp && res.cp[i]) ? res.cp[i][0] : '';
     const lmVal = (res && res.lm && res.lm[i]) ? res.lm[i][0] : '';
 
+    // MENGGUNAKAN TEXTAREA DENGAN ONINPUT AUTO-RESIZE
     cpContainer.innerHTML += `
-      <div class="flex items-center space-x-2">
-        <span class="text-xs font-bold text-gray-400 w-6">${i+1}.</span>
-        <input type="text" class="input-cp-item w-full border border-gray-300 rounded px-3 py-1.5 text-xs focus:ring-1 focus:ring-indigo-500" value="${cpVal}" placeholder="Isi CP/ATP ${i+1}">
+      <div class="flex items-start space-x-2">
+        <span class="text-xs font-bold text-gray-400 w-6 pt-2 shrink-0">${i+1}.</span>
+        <textarea rows="1" oninput="autoResizeTextarea(this)" placeholder="Isi CP/ATP ${i+1}" class="input-cp-item w-full border border-gray-300 rounded px-3 py-1.5 text-xs focus:ring-1 focus:ring-indigo-500 focus:outline-none resize-none overflow-hidden transition-all">${cpVal}</textarea>
       </div>
     `;
 
     lmContainer.innerHTML += `
-      <div class="flex items-center space-x-2">
-        <span class="text-xs font-bold text-gray-400 w-6">${i+1}.</span>
-        <input type="text" class="input-lm-item w-full border border-gray-300 rounded px-3 py-1.5 text-xs focus:ring-1 focus:ring-indigo-500" value="${lmVal}" placeholder="Isi Lingkup Materi ${i+1}">
+      <div class="flex items-start space-x-2">
+        <span class="text-xs font-bold text-gray-400 w-6 pt-2 shrink-0">${i+1}.</span>
+        <textarea rows="1" oninput="autoResizeTextarea(this)" placeholder="Isi Lingkup Materi ${i+1}" class="input-lm-item w-full border border-gray-300 rounded px-3 py-1.5 text-xs focus:ring-1 focus:ring-indigo-500 focus:outline-none resize-none overflow-hidden transition-all">${lmVal}</textarea>
       </div>
     `;
   }
+
+  // Penyesuaian tinggi otomatis saat data pertama kali dimuat
+  setTimeout(() => {
+    document.querySelectorAll('#container-input-cp textarea, #container-input-lm textarea').forEach(el => autoResizeTextarea(el));
+  }, 50);
 }
 
 async function simpanTP() {
