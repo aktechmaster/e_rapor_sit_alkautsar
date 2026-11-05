@@ -594,3 +594,97 @@ function logout() {
   sessionStorage.clear();
   window.location.href = "login.html";
 }
+
+// ====================================================
+// MODUL 5: REKAP NILAI AKHIR (SAS NONTES)
+// ====================================================
+async function loadRekapAkhir() {
+  const data = await fetchKelasDataCached();
+  if (data && data.siswa && data.rekapAkhir) {
+    renderRekapAkhirTable(data.siswa, data.rekapAkhir);
+  }
+}
+
+function renderRekapAkhirTable(siswaData, rekapData) {
+  // Pastikan Anda sudah membuat elemen <tbody> dengan id 'table-rekap-body' di HTML
+  const tbody = document.getElementById('table-rekap-body');
+  if (!tbody) return;
+  tbody.innerHTML = '';
+
+  let rowCount = 0;
+  siswaData.forEach((siswa, rowIndex) => {
+    const nisn = siswa[0] || '';
+    const nama = siswa[1] || '';
+    if (!nisn && !nama) return;
+
+    rowCount++;
+    const tr = document.createElement('tr');
+    tr.className = "hover:bg-slate-50 border-b border-gray-200 h-9";
+
+    // Data dari AH sampai AN
+    // Indeks: 0(AH), 1(AI), 2(AJ), 3(AK - Non Tes), 4(AL), 5(AM), 6(AN)
+    const rowRekap = rekapData[rowIndex] || ["", "", "", "", "", "", ""];
+    
+    // Format angka desimal agar rapi (opsional)
+    const formatNum = (num) => (num !== "" && !isNaN(num)) ? Number(num).toFixed(2) : "-";
+
+    let rowHTML = `
+      <td class="p-2 border-r text-center sticky-col left-0 font-semibold text-gray-600 w-10">${rowCount}</td>
+      <td class="p-2 border-r text-center sticky-col left-10 font-mono text-gray-700 w-28 text-xs">${nisn}</td>
+      <td class="p-2 border-r sticky-col left-[152px] font-medium text-gray-800 truncate w-56 text-xs" title="${nama}">${nama}</td>
+      
+      <!-- Nilai Akhir Sumatif LM (AH) -->
+      <td class="p-2 border-r text-center w-24 bg-gray-50 text-xs">${formatNum(rowRekap[0])}</td>
+      <!-- Nilai STS (AI) -->
+      <td class="p-2 border-r text-center w-24 bg-gray-50 text-xs">${formatNum(rowRekap[1])}</td>
+      <!-- SAS Tes (AJ) -->
+      <td class="p-2 border-r text-center w-24 bg-blue-50 text-xs">${formatNum(rowRekap[2])}</td>
+      
+      <!-- SAS Non-Tes (AK) -> INPUT BISA DIEDIT -->
+      <td class="p-0 border-r w-24 h-9">
+        <input type="number" min="0" max="100" class="rekap-nontes-input text-center w-full h-full border-none outline-none bg-yellow-50 focus:bg-yellow-100 font-semibold text-gray-800" value="${rowRekap[3]}" placeholder="-">
+      </td>
+      
+      <!-- Nilai SAS (AL) -->
+      <td class="p-2 border-r text-center w-24 bg-blue-100 font-semibold text-xs">${formatNum(rowRekap[4])}</td>
+      <!-- Rapor Asli (AM) -->
+      <td class="p-2 border-r text-center w-24 bg-green-50 font-bold text-xs">${formatNum(rowRekap[5])}</td>
+      <!-- Rapor Akhir (AN) -->
+      <td class="p-2 border-r text-center w-24 bg-green-100 font-bold text-indigo-700 text-xs">${formatNum(rowRekap[6])}</td>
+    `;
+
+    tr.innerHTML = rowHTML;
+    tbody.appendChild(tr);
+  });
+}
+
+// Fungsi tombol simpan khusus untuk tabel rekap ini
+async function simpanRekapAkhir() {
+  const selectKelas = document.getElementById('select-kelas').value;
+  const selectMapel = document.getElementById('select-mapel').value;
+  if (!selectKelas || !selectMapel) return alert("Pilih Mapel & Kelas terlebih dahulu!");
+
+  const rows = document.querySelectorAll('#table-rekap-body tr');
+  const sasValues = [];
+  
+  rows.forEach(row => {
+    const input = row.querySelector('.rekap-nontes-input');
+    sasValues.push([input && input.value ? Number(input.value) : ""]);
+  });
+  while (sasValues.length < 40) sasValues.push([""]);
+
+  const mapelInfo = CONFIG.MAPEL_DB[selectMapel];
+  const res = await callGASAPI("saveNilaiSumatif", {
+    spreadsheetId: mapelInfo.id,
+    sheetName: selectKelas,
+    data: { sasNonTesValues: sasValues }
+  });
+
+  if (res) {
+    alert("Nilai SAS Non-Tes berhasil disimpan!");
+    // Karena kolom lain bergantung pada rumus GSheets, kita paksa refresh data dari server 
+    // agar Nilai Rapor (rumus) terupdate otomatis di tampilan
+    await fetchKelasDataCached(true); 
+    loadRekapAkhir();
+  }
+}
