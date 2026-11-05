@@ -10,7 +10,7 @@
 </head>
 <body class="bg-gray-100 font-sans text-gray-800 antialiased">
 
-  <!-- OVERLAY LOADING GLOBAL (Poin 3) -->
+  <!-- OVERLAY LOADING GLOBAL -->
   <div id="global-loading" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex flex-col items-center justify-center text-white transition-opacity">
     <div class="bg-slate-900 p-6 rounded-2xl shadow-2xl flex flex-col items-center border border-slate-700 min-w-[200px]">
       <i class="fa-solid fa-circle-notch animate-spin text-4xl text-indigo-500 mb-3"></i>
@@ -176,9 +176,9 @@
               <table class="w-full text-left border-collapse text-xs">
                 <thead class="bg-slate-100 sticky top-0 z-10 border-b border-gray-200">
                   <tr id="table-sumatif-header">
-                    <th class="p-3 border-r w-12 text-center bg-slate-100 sticky left-0 z-20">NO</th>
-                    <th class="p-3 border-r w-28 bg-slate-100 sticky left-12 z-20">NISN</th>
-                    <th class="p-3 border-r w-48 bg-slate-100 sticky left-40 z-20">NAMA SISWA</th>
+                    <th class="p-2 border-r w-10 text-center bg-slate-100 sticky left-0 z-20">NO</th>
+                    <th class="p-2 border-r w-24 text-center bg-slate-100 sticky left-10 z-20">NISN</th>
+                    <th class="p-2 border-r w-52 bg-slate-100 sticky left-[136px] z-20">NAMA SISWA</th>
                   </tr>
                 </thead>
                 <tbody id="table-sumatif-body" class="divide-y divide-gray-200"></tbody>
@@ -192,7 +192,7 @@
           <div class="flex items-center justify-between bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
             <div>
               <h3 class="font-bold text-lg text-slate-800">Form Input Nilai Formatif (TP 1 - TP 20)</h3>
-              <p class="text-xs text-gray-500">Isi nilai skala 1-4 atau 1-100 pada koordinat sel AT8:BM47</p>
+              <p class="text-xs text-gray-500">Isi nilai skala 1-4 atau 1-100 pada koordinat sel AS8:BN47</p>
             </div>
             <div class="flex items-center space-x-2">
               <button onclick="loadDataKelas(true)" title="Ambil Ulang Data Terbaru dari Server" class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-2 rounded-lg text-sm font-medium transition flex items-center space-x-1 border border-gray-300">
@@ -211,9 +211,9 @@
               <table class="w-full text-left border-collapse text-xs">
                 <thead class="bg-slate-100 sticky top-0 z-10 border-b border-gray-200">
                   <tr id="table-formatif-header">
-                    <th class="p-3 border-r w-12 text-center bg-slate-100 sticky left-0 z-20">NO</th>
-                    <th class="p-3 border-r w-28 bg-slate-100 sticky left-12 z-20">NISN</th>
-                    <th class="p-3 border-r w-48 bg-slate-100 sticky left-40 z-20">NAMA SISWA</th>
+                    <th class="p-2 border-r w-10 text-center bg-slate-100 sticky left-0 z-20">NO</th>
+                    <th class="p-2 border-r w-24 text-center bg-slate-100 sticky left-10 z-20">NISN</th>
+                    <th class="p-2 border-r w-52 bg-slate-100 sticky left-[136px] z-20">NAMA SISWA</th>
                   </tr>
                 </thead>
                 <tbody id="table-formatif-body" class="divide-y divide-gray-200"></tbody>
