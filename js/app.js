@@ -291,7 +291,6 @@ function renderSumatifTable() {
   if (tpKey === 'SAS') {
     headerRow.innerHTML += `<th class="dynamic-header p-2 border-r w-32 text-center bg-slate-100">SAS NON-TES</th>`;
   } else {
-    // PERUBAHAN: Lebar kolom diubah menjadi w-24 agar lebih lega
     headerRow.innerHTML += `
       <th class="dynamic-header p-2 border-r w-24 text-center bg-slate-100">TH 1</th>
       <th class="dynamic-header p-2 border-r w-24 text-center bg-slate-100">TH 2</th>
@@ -330,12 +329,12 @@ function renderSumatifTable() {
         const val = tpValues ? tpValues[c] : '';
         rowHTML += `
           <td class="p-0 border-r w-24 h-9">
-            <!-- PERUBAHAN: Penambahan text-center langsung di elemen input -->
             <input type="number" min="0" max="100" class="sumatif-input text-center w-full h-full border-none outline-none bg-transparent font-semibold text-gray-800" value="${val}" placeholder="-">
           </td>
         `;
       }
-      rowHTML += `<td class="p-0 border-r w-24 h-9 ns-cell">-</td>`;
+      /* PERUBAHAN: Penambahan class text-center, align-middle, dan styling untuk sel NS */
+      rowHTML += `<td class="p-2 border-r w-24 h-9 ns-cell text-center align-middle font-bold text-indigo-700 bg-indigo-50/30">-</td>`;
     }
 
     tr.innerHTML = rowHTML;
