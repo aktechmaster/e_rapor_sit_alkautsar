@@ -2,9 +2,9 @@
 // GLOBAL CACHE LAYER (Memory Cache)
 // ====================================================
 let CURRENT_KELAS_DATA = null;
-const KELAS_DATA_CACHE = {};  // Cache Formatif & Sumatif
-const TP_DATA_CACHE = {};     // Cache Setting TP
-const KATROL_DATA_CACHE = {}; // Cache Katrol
+const KELAS_DATA_CACHE = {};  
+const TP_DATA_CACHE = {};     
+const KATROL_DATA_CACHE = {}; 
 
 document.addEventListener("DOMContentLoaded", () => {
   checkAuthSession();
@@ -13,7 +13,6 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById('select-mapel').addEventListener('change', () => loadActiveMenuData());
   document.getElementById('select-kelas').addEventListener('change', () => loadActiveMenuData());
 
-  // Listener Navigasi Keyboard Panah & Enter ala Excel
   attachTableKeyboardNav('table-formatif-body');
   attachTableKeyboardNav('table-sumatif-body');
 });
@@ -263,13 +262,13 @@ function renderSumatifTable() {
   tbody.innerHTML = '';
 
   if (tpKey === 'SAS') {
-    headerRow.innerHTML += `<th class="dynamic-header p-2 border-r w-24 text-center bg-slate-100">SAS NON-TES</th>`;
+    headerRow.innerHTML += `<th class="dynamic-header p-2 border-r w-28 text-center bg-slate-100">SAS NON-TES</th>`;
   } else {
     headerRow.innerHTML += `
-      <th class="dynamic-header p-2 border-r w-14 text-center bg-slate-100">TH 1</th>
-      <th class="dynamic-header p-2 border-r w-14 text-center bg-slate-100">TH 2</th>
-      <th class="dynamic-header p-2 border-r w-14 text-center bg-slate-100">TH 3</th>
-      <th class="dynamic-header p-2 border-r w-14 text-center bg-emerald-100 text-emerald-800">PH</th>
+      <th class="dynamic-header p-2 border-r w-16 text-center bg-slate-100">TH 1</th>
+      <th class="dynamic-header p-2 border-r w-16 text-center bg-slate-100">TH 2</th>
+      <th class="dynamic-header p-2 border-r w-16 text-center bg-slate-100">TH 3</th>
+      <th class="dynamic-header p-2 border-r w-16 text-center bg-emerald-100 text-emerald-800">PH</th>
     `;
   }
 
@@ -285,15 +284,15 @@ function renderSumatifTable() {
 
     let rowHTML = `
       <td class="p-2 border-r text-center sticky-col left-0 font-semibold text-gray-600 w-10">${rowCount}</td>
-      <td class="p-2 border-r text-center sticky-col left-10 font-mono text-gray-700 w-24 text-xs">${nisn}</td>
-      <td class="p-2 border-r sticky-col left-[136px] font-medium text-gray-800 truncate w-52 text-xs" title="${nama}">${nama}</td>
+      <td class="p-2 border-r text-center sticky-col left-10 font-mono text-gray-700 w-28 text-xs">${nisn}</td>
+      <td class="p-2 border-r sticky-col left-[152px] font-medium text-gray-800 truncate w-56 text-xs" title="${nama}">${nama}</td>
     `;
 
     if (tpKey === 'SAS') {
       const val = (CURRENT_KELAS_DATA.sasNonTes && CURRENT_KELAS_DATA.sasNonTes[rowIndex]) ? CURRENT_KELAS_DATA.sasNonTes[rowIndex][0] : '';
       rowHTML += `
-        <td class="p-0 border-r w-24 h-9">
-          <input type="number" min="0" max="100" class="cell-input sumatif-input" value="${val}" placeholder="-">
+        <td class="p-0 border-r w-28 h-9">
+          <input type="number" min="0" max="100" class="sumatif-input" value="${val}" placeholder="-">
         </td>
       `;
     } else {
@@ -301,8 +300,8 @@ function renderSumatifTable() {
       for (let c = 0; c < 4; c++) {
         const val = tpValues ? tpValues[c] : '';
         rowHTML += `
-          <td class="p-0 border-r w-14 h-9">
-            <input type="number" min="0" max="100" class="cell-input sumatif-input" value="${val}" placeholder="-">
+          <td class="p-0 border-r w-16 h-9">
+            <input type="number" min="0" max="100" class="sumatif-input" value="${val}" placeholder="-">
           </td>
         `;
       }
@@ -401,8 +400,8 @@ function renderFormatifTable(siswaData, formatifData) {
 
     let rowHTML = `
       <td class="p-2 border-r text-center sticky-col left-0 font-semibold text-gray-600 w-10">${rowCount}</td>
-      <td class="p-2 border-r text-center sticky-col left-10 font-mono text-gray-700 w-24 text-xs">${nisn}</td>
-      <td class="p-2 border-r sticky-col left-[136px] font-medium text-gray-800 truncate w-52 text-xs" title="${nama}">${nama}</td>
+      <td class="p-2 border-r text-center sticky-col left-10 font-mono text-gray-700 w-28 text-xs">${nisn}</td>
+      <td class="p-2 border-r sticky-col left-[152px] font-medium text-gray-800 truncate w-56 text-xs" title="${nama}">${nama}</td>
     `;
 
     for (let colIndex = 0; colIndex < 20; colIndex++) {
