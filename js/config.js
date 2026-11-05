@@ -17,7 +17,7 @@ const CONFIG = {
     "mp-008":  { kode: "PJOK", nama: "Pendidikan Jasmani Olahraga dan Kesehatan", id: "1eRovev0irskowR3XvoVwjPLUcDumgJKZrrmnea9djrw" },
     "mp-009":  { kode: "TIK",  nama: "Teknologi Informasi dan Komunikasi",    id: "1eRovev0irskowR3XvoVwjPLUcDumgJKZrrmnea9djrw" },
     "mp-010":  { kode: "SBK",  nama: "Seni Budaya dan Keterampilan",          id: "1eRovev0irskowR3XvoVwjPLUcDumgJKZrrmnea9djrw" },
-    "mp-011":  { kode: "ARAB", nama: "Bahasa Arab",                           id: "1eRovev0irskowR3XvoVwjPLUcDumgJKZrrmnea9djrw" },
+    "mp-011":  { kode: "ARAB", nama: "Bahasa Arab",                           id: "1By3iq25nEtTmYVSLpRz9J8Npj8BChCyVMnaoJ6S6vIg" },
     "mp-012":  { kode: "T2Q",  nama: "Tahsin dan Tahfidz Qur'an",             id: "1eRovev0irskowR3XvoVwjPLUcDumgJKZrrmnea9djrw" },
     "mp-013":  { kode: "BPI",  nama: "Bina Pribadi Islam",                    id: "1eRovev0irskowR3XvoVwjPLUcDumgJKZrrmnea9djrw" },
     "mp-014":  { kode: "TJM",  nama: "Tarjim",                                id: "1eRovev0irskowR3XvoVwjPLUcDumgJKZrrmnea9djrw" },
