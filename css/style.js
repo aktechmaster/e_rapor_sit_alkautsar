@@ -45,15 +45,22 @@ nav {
 /* ====================================================
    HAPUS TOTAL PANAH SPINNER ANGKA (ALL BROWSERS)
    ==================================================== */
-input[type=number]::-webkit-inner-spin-button, 
-input[type=number]::-webkit-outer-spin-button { 
+/* Chrome, Safari, Edge, Opera */
+input[type="number"]::-webkit-inner-spin-button, 
+input[type="number"]::-webkit-outer-spin-button,
+input.cell-input::-webkit-inner-spin-button,
+input.cell-input::-webkit-outer-spin-button,
+input.sumatif-input::-webkit-inner-spin-button,
+input.sumatif-input::-webkit-outer-spin-button { 
   -webkit-appearance: none !important; 
-  -moz-appearance: none !important;
   appearance: none !important;
   margin: 0 !important; 
 }
 
-input[type=number] {
+/* Firefox */
+input[type="number"],
+input.cell-input[type="number"],
+input.sumatif-input[type="number"] {
   -moz-appearance: textfield !important;
   appearance: textfield !important;
 }
@@ -70,7 +77,7 @@ input[type=number] {
   outline: none !important;
   box-shadow: none !important;
   background: transparent !important;
-  text-align: center !important; /* Rata Tengah */
+  text-align: center !important; /* RATA TENGAH */
   font-weight: 600 !important;
   font-size: 0.875rem !important;
   color: #1e293b !important;
@@ -114,25 +121,4 @@ td.sticky-col, th.sticky-col {
 
 th.sticky-col {
   background-color: #f1f5f9 !important;
-}
-
-/* PAKSA RATA TENGAH UNTUK INPUT NILAI */
-.sumatif-input, .cell-input {
-  text-align: center !important;
-}
-
-/* HILANGKAN SPINNER DI CHROME, SAFARI, EDGE, OPERA */
-input.sumatif-input::-webkit-outer-spin-button,
-input.sumatif-input::-webkit-inner-spin-button,
-input.cell-input::-webkit-outer-spin-button,
-input.cell-input::-webkit-inner-spin-button {
-  -webkit-appearance: none !important;
-  margin: 0 !important;
-}
-
-/* HILANGKAN SPINNER DI FIREFOX */
-input.sumatif-input[type="number"],
-input.cell-input[type="number"] {
-  -moz-appearance: textfield !important;
-  appearance: textfield !important;
 }
