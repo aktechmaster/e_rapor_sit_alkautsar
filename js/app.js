@@ -410,16 +410,10 @@ function renderFormatifHeaders() {
   headerRow.querySelectorAll('.tp-header').forEach(el => el.remove());
   for (let i = 1; i <= 20; i++) {
     const th = document.createElement('th');
-    th.className = "tp-header p-2 border-r w-16 text-center text-slate-600 font-bold bg-slate-100 text-xs";
+    /* PERUBAHAN: Lebar kolom header diubah dari w-16 menjadi w-20 agar lebih luas */
+    th.className = "tp-header p-2 border-r w-20 text-center text-slate-600 font-bold bg-slate-100 text-xs";
     th.innerText = `TP ${i}`;
     headerRow.appendChild(th);
-  }
-}
-
-async function loadDataKelas(forceRefresh = false) {
-  const data = await fetchKelasDataCached(forceRefresh);
-  if (data) {
-    renderFormatifTable(data.siswa, data.formatif);
   }
 }
 
@@ -449,9 +443,11 @@ function renderFormatifTable(siswaData, formatifData) {
         ? formatifData[rowIndex][colIndex] 
         : '';
 
+      /* PERUBAHAN: Lebar sel td diubah jadi w-20. 
+         Class input ditambah text-center, w-full, h-full, border-none, bg-transparent agar presisi rata tengah */
       rowHTML += `
-        <td class="p-0 border-r w-16 h-9 text-center">
-          <input type="number" min="1" max="100" class="cell-input" value="${val}" placeholder="-">
+        <td class="p-0 border-r w-20 h-9">
+          <input type="number" min="1" max="100" class="cell-input text-center w-full h-full border-none outline-none bg-transparent font-semibold text-gray-800" value="${val}" placeholder="-">
         </td>
       `;
     }
