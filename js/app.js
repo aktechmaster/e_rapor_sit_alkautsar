@@ -1,19 +1,34 @@
+// Cache Data Nilai Kelas dari GAS (Memory Cache Layer)
+let CURRENT_KELAS_DATA = null;
+const KELAS_DATA_CACHE = {};
+
 document.addEventListener("DOMContentLoaded", () => {
+  checkAuthSession();
   renderFormatifHeaders();
 
-  document.getElementById('select-mapel').addEventListener('change', loadActiveMenuData);
-  document.getElementById('select-kelas').addEventListener('change', loadActiveMenuData);
+  document.getElementById('select-mapel').addEventListener('change', () => loadActiveMenuData());
+  document.getElementById('select-kelas').addEventListener('change', () => loadActiveMenuData());
+
+  // Pasang listener navigasi keyboard panah di tabel
+  attachTableKeyboardNav('table-formatif-body');
+  attachTableKeyboardNav('table-sumatif-body');
 });
 
-// Cache Data Nilai Kelas dari GAS
-let CURRENT_KELAS_DATA = null;
+// Cek Sesi Login Guru
+function checkAuthSession() {
+  const userSession = sessionStorage.getItem("eRaporUser");
+  if (!userSession) {
+    window.location.href = "login.html";
+    return;
+  }
 
-// Fungsi Pembantu: Ekstrak Tingkat Kelas (misal "7A" -> "7", "8B" -> "8")
-function getTingkatKelas() {
-  const selectKelas = document.getElementById('select-kelas').value;
-  if (!selectKelas) return null;
-  const match = selectKelas.match(/\d+/);
-  return match ? match[0] : null;
+  const user = JSON.parse(userSession);
+  STATE.currentUser = user;
+
+  document.getElementById('user-name').innerText = user.nama_lengkap;
+  document.getElementById('user-avatar').innerText = user.nama_lengkap.charAt(0);
+
+  populateDropdowns(user);
 }
 
 // Navigasi Pindah View / Menu
@@ -48,42 +63,6 @@ function loadActiveMenuData() {
   else if (viewId === 'view-katrol') loadKatrol();
 }
 
-// Handle Login Guru
-async function handleLogin() {
-  const idGuruInput = document.getElementById('input-idguru').value.trim();
-  const btnLogin = document.getElementById('btn-login-submit');
-
-  if (!idGuruInput) return alert("Silakan masukkan ID Guru!");
-
-  btnLogin.disabled = true;
-  btnLogin.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> <span>Memeriksa...</span>`;
-
-  const response = await callGASAPI("getDistMengajar");
-  
-  btnLogin.disabled = false;
-  btnLogin.innerHTML = `<span>Masuk Aplikasi</span> <i class="fa-solid fa-arrow-right text-sm"></i>`;
-
-  if (!response) return;
-
-  STATE.distribuasiMengajar = response.data;
-  const userMatch = response.data.find(row => row.id_guru.toLowerCase() === idGuruInput.toLowerCase());
-
-  if (userMatch) {
-    STATE.currentUser = userMatch;
-    
-    document.getElementById('user-name').innerText = userMatch.nama_lengkap;
-    document.getElementById('user-avatar').innerText = userMatch.nama_lengkap.charAt(0);
-    
-    populateDropdowns(userMatch);
-
-    document.getElementById('view-login').classList.add('hidden');
-    document.getElementById('app-container').classList.remove('hidden');
-    switchMenu('dashboard');
-  } else {
-    alert("ID Guru tidak ditemukan dalam sheet Dist_Mengajar (Contoh: gr_008).");
-  }
-}
-
 function populateDropdowns(user) {
   const selectMapel = document.getElementById('select-mapel');
   const selectKelas = document.getElementById('select-kelas');
@@ -107,6 +86,63 @@ function populateDropdowns(user) {
       selectKelas.innerHTML += `<option value="${formattedKls}">${formattedKls}</option>`;
     });
   }
+}
+
+function getTingkatKelas() {
+  const selectKelas = document.getElementById('select-kelas').value;
+  if (!selectKelas) return null;
+  const match = selectKelas.match(/\d+/);
+  return match ? match[0] : null;
+}
+
+// ----------------------------------------------------
+// NAVIGASI KEYBOARD SPREADSHEET (EXCEL LIKE)
+// ----------------------------------------------------
+function attachTableKeyboardNav(tbodyId) {
+  const tbody = document.getElementById(tbodyId);
+  if (!tbody) return;
+
+  tbody.addEventListener('keydown', (e) => {
+    const input = e.target;
+    if (!input.classList.contains('cell-input') && !input.classList.contains('sumatif-input')) return;
+
+    const td = input.closest('td');
+    const tr = td.closest('tr');
+    const cellIndex = td.cellIndex;
+    const rows = Array.from(tbody.querySelectorAll('tr'));
+    const rowIndex = rows.indexOf(tr);
+
+    // Cegah panah atas/bawah mengubah nilai di type="number"
+    if (['ArrowUp', 'ArrowDown', 'Enter'].includes(e.key)) {
+      e.preventDefault();
+    }
+
+    if (e.key === 'ArrowUp' && rowIndex > 0) {
+      const targetInput = rows[rowIndex - 1].children[cellIndex]?.querySelector('input');
+      if (targetInput) { targetInput.focus(); targetInput.select(); }
+    } 
+    else if ((e.key === 'ArrowDown' || e.key === 'Enter') && rowIndex < rows.length - 1) {
+      const targetInput = rows[rowIndex + 1].children[cellIndex]?.querySelector('input');
+      if (targetInput) { targetInput.focus(); targetInput.select(); }
+    } 
+    else if (e.key === 'ArrowLeft' && input.selectionStart === 0) {
+      const prevTd = td.previousElementSibling;
+      const targetInput = prevTd?.querySelector('input');
+      if (targetInput) { targetInput.focus(); targetInput.select(); }
+    } 
+    else if (e.key === 'ArrowRight' && input.selectionEnd === input.value.length) {
+      const nextTd = td.nextElementSibling;
+      const targetInput = nextTd?.querySelector('input');
+      if (targetInput) { targetInput.focus(); targetInput.select(); }
+    }
+  });
+
+  // Otomatis menyorot seluruh teks saat fokus (mudah langsung ketik)
+  tbody.addEventListener('focusin', (e) => {
+    if (e.target.tagName === 'INPUT') {
+      e.target.select();
+    }
+  });
 }
 
 // ----------------------------------------------------
@@ -173,12 +209,19 @@ async function simpanTP() {
 }
 
 // ----------------------------------------------------
-// MODUL 2: NILAI SUMATIF
+// MODUL 2 & 3: FETCH DATA DENGAN SISTEM CACHE CLIENT
 // ----------------------------------------------------
-async function loadNilaiSumatif() {
+async function fetchKelasDataCached(forceRefresh = false) {
   const selectKelas = document.getElementById('select-kelas').value;
   const selectMapel = document.getElementById('select-mapel').value;
-  if (!selectKelas || !selectMapel) return;
+  if (!selectKelas || !selectMapel) return null;
+
+  const cacheKey = `${selectMapel}_${selectKelas}`;
+
+  if (!forceRefresh && KELAS_DATA_CACHE[cacheKey]) {
+    CURRENT_KELAS_DATA = KELAS_DATA_CACHE[cacheKey];
+    return CURRENT_KELAS_DATA;
+  }
 
   const mapelInfo = CONFIG.MAPEL_DB[selectMapel];
   const response = await callGASAPI("getNilaiKelas", {
@@ -187,9 +230,17 @@ async function loadNilaiSumatif() {
   });
 
   if (response && response.status === "success") {
+    KELAS_DATA_CACHE[cacheKey] = response;
     CURRENT_KELAS_DATA = response;
-    renderSumatifTable();
+    return response;
   }
+  return null;
+}
+
+// MODUL 2: NILAI SUMATIF
+async function loadNilaiSumatif() {
+  const data = await fetchKelasDataCached();
+  if (data) renderSumatifTable();
 }
 
 function renderSumatifTable() {
@@ -275,7 +326,11 @@ async function simpanSumatif() {
       sheetName: selectKelas,
       data: { sasNonTesValues: sasValues }
     });
-    if (res) alert(res.message);
+
+    if (res) {
+      alert(res.message);
+      await fetchKelasDataCached(true); // Invalidate Cache & Refresh
+    }
   } else {
     const sumatifMatrix = [];
     rows.forEach(row => {
@@ -291,13 +346,15 @@ async function simpanSumatif() {
       sheetName: selectKelas,
       data: { tpKey: tpKey, values: sumatifMatrix }
     });
-    if (res) alert(res.message);
+
+    if (res) {
+      alert(res.message);
+      await fetchKelasDataCached(true); // Invalidate Cache & Refresh
+    }
   }
 }
 
-// ----------------------------------------------------
 // MODUL 3: NILAI FORMATIF
-// ----------------------------------------------------
 function renderFormatifHeaders() {
   const headerRow = document.getElementById('table-formatif-header');
   if (!headerRow) return;
@@ -311,31 +368,10 @@ function renderFormatifHeaders() {
   }
 }
 
-async function loadDataKelas() {
-  const selectKelas = document.getElementById('select-kelas').value;
-  const selectMapel = document.getElementById('select-mapel').value;
-  if (!selectKelas || !selectMapel) return;
-
-  const mapelInfo = CONFIG.MAPEL_DB[selectMapel];
-  const tbody = document.getElementById('table-formatif-body');
-  if (tbody) {
-    tbody.innerHTML = `
-      <tr>
-        <td colspan="23" class="p-8 text-center text-gray-500 font-medium">
-          <i class="fa-solid fa-spinner animate-spin text-indigo-600 text-xl mr-2"></i>
-          <span>Mengambil data siswa kelas ${selectKelas}...</span>
-        </td>
-      </tr>
-    `;
-  }
-
-  const response = await callGASAPI("getNilaiKelas", {
-    spreadsheetId: mapelInfo.id,
-    sheetName: selectKelas
-  });
-
-  if (response && response.status === "success") {
-    renderFormatifTable(response.siswa, response.formatif);
+async function loadDataKelas(forceRefresh = false) {
+  const data = await fetchKelasDataCached(forceRefresh);
+  if (data) {
+    renderFormatifTable(data.siswa, data.formatif);
   }
 }
 
@@ -403,7 +439,10 @@ async function simpanFormatif() {
     data: matrix20Cols
   });
 
-  if (res) alert(res.message);
+  if (res) {
+    alert(res.message);
+    await fetchKelasDataCached(true); // Invalidate Cache & Refresh
+  }
 }
 
 // ----------------------------------------------------
@@ -453,5 +492,6 @@ async function simpanKatrol() {
 }
 
 function logout() {
-  location.reload();
+  sessionStorage.clear();
+  window.location.href = "login.html";
 }
