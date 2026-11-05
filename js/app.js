@@ -729,3 +729,52 @@ async function simpanRekapAkhir() {
     loadRekapAkhir();
   }
 }
+
+// ====================================================
+// LOGIKA TOGGLE SIDEBAR (LAPTOP & HP)
+// ====================================================
+function toggleSidebar() {
+  const sidebar = document.getElementById('sidebar');
+  const overlay = document.getElementById('sidebar-overlay');
+  
+  if (!sidebar) return;
+
+  const isMobile = window.innerWidth < 768; // 768px breakpoint Tailwind (md)
+
+  if (isMobile) {
+    // Pada HP: Slide in / Slide out
+    sidebar.classList.toggle('-translate-x-full');
+    if (overlay) overlay.classList.toggle('hidden');
+  } else {
+    // Pada Laptop: Sembunyikan total agar tabel lebih luas
+    sidebar.classList.toggle('hidden');
+  }
+}
+
+// PERUBAHAN: Otomatis tutup sidebar di HP setelah menu diklik
+function switchMenu(viewName) {
+  const views = ['dashboard', 'tp', 'sumatif', 'formatif', 'katrol'];
+  views.forEach(v => {
+    const el = document.getElementById(`view-${v}`);
+    if (el) el.classList.add('hidden');
+    
+    const navEl = document.getElementById(`nav-${v}`);
+    if (navEl) navEl.classList.remove('active');
+  });
+
+  const targetView = document.getElementById(`view-${viewName}`);
+  if (targetView) targetView.classList.remove('hidden');
+
+  const targetNav = document.getElementById(`nav-${viewName}`);
+  if (targetNav) targetNav.classList.add('active');
+
+  // Jika dibuka di HP, sembunyikan sidebar setelah menu dipilih
+  if (window.innerWidth < 768) {
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('sidebar-overlay');
+    if (sidebar) sidebar.classList.add('-translate-x-full');
+    if (overlay) overlay.classList.add('hidden');
+  }
+
+  loadActiveMenuData();
+}
