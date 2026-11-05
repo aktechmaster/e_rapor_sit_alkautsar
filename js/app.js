@@ -403,6 +403,13 @@ async function simpanSumatif() {
 // ----------------------------------------------------
 // MODUL 3: NILAI FORMATIF
 // ----------------------------------------------------
+async function loadDataKelas() {
+  const data = await fetchKelasDataCached();
+  if (data && data.siswa && data.formatif) {
+    renderFormatifTable(data.siswa, data.formatif);
+  }
+}
+
 function renderFormatifHeaders() {
   const headerRow = document.getElementById('table-formatif-header');
   if (!headerRow) return;
