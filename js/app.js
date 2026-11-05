@@ -2,9 +2,9 @@
 // GLOBAL CACHE LAYER (Memory Cache)
 // ====================================================
 let CURRENT_KELAS_DATA = null;
-const KELAS_DATA_CACHE = {};  // Cache untuk Formatif & Sumatif (Key: MAPEL_KELAS)
-const TP_DATA_CACHE = {};     // Cache untuk Setting TP (Key: MAPEL_TINGKAT)
-const KATROL_DATA_CACHE = {}; // Cache untuk Katrol (Key: MAPEL_TINGKAT)
+const KELAS_DATA_CACHE = {};  // Cache Formatif & Sumatif
+const TP_DATA_CACHE = {};     // Cache Setting TP
+const KATROL_DATA_CACHE = {}; // Cache Katrol
 
 document.addEventListener("DOMContentLoaded", () => {
   checkAuthSession();
@@ -18,7 +18,6 @@ document.addEventListener("DOMContentLoaded", () => {
   attachTableKeyboardNav('table-sumatif-body');
 });
 
-// Cek Sesi Login Guru
 function checkAuthSession() {
   const userSession = sessionStorage.getItem("eRaporUser");
   if (!userSession) {
@@ -35,7 +34,6 @@ function checkAuthSession() {
   populateDropdowns(user);
 }
 
-// Navigasi Pindah View / Menu
 function switchMenu(viewName) {
   const views = ['dashboard', 'tp', 'sumatif', 'formatif', 'katrol'];
   views.forEach(v => {
@@ -55,7 +53,6 @@ function switchMenu(viewName) {
   loadActiveMenuData();
 }
 
-// Muat Data Otomatis Sesuai Menu Aktif
 function loadActiveMenuData() {
   const activeView = document.querySelector('main > div > div:not(.hidden)');
   if (!activeView) return;
@@ -148,7 +145,7 @@ function attachTableKeyboardNav(tbodyId) {
 }
 
 // ----------------------------------------------------
-// MODUL 1: SETTING CP / TP (WITH CACHE)
+// MODUL 1: SETTING CP / TP
 // ----------------------------------------------------
 async function loadSettingTP(forceRefresh = false) {
   const selectMapel = document.getElementById('select-mapel').value;
@@ -216,7 +213,6 @@ async function simpanTP() {
 
   if (res) {
     alert(res.message);
-    // Invalidate Cache & Fetch ulang
     await loadSettingTP(true);
   }
 }
@@ -267,13 +263,13 @@ function renderSumatifTable() {
   tbody.innerHTML = '';
 
   if (tpKey === 'SAS') {
-    headerRow.innerHTML += `<th class="dynamic-header p-3 border-r w-32 text-center bg-slate-100">SAS NON-TES</th>`;
+    headerRow.innerHTML += `<th class="dynamic-header p-2 border-r w-24 text-center bg-slate-100">SAS NON-TES</th>`;
   } else {
     headerRow.innerHTML += `
-      <th class="dynamic-header p-3 border-r w-20 text-center bg-slate-100">TH 1</th>
-      <th class="dynamic-header p-3 border-r w-20 text-center bg-slate-100">TH 2</th>
-      <th class="dynamic-header p-3 border-r w-20 text-center bg-slate-100">TH 3</th>
-      <th class="dynamic-header p-3 border-r w-20 text-center bg-emerald-100 text-emerald-800">PH</th>
+      <th class="dynamic-header p-2 border-r w-14 text-center bg-slate-100">TH 1</th>
+      <th class="dynamic-header p-2 border-r w-14 text-center bg-slate-100">TH 2</th>
+      <th class="dynamic-header p-2 border-r w-14 text-center bg-slate-100">TH 3</th>
+      <th class="dynamic-header p-2 border-r w-14 text-center bg-emerald-100 text-emerald-800">PH</th>
     `;
   }
 
@@ -285,18 +281,18 @@ function renderSumatifTable() {
 
     rowCount++;
     const tr = document.createElement('tr');
-    tr.className = "hover:bg-slate-50 border-b border-gray-200";
+    tr.className = "hover:bg-slate-50 border-b border-gray-200 h-9";
 
     let rowHTML = `
-      <td class="p-2 border-r text-center sticky-col left-0 font-semibold text-gray-600">${rowCount}</td>
-      <td class="p-2 border-r text-center sticky-col left-12 font-mono text-gray-700">${nisn}</td>
-      <td class="p-2 border-r sticky-col left-40 font-medium text-gray-800 truncate max-w-[200px]">${nama}</td>
+      <td class="p-2 border-r text-center sticky-col left-0 font-semibold text-gray-600 w-10">${rowCount}</td>
+      <td class="p-2 border-r text-center sticky-col left-10 font-mono text-gray-700 w-24 text-xs">${nisn}</td>
+      <td class="p-2 border-r sticky-col left-[136px] font-medium text-gray-800 truncate w-52 text-xs" title="${nama}">${nama}</td>
     `;
 
     if (tpKey === 'SAS') {
       const val = (CURRENT_KELAS_DATA.sasNonTes && CURRENT_KELAS_DATA.sasNonTes[rowIndex]) ? CURRENT_KELAS_DATA.sasNonTes[rowIndex][0] : '';
       rowHTML += `
-        <td class="p-0 border-r w-32">
+        <td class="p-0 border-r w-24 h-9">
           <input type="number" min="0" max="100" class="cell-input sumatif-input" value="${val}" placeholder="-">
         </td>
       `;
@@ -305,7 +301,7 @@ function renderSumatifTable() {
       for (let c = 0; c < 4; c++) {
         const val = tpValues ? tpValues[c] : '';
         rowHTML += `
-          <td class="p-0 border-r w-20">
+          <td class="p-0 border-r w-14 h-9">
             <input type="number" min="0" max="100" class="cell-input sumatif-input" value="${val}" placeholder="-">
           </td>
         `;
@@ -375,7 +371,7 @@ function renderFormatifHeaders() {
   headerRow.querySelectorAll('.tp-header').forEach(el => el.remove());
   for (let i = 1; i <= 20; i++) {
     const th = document.createElement('th');
-    th.className = "tp-header p-3 border-r w-16 text-center text-slate-600 font-bold bg-slate-100";
+    th.className = "tp-header p-2 border-r w-12 text-center text-slate-600 font-bold bg-slate-100 text-xs";
     th.innerText = `TP ${i}`;
     headerRow.appendChild(th);
   }
@@ -401,12 +397,12 @@ function renderFormatifTable(siswaData, formatifData) {
 
     rowCount++;
     const tr = document.createElement('tr');
-    tr.className = "hover:bg-slate-50 border-b border-gray-200";
+    tr.className = "hover:bg-slate-50 border-b border-gray-200 h-9";
 
     let rowHTML = `
-      <td class="p-2 border-r text-center sticky-col left-0 font-semibold text-gray-600">${rowCount}</td>
-      <td class="p-2 border-r text-center sticky-col left-12 font-mono text-gray-700">${nisn}</td>
-      <td class="p-2 border-r sticky-col left-40 font-medium text-gray-800 truncate max-w-[200px]">${nama}</td>
+      <td class="p-2 border-r text-center sticky-col left-0 font-semibold text-gray-600 w-10">${rowCount}</td>
+      <td class="p-2 border-r text-center sticky-col left-10 font-mono text-gray-700 w-24 text-xs">${nisn}</td>
+      <td class="p-2 border-r sticky-col left-[136px] font-medium text-gray-800 truncate w-52 text-xs" title="${nama}">${nama}</td>
     `;
 
     for (let colIndex = 0; colIndex < 20; colIndex++) {
@@ -415,7 +411,7 @@ function renderFormatifTable(siswaData, formatifData) {
         : '';
 
       rowHTML += `
-        <td class="p-0 border-r w-16">
+        <td class="p-0 border-r w-12 h-9 text-center">
           <input type="number" min="1" max="100" class="cell-input" value="${val}" placeholder="-">
         </td>
       `;
@@ -459,7 +455,7 @@ async function simpanFormatif() {
 }
 
 // ----------------------------------------------------
-// MODUL 4: KATROL (WITH CACHE)
+// MODUL 4: KATROL
 // ----------------------------------------------------
 async function loadKatrol(forceRefresh = false) {
   const selectMapel = document.getElementById('select-mapel').value;
@@ -512,7 +508,6 @@ async function simpanKatrol() {
 
   if (res) {
     alert(res.message);
-    // Invalidate Cache & Fetch ulang
     await loadKatrol(true);
   }
 }
