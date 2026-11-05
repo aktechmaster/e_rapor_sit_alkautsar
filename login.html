@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - Aplikasi E-Rapor Web</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="bg-slate-900 font-sans text-gray-800 antialiased min-h-screen flex items-center justify-center px-4">
+
+  <!-- OVERLAY LOADING LOGIN -->
+  <div id="login-loading" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-50 hidden flex flex-col items-center justify-center text-white">
+    <i class="fa-solid fa-circle-notch animate-spin text-4xl text-indigo-500 mb-3"></i>
+    <p class="text-sm font-semibold">Memeriksa Data Guru...</p>
+  </div>
+
+  <div class="max-w-md w-full bg-white p-8 rounded-2xl shadow-2xl border border-gray-100">
+    <div class="text-center mb-8">
+      <div class="w-16 h-16 bg-indigo-600 rounded-2xl flex items-center justify-center text-white text-3xl mx-auto mb-4 shadow-lg shadow-indigo-500/30">
+        <i class="fa-solid fa-graduation-cap"></i>
+      </div>
+      <h2 class="text-2xl font-bold text-slate-800">Masuk E-Rapor</h2>
+      <p class="text-xs text-gray-500 mt-1">Gunakan ID Guru / NIP yang terdaftar</p>
+    </div>
+    
+    <form onsubmit="handleLoginSubmit(event)" class="space-y-5">
+      <div>
+        <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">ID Guru / NIP</label>
+        <div class="relative">
+          <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
+            <i class="fa-solid fa-user"></i>
+          </span>
+          <input type="text" id="input-idguru" placeholder="Contoh: gr_008" required class="w-full border border-gray-300 rounded-xl pl-10 pr-4 py-3 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none transition">
+        </div>
+      </div>
+      <button type="submit" id="btn-login-submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 rounded-xl transition shadow-md flex items-center justify-center space-x-2">
+        <span>Masuk Aplikasi</span>
+        <i class="fa-solid fa-arrow-right text-sm"></i>
+      </button>
+    </form>
+  </div>
+
+  <script src="js/config.js"></script>
+  <script src="js/api.js"></script>
+  <script>
+    // Cek jika sudah login, langsung lempar ke index.html
+    if (sessionStorage.getItem("eRaporUser")) {
+      window.location.href = "index.html";
+    }
+
+    async function handleLoginSubmit(event) {
+      event.preventDefault();
+      const idGuruInput = document.getElementById('input-idguru').value.trim();
+      const btnLogin = document.getElementById('btn-login-submit');
+      const loadingEl = document.getElementById('login-loading');
+
+      if (!idGuruInput) return alert("Silakan masukkan ID Guru!");
+
+      btnLogin.disabled = true;
+      loadingEl.classList.remove('hidden');
+
+      const response = await callGASAPI("getDistMengajar");
+      
+      btnLogin.disabled = false;
+      loadingEl.classList.add('hidden');
+
+      if (!response || !response.data) return;
+
+      const userMatch = response.data.find(row => row.id_guru.toLowerCase() === idGuruInput.toLowerCase());
+
+      if (userMatch) {
+        // Simpan sesi login dan data distribusi mengajar ke Session Storage
+        sessionStorage.setItem("eRaporUser", JSON.stringify(userMatch));
+        sessionStorage.setItem("eRaporDist", JSON.stringify(response.data));
+        window.location.href = "index.html";
+      } else {
+        alert("ID Guru tidak ditemukan dalam sheet Dist_Mengajar (Contoh: gr_008).");
+      }
+    }
+  </script>
+</body>
+</html>
