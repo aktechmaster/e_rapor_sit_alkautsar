@@ -43,45 +43,48 @@ nav {
 }
 
 /* ====================================================
-   PAKSA HAPUS SPINNER ANGKA CHROMIUM & FIREFOX
+   HAPUS TOTAL PANAH SPINNER ANGKA (ALL BROWSERS)
    ==================================================== */
 input[type=number]::-webkit-inner-spin-button, 
 input[type=number]::-webkit-outer-spin-button { 
   -webkit-appearance: none !important; 
+  -moz-appearance: none !important;
+  appearance: none !important;
   margin: 0 !important; 
 }
+
 input[type=number] {
   -moz-appearance: textfield !important;
+  appearance: textfield !important;
 }
 
 /* ====================================================
-   FORMAT INPUT SEL TABEL SPREADSHEET (FULL BLEED 100%)
+   FORMAT INPUT SEL TABEL SPREADSHEET (RATA TENGAH & SEAMLESS)
    ==================================================== */
 .cell-input, .sumatif-input {
   display: block !important;
   width: 100% !important;
   height: 100% !important;
-  min-height: 36px !important;
+  min-height: 38px !important;
   border: none !important;
   outline: none !important;
   box-shadow: none !important;
   background: transparent !important;
-  text-align: center !important;
+  text-align: center !important; /* Rata Tengah */
   font-weight: 600 !important;
-  font-size: 0.8125rem !important;
+  font-size: 0.875rem !important;
   color: #1e293b !important;
   padding: 0 !important;
   margin: 0 !important;
   box-sizing: border-box !important;
   border-radius: 0 !important;
-  appearance: none !important;
 }
 
 .cell-input:hover, .sumatif-input:hover {
   background-color: #f1f5f9 !important;
 }
 
-/* FOKUS SEL SEPERTI GOOGLE SHEETS / EXCEL */
+/* Efek Fokus Sel ala Google Sheets / Excel */
 .cell-input:focus, .sumatif-input:focus {
   background-color: #ffffff !important;
   box-shadow: inset 0 0 0 2px #4f46e5 !important;
@@ -89,7 +92,20 @@ input[type=number] {
   border: none !important;
 }
 
-/* STICKY COLUMN STYLING */
+/* Styling Kolom Hasil NS (Nilai Sumatif Auto Calculate) */
+.ns-cell {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  height: 100% !important;
+  min-height: 38px !important;
+  font-weight: 700 !important;
+  font-size: 0.875rem !important;
+  color: #3730a3 !important;
+  background-color: #eef2ff !important;
+}
+
+/* Freeze / Sticky Column Styling */
 td.sticky-col, th.sticky-col {
   position: sticky !important;
   background-color: #ffffff !important;
