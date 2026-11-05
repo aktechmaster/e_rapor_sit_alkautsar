@@ -11,7 +11,7 @@ const CONFIG = {
     "mp-002":  { kode: "PKN",  nama: "Pendidikan Kewarganegaraan",            id: "1eRovev0irskowR3XvoVwjPLUcDumgJKZrrmnea9djrw" },
     "mp-003":  { kode: "IND",  nama: "Bahasa Indonesia",                      id: "1eRovev0irskowR3XvoVwjPLUcDumgJKZrrmnea9djrw" },
     "mp-004":  { kode: "MTK",  nama: "Matematika",                            id: "1eRovev0irskowR3XvoVwjPLUcDumgJKZrrmnea9djrw" },
-    "mp-005":  { kode: "IPA",  nama: "Ilmu Pengetahuan Alam",                 id: "1eRovev0irskowR3XvoVwjPLUcDumgJKZrrmnea9djrw" },
+    "mp-005":  { kode: "IPA",  nama: "Ilmu Pengetahuan Alam",                 id: "1XOyiAblo--xqdSbFlpy0itWrr78-YVbr3-6kjENTd0A" },
     "mp-006":  { kode: "IPS",  nama: "Ilmu Pengetahuan Sosial",               id: "1eRovev0irskowR3XvoVwjPLUcDumgJKZrrmnea9djrw" },
     "mp-007":  { kode: "ING",  nama: "Bahasa Inggris",                        id: "1eRovev0irskowR3XvoVwjPLUcDumgJKZrrmnea9djrw" },
     "mp-008":  { kode: "PJOK", nama: "Pendidikan Jasmani Olahraga dan Kesehatan", id: "1eRovev0irskowR3XvoVwjPLUcDumgJKZrrmnea9djrw" },
