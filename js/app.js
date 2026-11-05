@@ -325,7 +325,15 @@ function renderSumatifTable() {
   tbody.innerHTML = '';
 
   if (tpKey === 'SAS') {
-    headerRow.innerHTML += `<th class="dynamic-header p-2 border-r w-32 text-center bg-slate-100">SAS NON-TES</th>`;
+    // PERUBAHAN: Menambahkan 5 header baru di samping SAS Non-Tes
+    headerRow.innerHTML += `
+      <th class="dynamic-header p-2 border-r w-24 text-center bg-gray-200 text-xs">Akhir LM (40%)</th>
+      <th class="dynamic-header p-2 border-r w-20 text-center bg-gray-200 text-xs">STS</th>
+      <th class="dynamic-header p-2 border-r w-20 text-center bg-blue-100 text-xs">SAS Tes</th>
+      <th class="dynamic-header p-2 border-r w-24 text-center bg-yellow-200 text-xs">SAS Non-Tes</th>
+      <th class="dynamic-header p-2 border-r w-24 text-center bg-green-200 text-xs">Rapor Asli</th>
+      <th class="dynamic-header p-2 border-r w-24 text-center bg-green-300 text-xs">Rapor Akhir</th>
+    `;
   } else {
     headerRow.innerHTML += `
       <th class="dynamic-header p-2 border-r w-24 text-center bg-slate-100">TH 1</th>
@@ -353,11 +361,31 @@ function renderSumatifTable() {
     `;
 
     if (tpKey === 'SAS') {
-      const val = (CURRENT_KELAS_DATA.sasNonTes && CURRENT_KELAS_DATA.sasNonTes[rowIndex]) ? CURRENT_KELAS_DATA.sasNonTes[rowIndex][0] : '';
+      // Data SAS Non-Tes untuk diinput
+      const valNonTes = (CURRENT_KELAS_DATA.sasNonTes && CURRENT_KELAS_DATA.sasNonTes[rowIndex]) 
+                        ? CURRENT_KELAS_DATA.sasNonTes[rowIndex][0] : '';
+      
+      // Data Rekap untuk ditampilkan (hanya bisa dibaca)
+      const rekap = (CURRENT_KELAS_DATA.rekapAkhir && CURRENT_KELAS_DATA.rekapAkhir[rowIndex]) 
+                    ? CURRENT_KELAS_DATA.rekapAkhir[rowIndex] 
+                    : ["", "", "", "", "", "", ""];
+      
+      // Helper untuk format angka (0.00)
+      const formatNum = (num) => (num !== "" && num !== null && !isNaN(num)) ? Number(num).toFixed(2).replace('.', ',') : "-";
+
+      // rekap[0] = Akhir LM (AH), rekap[1] = STS (AI), rekap[2] = SAS Tes (AJ)
+      // rekap[5] = Rapor Asli (AM), rekap[6] = Rapor Akhir (AN)
       rowHTML += `
-        <td class="p-0 border-r w-32 h-9">
-          <input type="number" min="0" max="100" class="sumatif-input text-center w-full h-full border-none outline-none bg-transparent" value="${val}" placeholder="-">
+        <td class="p-2 border-r text-center w-24 bg-gray-50 text-xs">${formatNum(rekap[0])}</td>
+        <td class="p-2 border-r text-center w-20 bg-gray-50 text-xs">${formatNum(rekap[1])}</td>
+        <td class="p-2 border-r text-center w-20 bg-blue-50 text-xs">${formatNum(rekap[2])}</td>
+        
+        <td class="p-0 border-r w-24 h-9">
+          <input type="number" min="0" max="100" class="sumatif-input text-center w-full h-full border-none outline-none bg-yellow-50 focus:bg-yellow-100" value="${valNonTes}" placeholder="-">
         </td>
+        
+        <td class="p-2 border-r text-center w-24 bg-green-50 text-xs font-bold">${formatNum(rekap[5])}</td>
+        <td class="p-2 border-r text-center w-24 bg-green-100 text-xs font-bold text-indigo-700">${formatNum(rekap[6])}</td>
       `;
     } else {
       const tpValues = (CURRENT_KELAS_DATA.sumatif && CURRENT_KELAS_DATA.sumatif[tpKey]) ? CURRENT_KELAS_DATA.sumatif[tpKey][rowIndex] : ['', '', '', ''];
@@ -369,7 +397,6 @@ function renderSumatifTable() {
           </td>
         `;
       }
-      /* PERUBAHAN: Penambahan class text-center, align-middle, dan styling untuk sel NS */
       rowHTML += `<td class="p-2 border-r w-24 h-9 ns-cell text-center align-middle font-bold text-indigo-700 bg-indigo-50/30">-</td>`;
     }
 
