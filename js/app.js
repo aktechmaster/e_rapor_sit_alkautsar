@@ -43,7 +43,6 @@ function checkAuthSession() {
   } else {
     userRoleEl.innerText = `Guru Mata Pelajaran`;
   }
-
   updateWalasMenuVisibility(user);
   populateDropdowns(user);
 }
@@ -76,6 +75,18 @@ function switchMenu(viewName) {
   if (targetView) targetView.classList.remove('hidden');
   const targetNav = document.getElementById(`nav-${viewName}`);
   if (targetNav) targetNav.classList.add('active');
+
+  // KONTROL VISIBILITAS DROPDOWN HEADER MAPEL & KELAS
+  const headerSelectMapel = document.getElementById('select-mapel')?.parentElement;
+  const headerSelectKelas = document.getElementById('select-kelas')?.parentElement;
+
+  if (viewName === 'leger' || viewName === 'cetak-sts') {
+    if (headerSelectMapel) headerSelectMapel.classList.add('hidden');
+    if (headerSelectKelas) headerSelectKelas.classList.add('hidden');
+  } else {
+    if (headerSelectMapel) headerSelectMapel.classList.remove('hidden');
+    if (headerSelectKelas) headerSelectKelas.classList.remove('hidden');
+  }
 
   if (window.innerWidth < 768) {
     const sidebar = document.getElementById('sidebar');
@@ -122,7 +133,6 @@ function populateDropdowns(user) {
     });
   }
 
-  // Jika Wali Kelas, otomatis tambahkan kelas walas ke dropdown kelas jika belum ada
   if (user.walas_kelas) {
     let exists = false;
     for (let i = 0; i < selectKelas.options.length; i++) {
@@ -575,31 +585,26 @@ async function simpanKatrol() {
 }
 
 // ----------------------------------------------------
-// MODUL 5: LEGER STS
+// MODUL 5: LEGER STS (KHUSUS KELAS WALI)
 // ----------------------------------------------------
 async function loadLegerSTS(forceRefresh = false) {
-  let selectKelas = document.getElementById('select-kelas').value;
-  
-  // Jika dropdown belum dipilih tapi guru adalah Walas, otomatis gunakan kelas walasnya
-  if (!selectKelas && STATE.currentUser && STATE.currentUser.walas_kelas) {
-    selectKelas = STATE.currentUser.walas_kelas;
-    document.getElementById('select-kelas').value = selectKelas;
-  }
+  // PAKSA MENGGUNAKAN KELAS WALI DARI USER SESSION (TANPA TERPENGARUH DROPDOWN HEADER)
+  const kelasWalas = STATE.currentUser ? STATE.currentUser.walas_kelas : null;
 
-  if (!selectKelas) {
-    alert("Pilih Kelas terlebih dahulu pada header!");
+  if (!kelasWalas) {
+    alert("Akun Anda tidak terdaftar sebagai Wali Kelas!");
     return;
   }
 
-  if (!forceRefresh && LEGER_STS_CACHE[selectKelas]) {
-    CURRENT_LEGER_DATA = LEGER_STS_CACHE[selectKelas];
+  if (!forceRefresh && LEGER_STS_CACHE[kelasWalas]) {
+    CURRENT_LEGER_DATA = LEGER_STS_CACHE[kelasWalas];
     renderLegerTable();
     return;
   }
 
-  const res = await callGASAPI("getLegerSTS", { kelas: selectKelas });
+  const res = await callGASAPI("getLegerSTS", { kelas: kelasWalas });
   if (res && res.status === "success") {
-    LEGER_STS_CACHE[selectKelas] = res;
+    LEGER_STS_CACHE[kelasWalas] = res;
     CURRENT_LEGER_DATA = res;
     renderLegerTable();
   }
@@ -662,21 +667,20 @@ function renderLegerTable() {
 }
 
 // ----------------------------------------------------
-// MODUL 6: CETAK RAPOR STS
+// MODUL 6: CETAK RAPOR STS (KHUSUS KELAS WALI)
 // ----------------------------------------------------
 async function loadCetakRaporSTS() {
-  let selectKelas = document.getElementById('select-kelas').value;
-  if (!selectKelas && STATE.currentUser && STATE.currentUser.walas_kelas) {
-    selectKelas = STATE.currentUser.walas_kelas;
-    document.getElementById('select-kelas').value = selectKelas;
+  const kelasWalas = STATE.currentUser ? STATE.currentUser.walas_kelas : null;
+
+  if (!kelasWalas) {
+    alert("Akun Anda tidak terdaftar sebagai Wali Kelas!");
+    return;
   }
 
-  if (!selectKelas) return alert("Pilih Kelas terlebih dahulu pada header!");
-
-  if (!LEGER_STS_CACHE[selectKelas]) {
+  if (!LEGER_STS_CACHE[kelasWalas]) {
     await loadLegerSTS();
   } else {
-    CURRENT_LEGER_DATA = LEGER_STS_CACHE[selectKelas];
+    CURRENT_LEGER_DATA = LEGER_STS_CACHE[kelasWalas];
   }
 
   if (!CURRENT_LEGER_DATA) return;
