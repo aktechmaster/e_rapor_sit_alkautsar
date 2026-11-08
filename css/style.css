@@ -122,3 +122,33 @@ td.sticky-col, th.sticky-col {
 th.sticky-col {
   background-color: #f1f5f9 !important;
 }
+
+<style>
+  @media print {
+    body { background-color: white !important; }
+    #sidebar, header, #sidebar-overlay, .no-print, #global-loading {
+      display: none !important;
+    }
+    #app-container {
+      display: block !important;
+      height: auto !important;
+      overflow: visible !important;
+    }
+    main {
+      padding: 0 !important;
+      margin: 0 !important;
+      overflow: visible !important;
+    }
+    #view-cetak-sts {
+      display: block !important;
+    }
+    #rapor-print-container {
+      border: none !important;
+      box-shadow: none !important;
+      padding: 0 !important;
+      max-width: 100% !important;
+      width: 100% !important;
+      margin: 0 !important;
+    }
+  }
+</style>
