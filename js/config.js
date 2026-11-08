@@ -2,8 +2,22 @@ const CONFIG = {
   // Web App Executable URL dari Standalone GAS Deploy
   GAS_API_URL: "https://script.google.com/macros/s/AKfycbxB-2-_I2lhQz6hMPdMl3OEKpXXjpnmHJK6pg0N2kX9kC0PRh5_N9_ga4vkxnnrCU6hTw/exec",
   
-  // ID Spreadsheet Master (Tempat Tab Dist_Mengajar) ==> DB_Administrasi_Sekolah_Master
+  // ID Spreadsheet Master
   MASTER_SPREADSHEET_ID: "1IfRkDX_S3f2db6Pu4Oejbnr9k8CPrZlPWeVNFh9lGPM",
+
+  // Pemetaan ID Spreadsheet Rapor STS (10 Kelas)
+  RAPOR_STS_DB: {
+    "7A":  "1p6NsioqsTxuSFLaGyGX-A4gF33BmK7vDtsq94wmnqVQ",
+    "7B":  "18XvWtyMQx2CUn1va0pBXuIvZu1upgzlvFDStElE3z8M",
+    "7C":  "1uLE8R5D09F7HmG1ESKwZUfPQUORkL9ixPckH0a87pxQ",
+    "8A":  "1bUpd4BTruXNEU3BG2a6c-Xczq0VoRNnpoMzb45Cbnsc",
+    "8B":  "1pHYBtUHxKZua3PxW_J1lzPBoqzKo4SIT5MRMuhqDVRo",
+    "8C":  "1VDvgLA4XkqXYdFR9_8KXuiccDlT8QlBOpHRhE8DCKwE",
+    "9A":  "11LCF5YCfFg_s7MA2KtWqiuK2n2TTDfRKEEdYF73tSfs",
+    "9B":  "1JcNkN_Mi8YPdvf5FCIqvVcdBL_4v30g3b7Z7MHlGI6g",
+    "9C1": "1i4woCiBeeuRaiZoMMNNduLtrlf--igod9VrCmRgkDa0",
+    "9C2": "1nto0PhxX0-uTfuX3NqYntvh60SIQiANZ0313T3bbLOc"
+  },
 
   // Pemetaan ID Mapel ke Spreadsheet ID Spesifik
   MAPEL_DB: {
@@ -27,7 +41,6 @@ const CONFIG = {
   }
 };
 
-// Application State
 const STATE = {
   currentUser: null,
   currentMapelId: null,
