@@ -2,7 +2,7 @@ const CONFIG = {
   // Web App Executable URL dari Standalone GAS Deploy
   GAS_API_URL: "https://script.google.com/macros/s/AKfycbxB-2-_I2lhQz6hMPdMl3OEKpXXjpnmHJK6pg0N2kX9kC0PRh5_N9_ga4vkxnnrCU6hTw/exec",
   
-  // ID Spreadsheet Master
+  // ID Spreadsheet Master (Tempat Tab Dist_Mengajar & Kelas)
   MASTER_SPREADSHEET_ID: "1IfRkDX_S3f2db6Pu4Oejbnr9k8CPrZlPWeVNFh9lGPM",
 
   // Pemetaan ID Spreadsheet Rapor STS (10 Kelas)
@@ -41,6 +41,7 @@ const CONFIG = {
   }
 };
 
+// Application State
 const STATE = {
   currentUser: null,
   currentMapelId: null,
