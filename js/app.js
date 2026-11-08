@@ -778,3 +778,294 @@ function switchMenu(viewName) {
 
   loadActiveMenuData();
 }
+
+// TAMBAHAN CACHE MEMORY KELAS LEGER
+const LEGER_STS_CACHE = {};
+let CURRENT_LEGER_DATA = null;
+let CURRENT_SISWA_INDEX = 0;
+
+// Update switchMenu untuk menambahkan view 'leger' dan 'cetak-sts'
+function switchMenu(viewName) {
+  const views = ['dashboard', 'tp', 'sumatif', 'formatif', 'katrol', 'leger', 'cetak-sts'];
+  views.forEach(v => {
+    const el = document.getElementById(`view-${v}`);
+    if (el) el.classList.add('hidden');
+    
+    const navEl = document.getElementById(`nav-${v}`);
+    if (navEl) navEl.classList.remove('active');
+  });
+  const targetView = document.getElementById(`view-${viewName}`);
+  if (targetView) targetView.classList.remove('hidden');
+  const targetNav = document.getElementById(`nav-${viewName}`);
+  if (targetNav) targetNav.classList.add('active');
+
+  if (window.innerWidth < 768) {
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('sidebar-overlay');
+    if (sidebar) sidebar.classList.add('-translate-x-full');
+    if (overlay) overlay.classList.add('hidden');
+  }
+  loadActiveMenuData();
+}
+
+function loadActiveMenuData() {
+  const activeView = document.querySelector('main > div > div:not(.hidden)');
+  if (!activeView) return;
+  const viewId = activeView.id;
+  if (viewId === 'view-tp') loadSettingTP();
+  else if (viewId === 'view-sumatif') loadNilaiSumatif();
+  else if (viewId === 'view-formatif') loadDataKelas();
+  else if (viewId === 'view-katrol') loadKatrol();
+  else if (viewId === 'view-leger') loadLegerSTS();
+  else if (viewId === 'view-cetak-sts') loadCetakRaporSTS();
+}
+
+// ----------------------------------------------------
+// MODUL LEGER STS
+// ----------------------------------------------------
+async function loadLegerSTS(forceRefresh = false) {
+  const selectKelas = document.getElementById('select-kelas').value;
+  if (!selectKelas) {
+    alert("Pilih Kelas terlebih dahulu pada header!");
+    return;
+  }
+
+  if (!forceRefresh && LEGER_STS_CACHE[selectKelas]) {
+    CURRENT_LEGER_DATA = LEGER_STS_CACHE[selectKelas];
+    renderLegerTable();
+    return;
+  }
+
+  const res = await callGASAPI("getLegerSTS", { kelas: selectKelas });
+  if (res && res.status === "success") {
+    LEGER_STS_CACHE[selectKelas] = res;
+    CURRENT_LEGER_DATA = res;
+    renderLegerTable();
+  }
+}
+
+function renderLegerTable() {
+  if (!CURRENT_LEGER_DATA) return;
+  const { meta, data } = CURRENT_LEGER_DATA;
+  document.getElementById('leger-meta-info').innerText = `Kelas: ${meta.kelas || '-'} | Wali Kelas: ${meta.walas || '-'}`;
+
+  const tbody = document.getElementById('table-leger-body');
+  tbody.innerHTML = '';
+
+  data.forEach((row, idx) => {
+    // Lewati header row
+    if (idx < 1) return;
+    const no = row[0];
+    const kelasStr = row[1];
+    const namaSiswa = row[2];
+    if (!namaSiswa) return;
+
+    const tr = document.createElement('tr');
+    tr.className = "hover:bg-slate-50 border-b border-gray-200 h-8 text-xs";
+
+    let html = `
+      <td class="p-1.5 border-r text-center sticky-col left-0 font-semibold text-gray-600 bg-white">${no}</td>
+      <td class="p-1.5 border-r text-center sticky-col left-10 text-gray-700 bg-white">${kelasStr}</td>
+      <td class="p-1.5 border-r sticky-col left-[136px] font-medium text-gray-800 truncate bg-white" title="${namaSiswa}">${namaSiswa}</td>
+    `;
+
+    // 15 Nilai Mapel (D s/d R -> Col index 3 s/d 17)
+    for (let c = 3; c <= 17; c++) {
+      const val = row[c] !== "" ? row[c] : "-";
+      html += `<td class="p-1.5 border-r text-center">${val}</td>`;
+    }
+
+    // 6 Sikap (S s/d X -> Col index 18 s/d 23)
+    for (let c = 18; c <= 23; c++) {
+      const val = row[c] || "-";
+      html += `<td class="p-1.5 border-r text-center font-semibold text-amber-700 bg-amber-50/30">${val}</td>`;
+    }
+
+    // 3 Kehadiran (Y s/d AA -> Col index 24 s/d 26)
+    for (let c = 24; c <= 26; c++) {
+      const val = row[c] !== "" ? row[c] : "0";
+      html += `<td class="p-1.5 border-r text-center bg-rose-50/30">${val}</td>`;
+    }
+
+    // Total, Rata-rata, Ranking (AB s/d AD -> Col index 27 s/d 29)
+    const total = row[27] !== "" ? Number(row[27]).toLocaleString('id-ID') : "-";
+    const avg = row[28] !== "" ? Number(row[28]).toFixed(2).replace('.', ',') : "-";
+    const rank = row[29] !== "" ? row[29] : "-";
+    const surat = row[31] || "-";
+
+    html += `
+      <td class="p-1.5 border-r text-center font-bold bg-emerald-50 text-emerald-900">${total}</td>
+      <td class="p-1.5 border-r text-center font-bold bg-emerald-50 text-emerald-900">${avg}</td>
+      <td class="p-1.5 border-r text-center font-extrabold bg-amber-100 text-amber-900">${rank}</td>
+      <td class="p-1.5 border-r text-gray-700 truncate max-w-xs" title="${surat}">${surat}</td>
+    `;
+
+    tr.innerHTML = html;
+    tbody.appendChild(tr);
+  });
+}
+
+// ----------------------------------------------------
+// MODUL CETAK RAPOR STS
+// ----------------------------------------------------
+async function loadCetakRaporSTS() {
+  const selectKelas = document.getElementById('select-kelas').value;
+  if (!selectKelas) return alert("Pilih Kelas terlebih dahulu pada header!");
+
+  if (!LEGER_STS_CACHE[selectKelas]) {
+    await loadLegerSTS();
+  } else {
+    CURRENT_LEGER_DATA = LEGER_STS_CACHE[selectKelas];
+  }
+
+  if (!CURRENT_LEGER_DATA) return;
+
+  const selectSiswa = document.getElementById('select-siswa-rapor');
+  selectSiswa.innerHTML = '';
+  
+  const dataSiswa = CURRENT_LEGER_DATA.data.slice(1);
+  dataSiswa.forEach((row, idx) => {
+    if (row[2]) {
+      selectSiswa.innerHTML += `<option value="${idx}">${row[0]}. ${row[2]}</option>`;
+    }
+  });
+
+  if (dataSiswa.length > 0) {
+    CURRENT_SISWA_INDEX = 0;
+    selectSiswa.value = "0";
+    renderLembarRapor(0);
+  }
+}
+
+function prevSiswaRapor() {
+  const selectSiswa = document.getElementById('select-siswa-rapor');
+  if (CURRENT_SISWA_INDEX > 0) {
+    CURRENT_SISWA_INDEX--;
+    selectSiswa.value = CURRENT_SISWA_INDEX;
+    renderLembarRapor(CURRENT_SISWA_INDEX);
+  }
+}
+
+function nextSiswaRapor() {
+  const selectSiswa = document.getElementById('select-siswa-rapor');
+  const max = selectSiswa.options.length - 1;
+  if (CURRENT_SISWA_INDEX < max) {
+    CURRENT_SISWA_INDEX++;
+    selectSiswa.value = CURRENT_SISWA_INDEX;
+    renderLembarRapor(CURRENT_SISWA_INDEX);
+  }
+}
+
+function renderLembarRapor(siswaIndex) {
+  siswaIndex = Number(siswaIndex);
+  CURRENT_SISWA_INDEX = siswaIndex;
+  if (!CURRENT_LEGER_DATA) return;
+
+  const meta = CURRENT_LEGER_DATA.meta;
+  const row = CURRENT_LEGER_DATA.data[siswaIndex + 1]; // Offset index 0 header
+  if (!row) return;
+
+  // Set Label Identitas
+  document.getElementById('lbl-rapor-nama').innerText = row[2] || '-';
+  document.getElementById('lbl-rapor-kelas').innerText = meta.kelas || '-';
+  document.getElementById('lbl-rapor-walas').innerText = meta.walas || '-';
+  document.getElementById('lbl-rapor-tgl').innerText = meta.tglRapor || '9 Oktober 2026';
+  document.getElementById('lbl-rapor-nisn').innerText = `314519${1000 + Number(row[0])}`;
+
+  // Pemetaan Mata Pelajaran (Kelompok A & B)
+  const mapelList = [
+    { no: 1, nama: "Pendidikan Agama Islam", col: 3, grp: "A" },
+    { no: 2, nama: "Pendidikan Kewarganegaraan", col: 4, grp: "A" },
+    { no: 3, nama: "Bahasa Indonesia", col: 5, grp: "A" },
+    { no: 4, nama: "Matematika", col: 6, grp: "A" },
+    { no: 5, nama: "Ilmu Pengetahuan Alam", col: 7, grp: "A" },
+    { no: 6, nama: "Ilmu Pengetahuan Sosial", col: 8, grp: "A" },
+    { no: 7, nama: "Bahasa Inggris", col: 9, grp: "A" },
+    { no: 8, nama: "Pendidikan Jasmani Olahraga dan Kesehatan", col: 10, grp: "B" },
+    { no: 9, nama: "Teknologi Informasi dan Komunikasi", col: 11, grp: "B" },
+    { no: 10, nama: "Seni Budaya dan Keterampilan", col: 12, grp: "B" },
+    { no: 11, nama: "Bahasa Arab", col: 13, grp: "B" },
+    { no: 12, nama: "Tarjim", col: 16, grp: "B" },
+    { no: 13, nama: "Koding", col: 17, grp: "B" },
+    { no: 14, nama: "Tahsin dan Tahfidzul Qur'an", col: 14, grp: "B" }
+  ];
+
+  const tbody = document.getElementById('rapor-tbody-nilai');
+  tbody.innerHTML = '';
+
+  const getHuruf = (val) => {
+    if (val >= 90) return 'A';
+    if (val >= 80) return 'B';
+    if (val >= 75) return 'C';
+    if (val >= 60) return 'D';
+    return 'E';
+  };
+
+  // Render Kelompok A
+  tbody.innerHTML += `<tr class="bg-gray-100 font-bold"><td colspan="6" class="border border-black p-1">Kelompok A :</td></tr>`;
+  mapelList.filter(m => m.grp === "A").forEach(m => {
+    const val = row[m.col] !== "" ? Number(row[m.col]) : "-";
+    const huruf = typeof val === 'number' ? getHuruf(val) : "-";
+    const desk = val >= 75 ? "Terlampaui" : "Belum Tercapai";
+    tbody.innerHTML += `
+      <tr>
+        <td class="border border-black p-1 text-center">${m.no}</td>
+        <td class="border border-black p-1">${m.nama}</td>
+        <td class="border border-black p-1 text-center">75</td>
+        <td class="border border-black p-1 text-center font-bold">${val}</td>
+        <td class="border border-black p-1 text-center font-bold">${huruf}</td>
+        <td class="border border-black p-1 text-center italic">${desk}</td>
+      </tr>
+    `;
+  });
+
+  // Render Kelompok B
+  tbody.innerHTML += `<tr class="bg-gray-100 font-bold"><td colspan="6" class="border border-black p-1">Kelompok B :</td></tr>`;
+  mapelList.filter(m => m.grp === "B").forEach(m => {
+    const val = row[m.col] !== "" ? Number(row[m.col]) : "-";
+    const huruf = typeof val === 'number' ? getHuruf(val) : "-";
+    const desk = val >= 75 ? "Terlampaui" : "Belum Tercapai";
+    tbody.innerHTML += `
+      <tr>
+        <td class="border border-black p-1 text-center">${m.no}</td>
+        <td class="border border-black p-1">${m.nama}</td>
+        <td class="border border-black p-1 text-center">75</td>
+        <td class="border border-black p-1 text-center font-bold">${val}</td>
+        <td class="border border-black p-1 text-center font-bold">${huruf}</td>
+        <td class="border border-black p-1 text-center italic">${desk}</td>
+      </tr>
+    `;
+  });
+
+  // Catatan Khusus T2Q
+  const catatanT2Q = row[31] || `Ananda ${row[2]} telah menyelesaikan hafalan.`;
+  tbody.innerHTML += `
+    <tr>
+      <td colspan="6" class="border border-black p-1.5 italic font-medium bg-gray-50">
+        ${catatanT2Q}
+      </td>
+    </tr>
+  `;
+
+  // Extrakurikuler & Sikap
+  document.getElementById('rapor-ekstra-pramuka-nilai').innerText = row[18] || 'B';
+  document.getElementById('rapor-sikap-ibadah').innerText = row[19] || 'B';
+  document.getElementById('rapor-sikap-sosial').innerText = row[20] || 'A';
+  document.getElementById('rapor-sikap-mandiri').innerText = row[21] || 'B';
+  document.getElementById('rapor-akh-val').innerText = row[22] || 'B';
+  document.getElementById('rapor-kpb-val').innerText = row[23] || 'B';
+
+  // Absensi
+  document.getElementById('rapor-abs-s').innerText = `${row[24] !== "" ? row[24] : 0} Hari`;
+  document.getElementById('rapor-abs-i').innerText = `${row[25] !== "" ? row[25] : 0} Hari`;
+  document.getElementById('rapor-abs-a').innerText = `${row[26] !== "" ? row[26] : 0} Hari`;
+
+  // Total, Avg, Rank
+  document.getElementById('rapor-total-val').innerText = row[27] !== "" ? Number(row[27]).toLocaleString('id-ID') : '-';
+  document.getElementById('rapor-avg-val').innerText = row[28] !== "" ? Number(row[28]).toFixed(2).replace('.', ',') : '-';
+  document.getElementById('rapor-rank-val').innerText = `${row[29] || '-'} dari 26 Siswa`;
+
+  // TTD Walas
+  document.getElementById('rapor-ttd-walas').innerText = meta.walas || '( Wali Kelas )';
+  document.getElementById('rapor-ttd-tgl').innerText = `Mukomuko, ${meta.tglRapor || '9 Oktober 2026'}`;
+}
