@@ -16,7 +16,8 @@ async function loadCetakRaporSTS() {
   const selectSiswa = document.getElementById('select-siswa-rapor');
   selectSiswa.innerHTML = '';
   
-  const dataSiswa = CURRENT_LEGER_DATA.data.slice(1);
+  // PERBAIKAN 1: Gunakan data langsung tanpa .slice(1) agar Siswa No. 1 tidak terbuang
+  const dataSiswa = CURRENT_LEGER_DATA.data || [];
   dataSiswa.forEach((row, idx) => {
     if (row[2]) {
       selectSiswa.innerHTML += `<option value="${idx}">${row[0]}. ${row[2]}</option>`;
@@ -53,7 +54,9 @@ function renderLembarRapor(siswaIndex) {
   CURRENT_SISWA_INDEX = siswaIndex;
   if (!CURRENT_LEGER_DATA) return;
   const meta = CURRENT_LEGER_DATA.meta || {};
-  const row = CURRENT_LEGER_DATA.data[siswaIndex + 1];
+  
+  // PERBAIKAN 2: Gunakan siswaIndex langsung (tanpa + 1)
+  const row = CURRENT_LEGER_DATA.data[siswaIndex];
   if (!row) return;
 
   const namaSiswa = row[2] || '-';
@@ -79,7 +82,12 @@ function renderLembarRapor(siswaIndex) {
 
   const elWalasNipy = document.getElementById('rapor-ttd-walas-nipy');
   if (elWalasNipy) {
-    elWalasNipy.innerText = meta.nipyWalas ? (meta.nipyWalas.startsWith('NIPY') ? meta.nipyWalas : `NIPY. ${meta.nipyWalas}`) : '';
+    if (meta.nipyWalas && meta.nipyWalas !== meta.walas) {
+      const cleanNipy = String(meta.nipyWalas).replace(/^NIPY\.?\s*/i, '');
+      elWalasNipy.innerText = `NIPY. ${cleanNipy}`;
+    } else {
+      elWalasNipy.innerText = '';
+    }
   }
 
   const elTgl = document.getElementById('rapor-ttd-tgl');
@@ -94,7 +102,12 @@ function renderLembarRapor(siswaIndex) {
 
   const elKepsekNipy = document.getElementById('rapor-ttd-kepsek-nipy');
   if (elKepsekNipy) {
-    elKepsekNipy.innerText = meta.nipyKepsek || 'NIPY. 141981071801014';
+    if (meta.nipyKepsek) {
+      const cleanKepsekNipy = String(meta.nipyKepsek).replace(/^NIPY\.?\s*/i, '');
+      elKepsekNipy.innerText = `NIPY. ${cleanKepsekNipy}`;
+    } else {
+      elKepsekNipy.innerText = 'NIPY. 141981071801014';
+    }
   }
 
   const mapelList = [
