@@ -136,7 +136,6 @@ function renderLembarRapor(siswaIndex) {
   document.getElementById('rapor-abs-a').innerText = `${row[26] !== "" ? row[26] : 0} Hari`;
   document.getElementById('rapor-total-val').innerText = row[27] !== "" ? Number(row[27]).toLocaleString('id-ID') : '-';
   document.getElementById('rapor-avg-val').innerText = row[28] !== "" ? Number(row[28]).toFixed(2).replace('.', ',') : '-';
-  document.getElementById('rapor-rank-val').innerText = `${row[29] || '-'} dari 26 Siswa`;
   document.getElementById('rapor-ttd-walas').innerText = meta.walas || '( Wali Kelas )';
   document.getElementById('rapor-ttd-tgl').innerText = `Mukomuko, ${meta.tglRapor || '9 Oktober 2026'}`;
 }
