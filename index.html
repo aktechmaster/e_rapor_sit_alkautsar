@@ -10,27 +10,34 @@
   <style>
     @media print {
   @page {
-    size: 215.9mm 330.2mm; /* Ukuran Standar Folio / F4 */
-    margin: 8mm 10mm;
+    size: 215.9mm 330.2mm; /* Ukuran Kertas Folio / F4 */
+    margin: 5mm 8mm;       /* Margin tipis agar presisi 1 halaman */
   }
-  body { background-color: white !important; }
+  
+  /* Reset total seluruh wrapper pembungkus agar tidak memicu lembar kosong di awal */
+  html, body, #app-container, main, main > div {
+    height: auto !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background-color: white !important;
+    overflow: visible !important;
+    display: block !important;
+  }
+
+  /* Sembunyikan elemen antarmuka web */
   #sidebar, header, #sidebar-overlay, .no-print, #global-loading {
     display: none !important;
   }
-  #app-container {
-    display: block !important;
-    height: auto !important;
-    overflow: visible !important;
-  }
-  main {
-    padding: 0 !important;
-    margin: 0 !important;
-    overflow: visible !important;
-  }
+
   #view-cetak-sts {
     display: block !important;
+    margin: 0 !important;
+    padding: 0 !important;
     overflow: visible !important;
   }
+
+  /* Kunci lembar rapor agar dimulai tepat di halaman pertama */
   #rapor-print-container {
     border: none !important;
     box-shadow: none !important;
@@ -38,7 +45,9 @@
     max-width: 100% !important;
     width: 100% !important;
     margin: 0 !important;
-    page-break-inside: avoid;
+    page-break-before: avoid !important;
+    page-break-after: avoid !important;
+    page-break-inside: avoid !important;
   }
 }
   </style>
@@ -364,15 +373,15 @@
   </div>
 
   <!-- CONTAINER LEMBAR RAPOR HTML (PRESISI CETAK FOLIO / F4) -->
-  <div id="rapor-print-container" class="relative bg-white p-6 max-w-[215mm] mx-auto border border-gray-300 shadow-lg text-black font-sans text-xs overflow-hidden">
+  <div id="rapor-print-container" class="relative bg-white p-5 max-w-[215mm] mx-auto border border-gray-300 shadow-lg text-black font-sans text-xs overflow-hidden">
     
     <!-- KONTEN UTAMA RAPOR (LAYER Z-10) -->
     <div class="relative z-10">
       
       <!-- HEADER RAPOR -->
-      <div class="flex items-center justify-between border-b-2 border-black pb-2 mb-3">
-        <!-- LOGO KIRI (DIPERBESAR SAN PROPORSIOANL) -->
-        <img src="pictures/logoyayasan.png" alt="Logo Yayasan" class="w-24 h-24 object-contain shrink-0">
+      <div class="flex items-center justify-between border-b-2 border-black pb-2 mb-2.5">
+        <!-- LOGO KIRI YAYASAN -->
+        <img src="pictures/logoyayasan.png" alt="Logo Yayasan" class="w-20 h-20 object-contain shrink-0">
         
         <div class="text-center flex-1 px-2">
           <h4 class="font-bold text-xs uppercase tracking-wide">YAYASAN AL-AMANAH MUKOMUKO</h4>
@@ -383,14 +392,14 @@
           <p class="text-[9px] text-gray-600">Alamat: Jl. Kuku Besi Suka Rame Desa Pasar Sebelah Kec. Kota Mukomuko Kab. Mukomuko Bengkulu</p>
         </div>
 
-        <!-- LOGO KANAN (DIPERBESAR SAN PROPORSIOANL) -->
-        <img src="pictures/logosmpit.png" alt="Logo SMPIT" class="w-24 h-24 object-contain shrink-0">
+        <!-- LOGO KANAN SMPIT -->
+        <img src="pictures/logosmpit.png" alt="Logo SMPIT" class="w-20 h-20 object-contain shrink-0">
       </div>
       
-      <h3 class="font-bold text-center text-xs uppercase underline mb-3 tracking-wide">LAPORAN HASIL BELAJAR SUMATIF TENGAH SEMESTER GANJIL</h3>
+      <h3 class="font-bold text-center text-xs uppercase underline mb-2.5 tracking-wide">LAPORAN HASIL BELAJAR SUMATIF TENGAH SEMESTER GANJIL</h3>
       
       <!-- IDENTITAS SISWA -->
-      <div class="grid grid-cols-2 gap-x-6 gap-y-0.5 mb-3 text-xs">
+      <div class="grid grid-cols-2 gap-x-6 gap-y-0.5 mb-2.5 text-xs">
         <table class="w-full">
           <tr><td class="w-28 font-semibold py-0.5">Nama Siswa</td><td class="w-3">:</td><td class="font-bold uppercase" id="lbl-rapor-nama">-</td></tr>
           <tr><td class="font-semibold py-0.5">Kelas</td><td>:</td><td id="lbl-rapor-kelas">-</td></tr>
@@ -406,7 +415,7 @@
       </div>
       
       <!-- TABEL NILAI UTAMA -->
-      <table class="w-full border-collapse border border-black text-xs mb-3">
+      <table class="w-full border-collapse border border-black text-xs mb-2.5">
         <thead>
           <tr class="bg-gray-100 text-center font-bold">
             <th class="border border-black p-1 w-8" rowspan="2">No</th>
@@ -424,7 +433,7 @@
       </table>
       
       <!-- EKSTRAKURIKULER & PENGEMBANGAN DIRI -->
-      <div class="grid grid-cols-2 gap-4 mb-3">
+      <div class="grid grid-cols-2 gap-3 mb-2.5">
         <div>
           <h4 class="font-bold text-xs uppercase mb-1">Ekstrakurikuler</h4>
           <table class="w-full border-collapse border border-black text-xs">
@@ -464,7 +473,7 @@
       </div>
       
       <!-- AKHLAK & KEHADIRAN -->
-      <div class="grid grid-cols-2 gap-4 mb-3">
+      <div class="grid grid-cols-2 gap-3 mb-2.5">
         <table class="w-full border-collapse border border-black text-xs">
           <tr class="bg-gray-100 font-bold"><td class="border border-black p-1" colspan="2">Akhlak & Kepribadian</td></tr>
           <tr><td class="border border-black p-1">Akhlak</td><td class="border border-black p-1 text-center font-bold w-16" id="rapor-akh-val">-</td></tr>
@@ -479,27 +488,27 @@
       </div>
       
       <!-- REKAPITULASI PRESTASI SISWA (WARNA HITAM) -->
-      <table class="w-full border-collapse border border-black text-xs mb-4">
+      <table class="w-full border-collapse border border-black text-xs mb-2.5">
         <tr class="bg-gray-50"><td class="border border-black p-1 font-bold w-40">Nilai Keseluruhan</td><td class="border border-black p-1 font-bold text-black" id="rapor-total-val">-</td></tr>
         <tr class="bg-gray-50"><td class="border border-black p-1 font-bold">Nilai Rata-rata</td><td class="border border-black p-1 font-bold text-black" id="rapor-avg-val">-</td></tr>
       </table>
       
-      <!-- TANDA TANGAN (RUANG TTD RIGID PAS UNTUK FOLIO) -->
-      <div class="grid grid-cols-3 text-center text-xs mt-4 gap-4">
+      <!-- TANDA TANGAN (JARAK SPASI TTD DIPERBEAR UNTUK TTD & STEMBEL) -->
+      <div class="grid grid-cols-3 text-center text-xs mt-3 gap-4">
         <div>
           <p>Orang Tua / Wali</p>
-          <div class="h-12"></div>
+          <div class="h-16"></div>
           <p class="font-bold underline">( .................................... )</p>
         </div>
         <div>
           <p>Wali Kelas</p>
-          <div class="h-12"></div>
+          <div class="h-16"></div>
           <p class="font-bold underline" id="rapor-ttd-walas">-</p>
         </div>
         <div>
           <p id="rapor-ttd-tgl">Mukomuko, 9 Oktober 2026</p>
           <p>Kepala SMPIT Al-Kautsar</p>
-          <div class="h-10"></div>
+          <div class="h-14"></div>
           <p class="font-bold underline">Warto, S.Pd.I., M.Pd.Gr</p>
           <p class="text-[9px]">NIPY. 141981071801014</p>
         </div>
@@ -509,7 +518,7 @@
 
     <!-- WATERMARK LOGO DI DEPAN (DEPAN TABEL Z-20) -->
     <div class="absolute inset-0 flex items-center justify-center pointer-events-none opacity-[0.10] z-20">
-      <img src="pictures/LOGO SMPIT AL-KAUTSAR.png" alt="Watermark Logo" class="w-[500px] h-auto object-contain">
+      <img src="pictures/LOGO SMPIT AL-KAUTSAR.png" alt="Watermark Logo" class="w-[480px] h-auto object-contain">
     </div>
 
   </div>
