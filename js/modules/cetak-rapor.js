@@ -7,16 +7,18 @@ async function loadCetakRaporSTS() {
     alert("Akun Anda tidak terdaftar sebagai Wali Kelas!");
     return;
   }
-  if (!LEGER_STS_CACHE[kelasWalas]) {
-    await loadLegerSTS();
+  
+  // Jika cache belum ada atau meta.ortuMap belum ada, paksa refresh data dari GAS API
+  if (!LEGER_STS_CACHE[kelasWalas] || !LEGER_STS_CACHE[kelasWalas].meta || !LEGER_STS_CACHE[kelasWalas].meta.ortuMap) {
+    await loadLegerSTS(true);
   } else {
     CURRENT_LEGER_DATA = LEGER_STS_CACHE[kelasWalas];
   }
+  
   if (!CURRENT_LEGER_DATA) return;
   const selectSiswa = document.getElementById('select-siswa-rapor');
   selectSiswa.innerHTML = '';
   
-  // Ambil data langsung tanpa .slice(1) agar Siswa No. 1 terdaftar
   const dataSiswa = CURRENT_LEGER_DATA.data || [];
   dataSiswa.forEach((row, idx) => {
     if (row[2]) {
@@ -59,13 +61,17 @@ function renderLembarRapor(siswaIndex) {
   if (!row) return;
 
   const namaSiswa = row[2] || '-';
-  const cleanNamaSiswa = namaSiswa.trim().replace(/\s+/g, ' ').toUpperCase();
+  
+  // Kunci pencarian ganda (Standard & Alpha-only)
+  const keyUpper = String(namaSiswa).trim().replace(/\s+/g, ' ').toUpperCase();
+  const keyAlpha = String(namaSiswa).toUpperCase().replace(/[^A-Z0-9]/g, '');
 
-  // NISN & Nama Ortu Otomatis dari Tab DASIS
   const ortuMap = meta.ortuMap || {};
   const nisnMap = meta.nisnMap || {};
-  const realNisn = nisnMap[cleanNamaSiswa] || '-';
-  const namaOrtu = ortuMap[cleanNamaSiswa] || '';
+
+  // Pencarian NISN & Nama Ortu
+  const realNisn = nisnMap[keyUpper] || nisnMap[keyAlpha] || '-';
+  const namaOrtu = ortuMap[keyUpper] || ortuMap[keyAlpha] || '';
 
   document.getElementById('lbl-rapor-nama').innerText = namaSiswa;
   document.getElementById('lbl-rapor-kelas').innerText = meta.kelas || '-';
@@ -77,7 +83,7 @@ function renderLembarRapor(siswaIndex) {
     elOrtu.innerText = namaOrtu ? `( ${namaOrtu} )` : '( .................................... )';
   }
 
-  // Wali Kelas dari Profil login / Dashboard
+  // Wali Kelas dari Profil Login / Dashboard
   const namaWalasResmi = (STATE.currentUser && STATE.currentUser.nama_lengkap) 
     ? STATE.currentUser.nama_lengkap 
     : (meta.walas || '( Wali Kelas )');
