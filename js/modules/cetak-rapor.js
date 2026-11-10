@@ -52,14 +52,51 @@ function renderLembarRapor(siswaIndex) {
   siswaIndex = Number(siswaIndex);
   CURRENT_SISWA_INDEX = siswaIndex;
   if (!CURRENT_LEGER_DATA) return;
-  const meta = CURRENT_LEGER_DATA.meta;
+  const meta = CURRENT_LEGER_DATA.meta || {};
   const row = CURRENT_LEGER_DATA.data[siswaIndex + 1];
   if (!row) return;
-  document.getElementById('lbl-rapor-nama').innerText = row[2] || '-';
+
+  const namaSiswa = row[2] || '-';
+  const nisnVal = `314519${1000 + Number(row[0])}`;
+
+  document.getElementById('lbl-rapor-nama').innerText = namaSiswa;
   document.getElementById('lbl-rapor-kelas').innerText = meta.kelas || '-';
-  document.getElementById('lbl-rapor-walas').innerText = meta.walas || '-';
-  document.getElementById('lbl-rapor-tgl').innerText = meta.tglRapor || '9 Oktober 2026';
-  document.getElementById('lbl-rapor-nisn').innerText = `314519${1000 + Number(row[0])}`;
+  document.getElementById('lbl-rapor-nisn').innerText = nisnVal;
+  
+  // Update Tanda Tangan & Meta Data Dinamis dari Spreadsheet (LEGER, RAPOR, DASIS)
+  const ortuMap = meta.ortuMap || {};
+  const namaOrtu = ortuMap[namaSiswa.trim().toUpperCase()] || ortuMap[nisnVal] || '';
+  
+  const elOrtu = document.getElementById('rapor-ttd-ortu');
+  if (elOrtu) {
+    elOrtu.innerText = namaOrtu ? `( ${namaOrtu} )` : '( .................................... )';
+  }
+
+  const elWalas = document.getElementById('rapor-ttd-walas');
+  if (elWalas) {
+    elWalas.innerText = meta.walas || '( Wali Kelas )';
+  }
+
+  const elWalasNipy = document.getElementById('rapor-ttd-walas-nipy');
+  if (elWalasNipy) {
+    elWalasNipy.innerText = meta.nipyWalas ? (meta.nipyWalas.startsWith('NIPY') ? meta.nipyWalas : `NIPY. ${meta.nipyWalas}`) : '';
+  }
+
+  const elTgl = document.getElementById('rapor-ttd-tgl');
+  if (elTgl) {
+    elTgl.innerText = `Mukomuko, ${meta.tglRapor || '9 Oktober 2026'}`;
+  }
+
+  const elKepsek = document.getElementById('rapor-ttd-kepsek');
+  if (elKepsek) {
+    elKepsek.innerText = meta.kepsek || 'Warto, S.Pd.I., M.Pd.Gr';
+  }
+
+  const elKepsekNipy = document.getElementById('rapor-ttd-kepsek-nipy');
+  if (elKepsekNipy) {
+    elKepsekNipy.innerText = meta.nipyKepsek || 'NIPY. 141981071801014';
+  }
+
   const mapelList = [
     { no: 1, nama: "Pendidikan Agama Islam", col: 3, grp: "A" },
     { no: 2, nama: "Pendidikan Kewarganegaraan", col: 4, grp: "A" },
@@ -136,6 +173,4 @@ function renderLembarRapor(siswaIndex) {
   document.getElementById('rapor-abs-a').innerText = `${row[26] !== "" ? row[26] : 0} Hari`;
   document.getElementById('rapor-total-val').innerText = row[27] !== "" ? Number(row[27]).toLocaleString('id-ID') : '-';
   document.getElementById('rapor-avg-val').innerText = row[28] !== "" ? Number(row[28]).toFixed(2).replace('.', ',') : '-';
-  document.getElementById('rapor-ttd-walas').innerText = meta.walas || '( Wali Kelas )';
-  document.getElementById('rapor-ttd-tgl').innerText = `Mukomuko, ${meta.tglRapor || '9 Oktober 2026'}`;
 }
