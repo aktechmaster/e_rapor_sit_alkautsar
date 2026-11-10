@@ -16,7 +16,7 @@ async function loadCetakRaporSTS() {
   const selectSiswa = document.getElementById('select-siswa-rapor');
   selectSiswa.innerHTML = '';
   
-  // PERBAIKAN 1: Gunakan data langsung tanpa .slice(1) agar Siswa No. 1 tidak terbuang
+  // Ambil data langsung tanpa .slice(1) agar Siswa No. 1 terdaftar
   const dataSiswa = CURRENT_LEGER_DATA.data || [];
   dataSiswa.forEach((row, idx) => {
     if (row[2]) {
@@ -55,7 +55,7 @@ function renderLembarRapor(siswaIndex) {
   if (!CURRENT_LEGER_DATA) return;
   const meta = CURRENT_LEGER_DATA.meta || {};
   
-  // PERBAIKAN 2: Gunakan siswaIndex langsung (tanpa + 1)
+  // Ambil baris data siswa langsung (tanpa + 1)
   const row = CURRENT_LEGER_DATA.data[siswaIndex];
   if (!row) return;
 
@@ -66,7 +66,7 @@ function renderLembarRapor(siswaIndex) {
   document.getElementById('lbl-rapor-kelas').innerText = meta.kelas || '-';
   document.getElementById('lbl-rapor-nisn').innerText = nisnVal;
   
-  // Update Tanda Tangan & Meta Data Dinamis dari Spreadsheet (LEGER, RAPOR, DASIS)
+  // Update Tanda Tangan Orang Tua dari DASIS
   const ortuMap = meta.ortuMap || {};
   const namaOrtu = ortuMap[namaSiswa.trim().toUpperCase()] || ortuMap[nisnVal] || '';
   
@@ -75,15 +75,25 @@ function renderLembarRapor(siswaIndex) {
     elOrtu.innerText = namaOrtu ? `( ${namaOrtu} )` : '( .................................... )';
   }
 
+  // SINKRONISASI: Prioritaskan Nama Wali Kelas lengkap (+Gelar) dari STATE.currentUser (Profil Dashboard)
+  const namaWalasResmi = (STATE.currentUser && STATE.currentUser.nama_lengkap) 
+    ? STATE.currentUser.nama_lengkap 
+    : (meta.walas || '( Wali Kelas )');
+
   const elWalas = document.getElementById('rapor-ttd-walas');
   if (elWalas) {
-    elWalas.innerText = meta.walas || '( Wali Kelas )';
+    elWalas.innerText = namaWalasResmi;
   }
 
+  // SINKRONISASI: Prioritaskan NIP/NIK dari STATE.currentUser (Profil Dashboard)
   const elWalasNipy = document.getElementById('rapor-ttd-walas-nipy');
   if (elWalasNipy) {
-    if (meta.nipyWalas && meta.nipyWalas !== meta.walas) {
-      const cleanNipy = String(meta.nipyWalas).replace(/^NIPY\.?\s*/i, '');
+    const nipVal = (STATE.currentUser && STATE.currentUser.nip_nik) 
+      ? STATE.currentUser.nip_nik 
+      : meta.nipyWalas;
+
+    if (nipVal) {
+      const cleanNipy = String(nipVal).replace(/^NIPY\.?\s*/i, '');
       elWalasNipy.innerText = `NIPY. ${cleanNipy}`;
     } else {
       elWalasNipy.innerText = '';
@@ -97,7 +107,7 @@ function renderLembarRapor(siswaIndex) {
 
   const elKepsek = document.getElementById('rapor-ttd-kepsek');
   if (elKepsek) {
-    elKepsek.innerText = meta.kepsek || 'Warto, S.Pd.I., M.Pd.Gr';
+    elKepsek.innerText = meta.kepsek || 'Warto, S.Pd.I., M.Pd., Gr.';
   }
 
   const elKepsekNipy = document.getElementById('rapor-ttd-kepsek-nipy');
