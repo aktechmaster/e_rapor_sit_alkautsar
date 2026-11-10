@@ -68,8 +68,9 @@ function renderLembarRapor(siswaIndex) {
   
   // Update Tanda Tangan Orang Tua dari DASIS
   const ortuMap = meta.ortuMap || {};
-  const namaOrtu = ortuMap[namaSiswa.trim().toUpperCase()] || ortuMap[nisnVal] || '';
-  
+  const cleanNamaSiswa = namaSiswa.trim().replace(/\s+/g, ' ').toUpperCase();
+  const namaOrtu = ortuMap[cleanNamaSiswa] || ortuMap[nisnVal] || '';
+
   const elOrtu = document.getElementById('rapor-ttd-ortu');
   if (elOrtu) {
     elOrtu.innerText = namaOrtu ? `( ${namaOrtu} )` : '( .................................... )';
