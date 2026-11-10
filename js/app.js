@@ -82,14 +82,11 @@ function populateDropdowns(user) {
       }
     });
   }
-  if (user.walas_kelas) {
-    let exists = false;
-    for (let i = 0; i < selectKelas.options.length; i++) {
-      if (selectKelas.options[i].value === user.walas_kelas) exists = true;
-    }
-    if (!exists) {
-      selectKelas.innerHTML += `<option value="${user.walas_kelas}">${user.walas_kelas} (Kelas Wali)</option>`;
-    }
+
+  // Otomatis pilih Mapel & tampilkan daftar kelas jika guru hanya mengajar 1 Mapel
+  if (selectMapel.options.length === 2) {
+    selectMapel.selectedIndex = 1;
+    updateKelasDropdown(selectMapel.value);
   }
 }
 
@@ -100,7 +97,7 @@ function updateKelasDropdown(selectedMapel) {
   if (!selectedMapel || !MAPEL_KELAS_MAPPING[selectedMapel]) return;
   const kelasList = MAPEL_KELAS_MAPPING[selectedMapel];
   kelasList.forEach(kls => {
-    const formattedKls = kls.replace('kls-', '').toUpperCase();
+    const formattedKls = kls.replace(/^kls-/i, '').toUpperCase();
     selectKelas.innerHTML += `<option value="${formattedKls}">${formattedKls}</option>`;
   });
 }
