@@ -38,7 +38,6 @@
   </style>
 </head>
 <body class="bg-gray-100 font-sans text-gray-800 antialiased">
-
   <!-- OVERLAY LOADING GLOBAL -->
   <div id="global-loading" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex flex-col items-center justify-center text-white transition-opacity">
     <div class="bg-slate-900 p-6 rounded-2xl shadow-2xl flex flex-col items-center border border-slate-700 min-w-[200px]">
@@ -46,13 +45,11 @@
       <p class="text-xs font-semibold tracking-wide text-slate-300" id="loading-text">Memproses data...</p>
     </div>
   </div>
-
   <!-- MAIN DASHBOARD CONTAINER -->
   <div id="app-container" class="flex h-screen overflow-hidden">
     
     <!-- OVERLAY SIDEBAR UNTUK TAMPILAN HP -->
     <div id="sidebar-overlay" onclick="toggleSidebar()" class="fixed inset-0 bg-slate-900/50 z-30 hidden md:hidden backdrop-blur-sm transition-opacity"></div>
-
     <!-- SIDEBAR -->
     <aside id="sidebar" class="fixed md:relative z-40 h-full w-64 bg-slate-900 text-white flex flex-col justify-between shadow-lg shrink-0 transition-all duration-300 -translate-x-full md:translate-x-0">
       <div>
@@ -74,7 +71,6 @@
             <p class="text-xs text-slate-400 truncate" id="user-role">Guru Mata Pelajaran</p>
           </div>
         </div>
-
         <nav class="p-4 flex flex-col space-y-2">
           <a href="#" id="nav-dashboard" onclick="switchMenu('dashboard')" class="menu-item active">
             <i class="fa-solid fa-gauge w-5 text-center"></i> <span>Dashboard</span>
@@ -91,7 +87,6 @@
           <a href="#" id="nav-katrol" onclick="switchMenu('katrol')" class="menu-item">
             <i class="fa-solid fa-sliders w-5 text-center"></i> <span>Pengolahan Katrol</span>
           </a>
-
           <!-- MENU KHUSUS WALI KELAS (DEFAULT HIDDEN DENGAN CLASS 'hidden') -->
           <a href="#" id="nav-leger" onclick="switchMenu('leger')" class="menu-item hidden bg-amber-500/10 text-amber-300 hover:bg-amber-500/20">
             <i class="fa-solid fa-table w-5 text-center"></i> <span>Leger STS</span>
@@ -101,7 +96,6 @@
           </a>
         </nav>
       </div>
-
       <div class="p-4 border-t border-slate-800">
         <button id="btn-logout" onclick="logout()" class="w-full py-2.5 px-4 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium flex items-center justify-center space-x-2 transition">
           <i class="fa-solid fa-right-from-bracket"></i>
@@ -109,22 +103,19 @@
         </button>
       </div>
     </aside>
-
     <!-- MAIN CONTENT -->
-    <main class="flex-1 flex flex-col overflow-y-auto">
+    <main class="flex-1 flex flex-col overflow-hidden">
       <header class="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-4 md:px-6 shadow-sm">
         <div class="flex items-center space-x-3 md:space-x-4">
           <button id="btn-toggle-sidebar" onclick="toggleSidebar()" class="p-2 rounded-lg text-slate-600 hover:bg-slate-100 hover:text-indigo-600 focus:outline-none transition">
             <i class="fa-solid fa-bars text-lg"></i>
           </button>
-
           <div class="flex items-center space-x-2">
             <label class="text-xs font-bold text-gray-500 uppercase hidden sm:inline">Mapel:</label>
             <select id="select-mapel" class="form-select border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs sm:text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 max-w-[130px] sm:max-w-none">
               <option value="">-- Pilih Mapel --</option>
             </select>
           </div>
-
           <div class="flex items-center space-x-2">
             <label class="text-xs font-bold text-gray-500 uppercase hidden sm:inline">Kelas:</label>
             <select id="select-kelas" class="form-select border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs sm:text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
@@ -132,14 +123,12 @@
             </select>
           </div>
         </div>
-
         <div id="connection-status" class="text-xs px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 font-medium flex items-center space-x-1.5 shrink-0">
           <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
           <span class="hidden sm:inline">API Connected</span>
         </div>
       </header>
-
-      <div class="p-4 sm:p-6 pb-3 flex-1">
+      <div class="p-4 sm:p-6 pb-3 flex-1 flex flex-col min-h-0">
         
         <!-- VIEW 1: DASHBOARD UTAMA -->
         <div id="view-dashboard" class="space-y-6">
@@ -147,7 +136,6 @@
             <h2 class="text-2xl font-bold mb-2">Selamat Datang di Aplikasi E-Rapor</h2>
             <p class="text-indigo-100 text-sm">Silakan pilih Mata Pelajaran dan Kelas pada menu drop-down di atas untuk mulai menginput nilai.</p>
           </div>
-
           <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div onclick="switchMenu('tp')" class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm hover:shadow-md hover:border-indigo-500 transition cursor-pointer group">
               <i class="fa-solid fa-list-check text-indigo-600 text-3xl mb-4 group-hover:scale-110 transition-transform"></i>
@@ -168,7 +156,6 @@
             </div>
           </div>
         </div>
-
         <!-- VIEW 2: SETTING CP / TP -->
         <div id="view-tp" class="hidden space-y-4">
           <div class="flex items-center justify-between bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
@@ -181,7 +168,6 @@
               <span>Simpan CP / TP</span>
             </button>
           </div>
-
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
               <h4 class="font-bold text-sm text-slate-700 mb-3 border-b pb-2">Capaian Pembelajaran (CP / ATP) - 10 Item</h4>
@@ -193,10 +179,9 @@
             </div>
           </div>
         </div>
-
         <!-- VIEW 3: NILAI SUMATIF GRID -->
-        <div id="view-sumatif" class="hidden space-y-4">
-          <div class="flex flex-wrap items-center justify-between bg-white p-4 rounded-xl border border-gray-200 shadow-sm gap-4">
+        <div id="view-sumatif" class="hidden space-y-4 flex-1 flex flex-col min-h-0">
+          <div class="flex flex-wrap items-center justify-between bg-white p-4 rounded-xl border border-gray-200 shadow-sm gap-4 shrink-0">
             <div>
               <h3 class="font-bold text-lg text-slate-800">Form Input Nilai Sumatif</h3>
               <p class="text-xs text-gray-500">Input Nilai Tugas Harian (TH) 1-3 & Penilaian Harian (PH)</p>
@@ -212,16 +197,14 @@
                 <option value="TP6">Sumatif LM 6 (TP 6)</option>
                 <option value="SAS">SAS Non-Tes</option>
               </select>
-
               <button onclick="simpanSumatif()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2 rounded-lg font-medium shadow-sm transition flex items-center space-x-2">
                 <i class="fa-solid fa-floppy-disk"></i>
                 <span>Simpan Sumatif</span>
               </button>
             </div>
           </div>
-
-          <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-            <div class="table-container overflow-x-auto max-h-[calc(100vh-200px)]">
+          <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden flex-1 flex flex-col min-h-0">
+            <div class="table-container overflow-auto flex-1 min-h-0">
               <table class="table-fixed text-left border-collapse text-xs">
                 <thead class="bg-slate-100 sticky top-0 z-10 border-b border-gray-200">
                   <tr id="table-sumatif-header">
@@ -235,10 +218,9 @@
             </div>
           </div>
         </div>
-
         <!-- VIEW 4: NILAI FORMATIF GRID -->
-        <div id="view-formatif" class="hidden space-y-4">
-          <div class="flex items-center justify-between bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
+        <div id="view-formatif" class="hidden space-y-4 flex-1 flex flex-col min-h-0">
+          <div class="flex items-center justify-between bg-white p-4 rounded-xl border border-gray-200 shadow-sm shrink-0">
             <div>
               <h3 class="font-bold text-lg text-slate-800">Form Input Nilai Formatif (TP 1 - TP 20)</h3>
               <p class="text-xs text-gray-500">Isi nilai skala 1-4 atau 1-100 pada koordinat sel AS8:BN47</p>
@@ -254,9 +236,8 @@
               </button>
             </div>
           </div>
-
-          <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-            <div class="table-container overflow-x-auto max-h-[calc(100vh-200px)]">
+          <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden flex-1 flex flex-col min-h-0">
+            <div class="table-container overflow-auto flex-1 min-h-0">
               <table class="table-fixed text-left border-collapse text-xs">
                 <thead class="bg-slate-100 sticky top-0 z-10 border-b border-gray-200">
                   <tr id="table-formatif-header">
@@ -270,7 +251,6 @@
             </div>
           </div>
         </div>
-
         <!-- VIEW 5: PENGOLAHAN KATROL -->
         <div id="view-katrol" class="hidden space-y-4">
           <div class="flex items-center justify-between bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
@@ -283,7 +263,6 @@
               <span>Simpan Katrol</span>
             </button>
           </div>
-
           <div class="max-w-xl mx-auto bg-white p-6 rounded-xl border border-gray-200 shadow-sm space-y-4">
             <div>
               <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Nilai Maksimal Yang Diinginkan</label>
@@ -295,10 +274,9 @@
             </div>
           </div>
         </div>
-
         <!-- VIEW 6: LEGER STS -->
-        <div id="view-leger" class="hidden space-y-4">
-          <div class="flex flex-wrap items-center justify-between bg-white p-4 rounded-xl border border-gray-200 shadow-sm gap-4">
+        <div id="view-leger" class="hidden space-y-4 flex-1 flex flex-col min-h-0">
+          <div class="flex flex-wrap items-center justify-between bg-white p-4 rounded-xl border border-gray-200 shadow-sm gap-4 shrink-0">
             <div>
               <h3 class="font-bold text-lg text-slate-800">Leger Rekap Nilai STS</h3>
               <p class="text-xs text-gray-500" id="leger-meta-info">Kelas: - | Wali Kelas: -</p>
@@ -308,9 +286,8 @@
               <span>Refresh Leger</span>
             </button>
           </div>
-
-          <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-            <div class="table-container overflow-x-auto max-h-[calc(100vh-200px)]">
+          <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden flex-1 flex flex-col min-h-0">
+            <div class="table-container overflow-auto flex-1 min-h-0">
               <table class="table-fixed text-left border-collapse text-xs w-full">
                 <thead class="bg-slate-100 sticky top-0 z-10 border-b border-gray-200">
                   <tr id="table-leger-header">
@@ -356,7 +333,6 @@
             </div>
           </div>
         </div>
-
         <!-- VIEW 7: CETAK RAPOR STS -->
         <div id="view-cetak-sts" class="hidden space-y-4">
           <!-- PANEL NAVIGASI SISWA (TIDAK IKUT DICETAK) -->
@@ -367,7 +343,6 @@
                 <option value="">-- Pilih Siswa --</option>
               </select>
             </div>
-
             <div class="flex items-center space-x-2">
               <button onclick="prevSiswaRapor()" class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-2 rounded-lg text-sm font-medium transition">
                 <i class="fa-solid fa-chevron-left"></i> Prev
@@ -381,7 +356,6 @@
               </button>
             </div>
           </div>
-
           <!-- CONTAINER LEMBAR RAPOR HTML (PRESISI CETAK) -->
           <div id="rapor-print-container" class="bg-white p-8 max-w-[210mm] mx-auto border border-gray-300 shadow-lg text-black font-sans text-xs">
             
@@ -397,9 +371,7 @@
               </div>
               <div class="w-16 h-16 bg-slate-100 rounded flex items-center justify-center font-bold text-[10px] text-slate-400 border border-slate-300">KAUTSAR</div>
             </div>
-
             <h3 class="font-bold text-center text-sm uppercase underline mb-4 tracking-wide">LAPORAN HASIL BELAJAR SUMATIF TENGAH SEMESTER GANJIL</h3>
-
             <!-- IDENTITAS SISWA -->
             <div class="grid grid-cols-2 gap-x-6 gap-y-1 mb-4 text-xs">
               <table class="w-full">
@@ -415,7 +387,6 @@
                 <tr><td class="font-semibold py-0.5">Tanggal Rapor</td><td>:</td><td id="lbl-rapor-tgl">-</td></tr>
               </table>
             </div>
-
             <!-- TABEL NILAI UTAMA -->
             <table class="w-full border-collapse border border-black text-xs mb-4">
               <thead>
@@ -433,7 +404,6 @@
               </thead>
               <tbody id="rapor-tbody-nilai"></tbody>
             </table>
-
             <!-- EKSTRAKURIKULER & PENGEMBANGAN DIRI -->
             <div class="grid grid-cols-2 gap-4 mb-4">
               <div>
@@ -455,7 +425,6 @@
                   </tbody>
                 </table>
               </div>
-
               <div>
                 <h4 class="font-bold text-xs uppercase mb-1">Pengembangan Diri & Sikap</h4>
                 <table class="w-full border-collapse border border-black text-xs">
@@ -474,7 +443,6 @@
                 </table>
               </div>
             </div>
-
             <!-- AKHLAK & KEHADIRAN -->
             <div class="grid grid-cols-2 gap-4 mb-4">
               <table class="w-full border-collapse border border-black text-xs">
@@ -482,7 +450,6 @@
                 <tr><td class="border border-black p-1">Akhlak</td><td class="border border-black p-1 text-center font-bold w-16" id="rapor-akh-val">-</td></tr>
                 <tr><td class="border border-black p-1">Kepribadian</td><td class="border border-black p-1 text-center font-bold w-16" id="rapor-kpb-val">-</td></tr>
               </table>
-
               <table class="w-full border-collapse border border-black text-xs">
                 <tr class="bg-gray-100 font-bold"><td class="border border-black p-1" colspan="2">Ketidakhadiran</td></tr>
                 <tr><td class="border border-black p-1">Sakit</td><td class="border border-black p-1 text-center w-16" id="rapor-abs-s">0 Hari</td></tr>
@@ -490,14 +457,12 @@
                 <tr><td class="border border-black p-1">Tanpa Keterangan</td><td class="border border-black p-1 text-center w-16" id="rapor-abs-a">0 Hari</td></tr>
               </table>
             </div>
-
             <!-- REKAPITULASI PRESTASI SISWA -->
             <table class="w-full border-collapse border border-black text-xs mb-6">
               <tr class="bg-gray-50"><td class="border border-black p-1 font-bold w-40">Nilai Keseluruhan</td><td class="border border-black p-1 font-bold text-indigo-900" id="rapor-total-val">-</td></tr>
               <tr class="bg-gray-50"><td class="border border-black p-1 font-bold">Nilai Rata-rata</td><td class="border border-black p-1 font-bold text-indigo-900" id="rapor-avg-val">-</td></tr>
               <tr class="bg-gray-50"><td class="border border-black p-1 font-bold">Peringkat Kelas (Ranking)</td><td class="border border-black p-1 font-extrabold text-indigo-900" id="rapor-rank-val">-</td></tr>
             </table>
-
             <!-- TANDA TANGAN -->
             <div class="grid grid-cols-3 text-center text-xs mt-8 gap-4">
               <div>
@@ -505,13 +470,11 @@
                 <div class="h-16"></div>
                 <p class="font-bold underline">( .................................... )</p>
               </div>
-
               <div>
                 <p>Wali Kelas</p>
                 <div class="h-16"></div>
                 <p class="font-bold underline" id="rapor-ttd-walas">-</p>
               </div>
-
               <div>
                 <p id="rapor-ttd-tgl">Mukomuko, 9 Oktober 2026</p>
                 <p>Kepala SMPIT Al-Kautsar</p>
@@ -520,23 +483,18 @@
                 <p class="text-[9px]">NIPY. 141981071801014</p>
               </div>
             </div>
-
           </div>
         </div>
-
       </div>
     </main>
   </div>
-
   <!-- Config & API Utama -->
 <script src="js/config.js"></script>
 <script src="js/api.js"></script>
-
 <!-- State & Utilities -->
 <script src="js/state.js"></script>
 <script src="js/helpers.js"></script>
 <script src="js/api-service.js"></script>
-
 <!-- Modul Fitur -->
 <script src="js/modules/tp.js"></script>
 <script src="js/modules/sumatif.js"></script>
@@ -544,7 +502,6 @@
 <script src="js/modules/katrol.js"></script>
 <script src="js/modules/leger.js"></script>
 <script src="js/modules/cetak-rapor.js"></script>
-
 <!-- Script Utama (Controller Routing) -->
 <script src="js/app.js"></script>
 </body>
