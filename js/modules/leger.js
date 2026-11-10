@@ -26,12 +26,14 @@ function renderLegerTable() {
   document.getElementById('leger-meta-info').innerText = `Kelas: ${meta.kelas || '-'} | Wali Kelas: ${meta.walas || '-'}`;
   const tbody = document.getElementById('table-leger-body');
   tbody.innerHTML = '';
+  
   data.forEach((row, idx) => {
-    if (idx < 1) return;
+    // KONDISI BUG TELAH DIHAPUS (Hapus 'if (idx < 1) return;')
     const no = row[0];
     const kelasStr = row[1];
     const namaSiswa = row[2];
     if (!namaSiswa) return;
+    
     const tr = document.createElement('tr');
     tr.className = "hover:bg-slate-50 border-b border-gray-200 h-8 text-xs";
     let html = `
