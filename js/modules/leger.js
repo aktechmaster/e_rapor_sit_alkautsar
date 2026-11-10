@@ -23,12 +23,18 @@ async function loadLegerSTS(forceRefresh = false) {
 function renderLegerTable() {
   if (!CURRENT_LEGER_DATA) return;
   const { meta, data } = CURRENT_LEGER_DATA;
-  document.getElementById('leger-meta-info').innerText = `Kelas: ${meta.kelas || '-'} | Wali Kelas: ${meta.walas || '-'}`;
+
+  // Mengambil nama Walas resmi dari akun login (Dashboard), atau fallback ke meta
+  const namaWalasResmi = (STATE.currentUser && STATE.currentUser.nama_lengkap) 
+    ? STATE.currentUser.nama_lengkap 
+    : (meta.walas || '-');
+
+  document.getElementById('leger-meta-info').innerText = `Kelas: ${meta.kelas || '-'} | Wali Kelas: ${namaWalasResmi}`;
+  
   const tbody = document.getElementById('table-leger-body');
   tbody.innerHTML = '';
   
-  data.forEach((row, idx) => {
-    // KONDISI BUG TELAH DIHAPUS (Hapus 'if (idx < 1) return;')
+  data.forEach((row) => {
     const no = row[0];
     const kelasStr = row[1];
     const namaSiswa = row[2];
