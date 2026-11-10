@@ -9,33 +9,38 @@
   <link rel="stylesheet" href="css/style.css?v=3">
   <style>
     @media print {
-      body { background-color: white !important; }
-      #sidebar, header, #sidebar-overlay, .no-print, #global-loading {
-        display: none !important;
-      }
-      #app-container {
-        display: block !important;
-        height: auto !important;
-        overflow: visible !important;
-      }
-      main {
-        padding: 0 !important;
-        margin: 0 !important;
-        overflow: visible !important;
-      }
-      #view-cetak-sts {
-        display: block !important;
-        overflow: visible !important;
-      }
-      #rapor-print-container {
-        border: none !important;
-        box-shadow: none !important;
-        padding: 0 !important;
-        max-width: 100% !important;
-        width: 100% !important;
-        margin: 0 !important;
-      }
-    }
+  @page {
+    size: 215.9mm 330.2mm; /* Ukuran Standar Folio / F4 */
+    margin: 8mm 10mm;
+  }
+  body { background-color: white !important; }
+  #sidebar, header, #sidebar-overlay, .no-print, #global-loading {
+    display: none !important;
+  }
+  #app-container {
+    display: block !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+  main {
+    padding: 0 !important;
+    margin: 0 !important;
+    overflow: visible !important;
+  }
+  #view-cetak-sts {
+    display: block !important;
+    overflow: visible !important;
+  }
+  #rapor-print-container {
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    max-width: 100% !important;
+    width: 100% !important;
+    margin: 0 !important;
+    page-break-inside: avoid;
+  }
+}
   </style>
 </head>
 <body class="bg-gray-100 font-sans text-gray-800 antialiased">
