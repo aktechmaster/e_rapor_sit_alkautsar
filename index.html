@@ -361,13 +361,7 @@
   <!-- CONTAINER LEMBAR RAPOR HTML (PRESISI CETAK) -->
   <div id="rapor-print-container" class="relative bg-white p-8 max-w-[210mm] mx-auto border border-gray-300 shadow-lg text-black font-sans text-xs overflow-hidden">
     
-    <!-- 1. WATERMARK BACKGROUND LOGO (TRANSPARAN DI TENGAH) -->
-    <div class="absolute inset-0 flex items-center justify-center pointer-events-none opacity-[0.08] z-0">
-      <!-- Ganti 'img/logo.png' dengan jalur gambar logo sekolah Anda jika berada di folder lain -->
-      <img src="pictures/LOGO SMPIT AL-KAUTSAR.png" alt="Watermark Logo" class="w-[380px] h-auto object-contain">
-    </div>
-
-    <!-- 2. KONTEN UTAMA RAPOR (z-10 AGAR BERADA DI ATAS WATERMARK) -->
+    <!-- KONTEN UTAMA RAPOR (LAYER Z-10) -->
     <div class="relative z-10">
       
       <!-- HEADER RAPOR -->
@@ -402,16 +396,16 @@
       </div>
       
       <!-- TABEL NILAI UTAMA -->
-      <table class="w-full border-collapse border border-black text-xs mb-4 bg-transparent">
+      <table class="w-full border-collapse border border-black text-xs mb-4">
         <thead>
-          <tr class="bg-gray-100/90 text-center font-bold">
+          <tr class="bg-gray-100 text-center font-bold">
             <th class="border border-black p-1 w-8" rowspan="2">No</th>
             <th class="border border-black p-1" rowspan="2">Mata Pelajaran</th>
             <th class="border border-black p-1 w-12" rowspan="2">KKM</th>
             <th class="border border-black p-1" colspan="2">Nilai</th>
             <th class="border border-black p-1" rowspan="2">Deskripsi Kemajuan Belajar</th>
           </tr>
-          <tr class="bg-gray-100/90 text-center font-bold">
+          <tr class="bg-gray-100 text-center font-bold">
             <th class="border border-black p-1 w-14">Angka</th>
             <th class="border border-black p-1 w-14">Huruf</th>
           </tr>
@@ -423,9 +417,9 @@
       <div class="grid grid-cols-2 gap-4 mb-4">
         <div>
           <h4 class="font-bold text-xs uppercase mb-1">Ekstrakurikuler</h4>
-          <table class="w-full border-collapse border border-black text-xs bg-transparent">
+          <table class="w-full border-collapse border border-black text-xs">
             <thead>
-              <tr class="bg-gray-100/90 font-bold text-center">
+              <tr class="bg-gray-100 font-bold text-center">
                 <th class="border border-black p-1">Kegiatan</th>
                 <th class="border border-black p-1 w-12">Nilai</th>
                 <th class="border border-black p-1">Keterangan</th>
@@ -442,9 +436,9 @@
         </div>
         <div>
           <h4 class="font-bold text-xs uppercase mb-1">Pengembangan Diri & Sikap</h4>
-          <table class="w-full border-collapse border border-black text-xs bg-transparent">
+          <table class="w-full border-collapse border border-black text-xs">
             <thead>
-              <tr class="bg-gray-100/90 font-bold text-center">
+              <tr class="bg-gray-100 font-bold text-center">
                 <th class="border border-black p-1">Aspek</th>
                 <th class="border border-black p-1 w-12">Nilai</th>
                 <th class="border border-black p-1">Keterangan</th>
@@ -461,13 +455,13 @@
       
       <!-- AKHLAK & KEHADIRAN -->
       <div class="grid grid-cols-2 gap-4 mb-4">
-        <table class="w-full border-collapse border border-black text-xs bg-transparent">
-          <tr class="bg-gray-100/90 font-bold"><td class="border border-black p-1" colspan="2">Akhlak & Kepribadian</td></tr>
+        <table class="w-full border-collapse border border-black text-xs">
+          <tr class="bg-gray-100 font-bold"><td class="border border-black p-1" colspan="2">Akhlak & Kepribadian</td></tr>
           <tr><td class="border border-black p-1">Akhlak</td><td class="border border-black p-1 text-center font-bold w-16" id="rapor-akh-val">-</td></tr>
           <tr><td class="border border-black p-1">Kepribadian</td><td class="border border-black p-1 text-center font-bold w-16" id="rapor-kpb-val">-</td></tr>
         </table>
-        <table class="w-full border-collapse border border-black text-xs bg-transparent">
-          <tr class="bg-gray-100/90 font-bold"><td class="border border-black p-1" colspan="2">Ketidakhadiran</td></tr>
+        <table class="w-full border-collapse border border-black text-xs">
+          <tr class="bg-gray-100 font-bold"><td class="border border-black p-1" colspan="2">Ketidakhadiran</td></tr>
           <tr><td class="border border-black p-1">Sakit</td><td class="border border-black p-1 text-center w-16" id="rapor-abs-s">0 Hari</td></tr>
           <tr><td class="border border-black p-1">Izin</td><td class="border border-black p-1 text-center w-16" id="rapor-abs-i">0 Hari</td></tr>
           <tr><td class="border border-black p-1">Tanpa Keterangan</td><td class="border border-black p-1 text-center w-16" id="rapor-abs-a">0 Hari</td></tr>
@@ -475,9 +469,9 @@
       </div>
       
       <!-- REKAPITULASI PRESTASI SISWA -->
-      <table class="w-full border-collapse border border-black text-xs mb-6 bg-transparent">
-        <tr class="bg-gray-50/90"><td class="border border-black p-1 font-bold w-40">Nilai Keseluruhan</td><td class="border border-black p-1 font-bold text-indigo-900" id="rapor-total-val">-</td></tr>
-        <tr class="bg-gray-50/90"><td class="border border-black p-1 font-bold">Nilai Rata-rata</td><td class="border border-black p-1 font-bold text-indigo-900" id="rapor-avg-val">-</td></tr>
+      <table class="w-full border-collapse border border-black text-xs mb-6">
+        <tr class="bg-gray-50"><td class="border border-black p-1 font-bold w-40">Nilai Keseluruhan</td><td class="border border-black p-1 font-bold text-indigo-900" id="rapor-total-val">-</td></tr>
+        <tr class="bg-gray-50"><td class="border border-black p-1 font-bold">Nilai Rata-rata</td><td class="border border-black p-1 font-bold text-indigo-900" id="rapor-avg-val">-</td></tr>
       </table>
       
       <!-- TANDA TANGAN -->
@@ -502,6 +496,12 @@
       </div>
 
     </div>
+
+    <!-- WATERMARK LOGO DI DEPAN TABEL & TULISAN (LAYER Z-20 + UKURAN 550PX) -->
+    <div class="absolute inset-0 flex items-center justify-center pointer-events-none opacity-[0.12] z-20">
+      <img src="img/logo.png" alt="Watermark Logo" class="w-[550px] h-auto object-contain">
+    </div>
+
   </div>
 </div>
             
