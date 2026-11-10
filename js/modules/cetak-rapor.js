@@ -55,28 +55,29 @@ function renderLembarRapor(siswaIndex) {
   if (!CURRENT_LEGER_DATA) return;
   const meta = CURRENT_LEGER_DATA.meta || {};
   
-  // Ambil baris data siswa langsung (tanpa + 1)
   const row = CURRENT_LEGER_DATA.data[siswaIndex];
   if (!row) return;
 
   const namaSiswa = row[2] || '-';
-  const nisnVal = `314519${1000 + Number(row[0])}`;
+  const cleanNamaSiswa = namaSiswa.trim().replace(/\s+/g, ' ').toUpperCase();
+
+  // NISN & Nama Ortu Otomatis dari Tab DASIS
+  const ortuMap = meta.ortuMap || {};
+  const nisnMap = meta.nisnMap || {};
+  const realNisn = nisnMap[cleanNamaSiswa] || '-';
+  const namaOrtu = ortuMap[cleanNamaSiswa] || '';
 
   document.getElementById('lbl-rapor-nama').innerText = namaSiswa;
   document.getElementById('lbl-rapor-kelas').innerText = meta.kelas || '-';
-  document.getElementById('lbl-rapor-nisn').innerText = nisnVal;
+  document.getElementById('lbl-rapor-nisn').innerText = realNisn;
   
-  // Update Tanda Tangan Orang Tua dari DASIS
-  const ortuMap = meta.ortuMap || {};
-  const cleanNamaSiswa = namaSiswa.trim().replace(/\s+/g, ' ').toUpperCase();
-  const namaOrtu = ortuMap[cleanNamaSiswa] || ortuMap[nisnVal] || '';
-
+  // Tanda Tangan Orang Tua
   const elOrtu = document.getElementById('rapor-ttd-ortu');
   if (elOrtu) {
     elOrtu.innerText = namaOrtu ? `( ${namaOrtu} )` : '( .................................... )';
   }
 
-  // SINKRONISASI: Prioritaskan Nama Wali Kelas lengkap (+Gelar) dari STATE.currentUser (Profil Dashboard)
+  // Wali Kelas dari Profil login / Dashboard
   const namaWalasResmi = (STATE.currentUser && STATE.currentUser.nama_lengkap) 
     ? STATE.currentUser.nama_lengkap 
     : (meta.walas || '( Wali Kelas )');
@@ -86,7 +87,6 @@ function renderLembarRapor(siswaIndex) {
     elWalas.innerText = namaWalasResmi;
   }
 
-  // SINKRONISASI: Prioritaskan NIP/NIK dari STATE.currentUser (Profil Dashboard)
   const elWalasNipy = document.getElementById('rapor-ttd-walas-nipy');
   if (elWalasNipy) {
     const nipVal = (STATE.currentUser && STATE.currentUser.nip_nik) 
