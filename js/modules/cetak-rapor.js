@@ -158,8 +158,10 @@ function renderLembarRapor(siswaIndex) {
     { no: 13, nama: "Koding", col: 17, grp: "B" },
     { no: 14, nama: "Tahsin dan Tahfidzul Qur'an", col: 14, grp: "B" }
   ];
+
   const tbody = document.getElementById('rapor-tbody-nilai');
   tbody.innerHTML = '';
+
   const getHuruf = (val) => {
     if (val >= 90) return 'A';
     if (val >= 80) return 'B';
@@ -167,11 +169,13 @@ function renderLembarRapor(siswaIndex) {
     if (val >= 60) return 'D';
     return 'E';
   };
+
+  // --- KELOMPOK A ---
   tbody.innerHTML += `<tr class="bg-gray-100 font-bold"><td colspan="6" class="border border-black p-1">Kelompok A :</td></tr>`;
   mapelList.filter(m => m.grp === "A").forEach(m => {
     const val = row[m.col] !== "" ? Math.round(Number(row[m.col])) : "-";
-    const huruf = typeof val === 'number' ? getHuruf(val) : "-";
-    const desk = val >= 75 ? "Terlampaui" : "Belum Tercapai";
+    const huruf = typeof val === 'number' && !isNaN(val) ? getHuruf(val) : "-";
+    const desk = typeof val === 'number' && !isNaN(val) ? (val >= 75 ? "Terlampaui" : "Belum Tercapai") : "Belum Tercapai";
     tbody.innerHTML += `
       <tr>
         <td class="border border-black p-1 text-center">${m.no}</td>
@@ -183,11 +187,13 @@ function renderLembarRapor(siswaIndex) {
       </tr>
     `;
   });
+
+  // --- KELOMPOK B (TIK, SBY, DKK) ---
   tbody.innerHTML += `<tr class="bg-gray-100 font-bold"><td colspan="6" class="border border-black p-1">Kelompok B :</td></tr>`;
   mapelList.filter(m => m.grp === "B").forEach(m => {
-    const val = row[m.col] !== "" ? Number(row[m.col]) : "-";
-    const huruf = typeof val === 'number' ? getHuruf(val) : "-";
-    const desk = val >= 75 ? "Terlampaui" : "Belum Tercapai";
+    const val = row[m.col] !== "" ? Math.round(Number(row[m.col])) : "-";
+    const huruf = typeof val === 'number' && !isNaN(val) ? getHuruf(val) : "-";
+    const desk = typeof val === 'number' && !isNaN(val) ? (val >= 75 ? "Terlampaui" : "Belum Tercapai") : "Belum Tercapai";
     tbody.innerHTML += `
       <tr>
         <td class="border border-black p-1 text-center">${m.no}</td>
@@ -199,6 +205,7 @@ function renderLembarRapor(siswaIndex) {
       </tr>
     `;
   });
+
   const catatanT2Q = row[31] || `Ananda ${row[2]} telah menyelesaikan hafalan.`;
   tbody.innerHTML += `
     <tr>
@@ -207,6 +214,7 @@ function renderLembarRapor(siswaIndex) {
       </td>
     </tr>
   `;
+
   document.getElementById('rapor-ekstra-pramuka-nilai').innerText = row[18] || 'B';
   document.getElementById('rapor-sikap-ibadah').innerText = row[19] || 'B';
   document.getElementById('rapor-sikap-sosial').innerText = row[20] || 'A';
