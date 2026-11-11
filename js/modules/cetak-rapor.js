@@ -169,7 +169,7 @@ function renderLembarRapor(siswaIndex) {
   };
   tbody.innerHTML += `<tr class="bg-gray-100 font-bold"><td colspan="6" class="border border-black p-1">Kelompok A :</td></tr>`;
   mapelList.filter(m => m.grp === "A").forEach(m => {
-    const val = row[m.col] !== "" ? Number(row[m.col]) : "-";
+    const val = row[m.col] !== "" ? Math.round(Number(row[m.col])) : "-";
     const huruf = typeof val === 'number' ? getHuruf(val) : "-";
     const desk = val >= 75 ? "Terlampaui" : "Belum Tercapai";
     tbody.innerHTML += `
