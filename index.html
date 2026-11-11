@@ -12,16 +12,15 @@
   .font-times {
     font-family: 'Times New Roman', Times, serif !important;
   }
-
+  
   @media print {
-  @page {
-    size: 215.9mm 330.2mm;
-    margin-top: 17mm; /* <--- UBAH DI SINI untuk mengontrol margin atas */
-    margin-bottom: 10mm;
-    margin-left: 14mm;
-    margin-right: 14mm;
-  }
-}
+    @page {
+      size: 215.9mm 330.2mm;
+      margin-top: 17mm;
+      margin-bottom: 10mm;
+      margin-left: 14mm;
+      margin-right: 14mm;
+    }
     
     html, body, #app-container, main, main > div {
       height: auto !important;
@@ -43,8 +42,8 @@
       padding: 0 !important;
       overflow: visible !important;
     }
-
-    /* KUNCI UKURAN FONT & SKALA VERTIKAL UNTUK PRINT (MENYUSUT 2 TINGKAT) */
+    
+    /* KUNCI UKURAN FONT & SKALA VERTIKAL UNTUK PRINT */
     #rapor-print-container {
       border: none !important;
       box-shadow: none !important;
@@ -53,39 +52,39 @@
       width: 100% !important;
       margin: 0 !important;
       font-family: 'Times New Roman', Times, serif !important;
-      font-size: 8pt !important;          /* Font utama turun ke 8pt */
+      font-size: 8pt !important;
       line-height: 1.15 !important;
       page-break-inside: avoid !important;
       break-inside: avoid !important;
     }
-
+    
     /* KOP SURAT */
     #rapor-print-container h1 { font-size: 11pt !important; }
     #rapor-print-container h2 { font-size: 10pt !important; }
     #rapor-print-container h3 { font-size: 9.5pt !important; }
     #rapor-print-container h4 { font-size: 9pt !important; }
     #rapor-print-container p  { font-size: 7.5pt !important; }
-
-    /* TABEL DATA SISWA & NILAI (FONT 8pt DAN PADDING RAPAT) */
+    
+    /* TABEL DATA SISWA & NILAI */
     #rapor-print-container table {
       font-size: 8pt !important;
     }
     
     #rapor-print-container th, 
     #rapor-print-container td {
-      padding: 2px 4px !important;       /* Memangkas ketebalan baris tabel */
+      padding: 2px 4px !important;
       font-size: 8pt !important;
     }
-
+    
     /* AREA TANDATANGAN */
     #rapor-print-container .grid {
       font-size: 8.5pt !important;
     }
     
     #rapor-print-container p[id$="-nipy"] {
-      font-size: 7.5pt !important;       /* Ukuran NIPY disusutkan agar rapat */
+      font-size: 7.5pt !important;
     }
-  }
+  } /* <-- Kurung penutup @media print yang benar berada di paling bawah */
 </style>
   
 </head>
