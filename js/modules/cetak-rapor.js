@@ -1,6 +1,64 @@
 // ====================================================
 // MODUL 6: CETAK RAPOR STS (KHUSUS KELAS WALI)
 // ====================================================
+
+/**
+ * Fungsi untuk menarik data Leger STS dari GAS API berdasarkan spreadsheetId dinamis
+ */
+async function loadLegerSTS(forceRefresh = false) {
+  const kelasWalas = STATE.currentUser ? STATE.currentUser.walas_kelas : null;
+  if (!kelasWalas) {
+    alert("Akun Anda tidak terdaftar sebagai Wali Kelas!");
+    return null;
+  }
+
+  // Deteksi semester aktif (1 atau 2) dari state
+  const semActive = STATE.currentStsSemester || 1;
+  
+  // Ambil ID Spreadsheet dari config.js berdasarkan semester dan kelas walas
+  const spreadsheetId = CONFIG.RAPOR_STS_DB?.[semActive]?.[kelasWalas];
+
+  if (!spreadsheetId) {
+    alert(`ID Spreadsheet untuk Kelas ${kelasWalas} pada STS ${semActive} belum diisi di config.js!`);
+    return null;
+  }
+
+  // Kunci cache dipisahkan per semester agar data STS 1 & STS 2 tidak bentrok
+  const cacheKey = `${semActive}_${kelasWalas}`;
+
+  // Gunakan cache jika sudah ada dan tidak dipaksa refresh
+  if (!forceRefresh && LEGER_STS_CACHE[cacheKey] && LEGER_STS_CACHE[cacheKey].meta?.ortuMap) {
+    CURRENT_LEGER_DATA = LEGER_STS_CACHE[cacheKey];
+    return CURRENT_LEGER_DATA;
+  }
+
+  try {
+    const response = await fetch(CONFIG.GAS_API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({
+        action: "getLegerSTS",
+        spreadsheetId: spreadsheetId, // ID dikirim langsung ke GAS
+        kelas: kelasWalas
+      })
+    });
+
+    const result = await response.json();
+    if (result.status === "success") {
+      LEGER_STS_CACHE[cacheKey] = result;
+      CURRENT_LEGER_DATA = result;
+      return result;
+    } else {
+      alert("Gagal mengambil data Leger STS: " + result.message);
+      return null;
+    }
+  } catch (err) {
+    console.error("Error loadLegerSTS:", err);
+    alert("Terjadi kesalahan koneksi saat mengambil data Leger STS.");
+    return null;
+  }
+}
+
 async function loadCetakRaporSTS() {
   const kelasWalas = STATE.currentUser ? STATE.currentUser.walas_kelas : null;
   if (!kelasWalas) {
@@ -8,14 +66,10 @@ async function loadCetakRaporSTS() {
     return;
   }
   
-  // Jika cache belum ada atau meta.ortuMap belum ada, paksa refresh data dari GAS API
-  if (!LEGER_STS_CACHE[kelasWalas] || !LEGER_STS_CACHE[kelasWalas].meta || !LEGER_STS_CACHE[kelasWalas].meta.ortuMap) {
-    await loadLegerSTS(true);
-  } else {
-    CURRENT_LEGER_DATA = LEGER_STS_CACHE[kelasWalas];
-  }
+  // Memuat data leger (otomatis menangani cache per semester & spreadsheetId)
+  const legerData = await loadLegerSTS(false);
+  if (!legerData) return;
   
-  if (!CURRENT_LEGER_DATA) return;
   const selectSiswa = document.getElementById('select-siswa-rapor');
   selectSiswa.innerHTML = '';
   
@@ -25,6 +79,7 @@ async function loadCetakRaporSTS() {
       selectSiswa.innerHTML += `<option value="${idx}">${row[0]}. ${row[2]}</option>`;
     }
   });
+
   if (dataSiswa.length > 0) {
     CURRENT_SISWA_INDEX = 0;
     selectSiswa.value = "0";
