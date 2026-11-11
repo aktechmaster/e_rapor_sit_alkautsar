@@ -64,12 +64,7 @@ const STATE = {
   distribuasiMengajar: []
 };
 
-// Global Cache Object
-const LEGER_STS_CACHE = {};
-let CURRENT_LEGER_DATA = null;
-let CURRENT_SISWA_INDEX = 0;
-
-// HELPER KONEKSI APIS GAS
+// HELPER KONEKSI APIS GAS (Tanpa re-deklarasi LEGER_STS_CACHE)
 async function callGASAPI(action, payload = {}) {
   try {
     const response = await fetch(CONFIG.GAS_API_URL, {
