@@ -82,8 +82,10 @@ function toggleStsSubmenu() {
 }
 
 function loadActiveMenuData() {
-  const activeView = document.querySelector('main > div > div:not(.hidden)');
+  // Cari view yang sedang aktif (tidak memiliki class 'hidden')
+  const activeView = document.querySelector('[id^="view-"]:not(.hidden)');
   if (!activeView) return;
+  
   const viewId = activeView.id;
   if (viewId === 'view-tp') loadSettingTP();
   else if (viewId === 'view-sumatif') loadNilaiSumatif();
@@ -117,21 +119,17 @@ function populateDropdowns(user) {
     });
   }
 
-  // Otomatis pilih Mapel & tampilkan daftar kelas jika guru hanya mengajar 1 Mapel
   if (selectMapel.options.length === 2) {
     selectMapel.selectedIndex = 1;
     updateKelasDropdown(selectMapel.value);
   }
 
-  // =========================================================
-  // TAMBAHKAN BARIS INI: KONTROL MENU STS WALI KELAS
-  // =========================================================
   const navStsGroup = document.getElementById('nav-sts-group');
   if (navStsGroup) {
     if (user && user.walas_kelas) {
-      navStsGroup.classList.remove('hidden'); // Tampilkan jika punya kelas wali
+      navStsGroup.classList.remove('hidden');
     } else {
-      navStsGroup.classList.add('hidden');    // Sembunyikan jika guru biasa
+      navStsGroup.classList.add('hidden');
     }
   }
 }
@@ -142,7 +140,7 @@ function updateKelasDropdown(selectedMapel) {
   
   if (!selectedMapel || !MAPEL_KELAS_MAPPING[selectedMapel]) return;
   const kelasList = MAPEL_KELAS_MAPPING[selectedMapel];
-  kelasList.forEach(kls => {
+  klasList.forEach(kls => {
     const formattedKls = kls.replace(/^kls-/i, '').toUpperCase();
     selectKelas.innerHTML += `<option value="${formattedKls}">${formattedKls}</option>`;
   });
