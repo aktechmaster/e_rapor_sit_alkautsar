@@ -8,15 +8,15 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="css/style.css?v=3">
   <style>
-  /* Font Family Times New Roman khusus Lembar Cetak Rapor */
+  /* Font Times New Roman presisi skala A4 & F4 */
   .font-times {
     font-family: 'Times New Roman', Times, serif !important;
   }
 
   @media print {
     @page {
-      size: 215.9mm 330.2mm; /* Ukuran Kertas Folio / F4 (Kompatibel A4 210mm x 297mm) */
-      margin: 10mm 15mm;     /* Margin proporsional: 10mm atas-bawah, 15mm kiri-kanan */
+      size: A4 portrait;     /* Secara otomatis kompatibel dengan F4 saat diprint */
+      margin: 6mm 10mm;      /* Margin vertikal 6mm presisi agar muat di A4 tanpa sisa */
     }
     
     html, body, #app-container, main, main > div {
@@ -49,7 +49,7 @@
       break-inside: avoid !important;
     }
   }
-  </style>
+</style>
 </head>
 <body class="bg-gray-100 font-sans text-gray-800 antialiased">
   <!-- OVERLAY LOADING GLOBAL -->
@@ -378,166 +378,162 @@
             </div>
           </div>
 
-          <!-- CONTAINER LEMBAR RAPOR HTML (LEBAR 195MM - PROPORSI KERTAS F4 / A4, FONT TIMES NEW ROMAN) -->
-          <div id="rapor-print-container" class="relative bg-white p-6 max-w-[195mm] mx-auto border border-gray-300 shadow-lg text-black font-times text-[11px] leading-tight overflow-hidden">
+          <!-- CONTAINER LEMBAR RAPOR HTML (LEBAR MAX 188MM - AMAN PRESISI A4 & F4) -->
+          <div id="rapor-print-container" class="relative bg-white p-4 max-w-[188mm] mx-auto border border-gray-300 shadow-lg text-black font-times text-[9.5px] leading-tight overflow-hidden">
             
-            <!-- KONTEN UTAMA RAPOR (LAYER Z-10) -->
+            <!-- KONTEN UTAMA RAPOR -->
             <div class="relative z-10">
               
               <!-- HEADER RAPOR -->
-              <div class="flex items-center justify-between border-b-2 border-black pb-2 mb-3">
+              <div class="flex items-center justify-between border-b-2 border-black pb-1 mb-1.5">
                 <!-- LOGO KIRI YAYASAN -->
-                <img src="pictures/logoyayasan.png" alt="Logo Yayasan" class="w-20 h-20 object-contain shrink-0">
+                <img src="pictures/logoyayasan.png" alt="Logo Yayasan" class="w-16 h-16 object-contain shrink-0">
                 
-                <div class="text-center flex-1 px-3">
-                  <h4 class="font-bold text-[12px] uppercase tracking-wide">YAYASAN AL-AMANAH MUKOMUKO</h4>
-                  <h2 class="font-extrabold text-[13px] uppercase tracking-wider">SEKOLAH MENENGAH PERTAMA ISLAM TERPADU</h2>
-                  <h1 class="font-black text-[15px] uppercase text-black">( SMPIT ) AL-KAUTSAR</h1>
-                  <p class="text-[10px] leading-tight">FULLDAY DAN BOARDING SCHOOL</p>
-                  <p class="text-[9px] text-gray-600">Alamat: Jl. Kuku Besi Suka Rame Desa Pasar Sebelah Kec. Kota Mukomuko Kab. Mukomuko Bengkulu</p>
+                <div class="text-center flex-1 px-2">
+                  <h4 class="font-bold text-[11px] uppercase tracking-wide">YAYASAN AL-AMANAH MUKOMUKO</h4>
+                  <h2 class="font-extrabold text-[12px] uppercase tracking-wider">SEKOLAH MENENGAH PERTAMA ISLAM TERPADU</h2>
+                  <h1 class="font-black text-[14px] uppercase text-black">( SMPIT ) AL-KAUTSAR</h1>
+                  <p class="text-[9px] leading-none">FULLDAY DAN BOARDING SCHOOL</p>
+                  <p class="text-[8px] text-gray-700">Alamat: Jl. Kuku Besi Suka Rame Desa Pasar Sebelah Kec. Kota Mukomuko Kab. Mukomuko Bengkulu</p>
                 </div>
                 <!-- LOGO KANAN SMPIT -->
-                <img src="pictures/logosmpit.png" alt="Logo SMPIT" class="w-20 h-20 object-contain shrink-0">
+                <img src="pictures/logosmpit.png" alt="Logo SMPIT" class="w-16 h-16 object-contain shrink-0">
               </div>
               
-              <h3 class="font-bold text-center text-[12px] uppercase underline mb-3 tracking-wide">LAPORAN HASIL BELAJAR SUMATIF TENGAH SEMESTER GANJIL</h3>
+              <h3 class="font-bold text-center text-[10.5px] uppercase underline mb-1.5 tracking-wide">LAPORAN HASIL BELAJAR SUMATIF TENGAH SEMESTER GANJIL</h3>
               
               <!-- IDENTITAS SISWA -->
-              <div class="grid grid-cols-2 gap-x-8 mb-3 text-[11px] items-start">
+              <div class="grid grid-cols-2 gap-x-6 mb-1.5 text-[9.5px] items-start">
                 <table class="w-full">
-                  <tr><td class="w-24 font-semibold py-0.5">Nama Siswa</td><td class="w-3">:</td><td class="font-bold uppercase" id="lbl-rapor-nama">-</td></tr>
-                  <tr><td class="font-semibold py-0.5">Kelas</td><td>:</td><td id="lbl-rapor-kelas">-</td></tr>
-                  <tr><td class="font-semibold py-0.5">NIS / NISN</td><td>:</td><td id="lbl-rapor-nisn">-</td></tr>
+                  <tr><td class="w-20 font-semibold py-0">Nama Siswa</td><td class="w-2">:</td><td class="font-bold uppercase" id="lbl-rapor-nama">-</td></tr>
+                  <tr><td class="font-semibold py-0">Kelas</td><td>:</td><td id="lbl-rapor-kelas">-</td></tr>
+                  <tr><td class="font-semibold py-0">NIS / NISN</td><td>:</td><td id="lbl-rapor-nisn">-</td></tr>
                 </table>
                 <table class="w-full">
-                  <tr><td class="w-28 font-semibold py-0.5">Semester</td><td class="w-3">:</td><td>I (Ganjil)</td></tr>
-                  <tr><td class="font-semibold py-0.5">Tahun Pelajaran</td><td>:</td><td>2026/2027</td></tr>
+                  <tr><td class="w-24 font-semibold py-0">Semester</td><td class="w-2">:</td><td>I (Ganjil)</td></tr>
+                  <tr><td class="font-semibold py-0">Tahun Pelajaran</td><td>:</td><td>2026/2027</td></tr>
                 </table>
               </div>
               
-              <!-- TABEL NILAI UTAMA -->
-              <table class="w-full border-collapse border border-black text-[10.5px] mb-3">
+              <!-- TABEL NILAI UTAMA (PADDING PY-0.5 AGAR HEMAT RUANG VERTIKAL) -->
+              <table class="w-full border-collapse border border-black text-[9px] mb-1.5">
                 <thead>
                   <tr class="bg-gray-100 text-center font-bold">
-                    <th class="border border-black p-1 w-7" rowspan="2">No</th>
-                    <th class="border border-black p-1" rowspan="2">Mata Pelajaran</th>
-                    <th class="border border-black p-1 w-10" rowspan="2">KKM</th>
-                    <th class="border border-black p-1" colspan="2">Nilai</th>
-                    <th class="border border-black p-1" rowspan="2">Deskripsi Kemajuan Belajar</th>
+                    <th class="border border-black py-0.5 px-1 w-6" rowspan="2">No</th>
+                    <th class="border border-black py-0.5 px-1" rowspan="2">Mata Pelajaran</th>
+                    <th class="border border-black py-0.5 px-1 w-8" rowspan="2">KKM</th>
+                    <th class="border border-black py-0.5 px-1" colspan="2">Nilai</th>
+                    <th class="border border-black py-0.5 px-1" rowspan="2">Deskripsi Kemajuan Belajar</th>
                   </tr>
                   <tr class="bg-gray-100 text-center font-bold">
-                    <th class="border border-black p-1 w-12">Angka</th>
-                    <th class="border border-black p-1 w-12">Huruf</th>
+                    <th class="border border-black py-0.5 px-1 w-10">Angka</th>
+                    <th class="border border-black py-0.5 px-1 w-10">Huruf</th>
                   </tr>
                 </thead>
                 <tbody id="rapor-tbody-nilai"></tbody>
               </table>
               
               <!-- EKSTRAKURIKULER & PENGEMBANGAN DIRI -->
-              <div class="grid grid-cols-2 gap-4 mb-3">
+              <div class="grid grid-cols-2 gap-2 mb-1.5">
                 <div>
-                  <h4 class="font-bold text-[11px] uppercase mb-1">Ekstrakurikuler</h4>
-                  <table class="w-full border-collapse border border-black text-[10.5px]">
+                  <h4 class="font-bold text-[9.5px] uppercase mb-0.5">Ekstrakurikuler</h4>
+                  <table class="w-full border-collapse border border-black text-[9px]">
                     <thead>
                       <tr class="bg-gray-100 font-bold text-center">
-                        <th class="border border-black p-1">Kegiatan</th>
-                        <th class="border border-black p-1 w-12">Nilai</th>
-                        <th class="border border-black p-1">Keterangan</th>
+                        <th class="border border-black py-0.5 px-1">Kegiatan</th>
+                        <th class="border border-black py-0.5 px-1 w-10">Nilai</th>
+                        <th class="border border-black py-0.5 px-1">Keterangan</th>
                       </tr>
                     </thead>
                     <tbody>
                       <tr>
-                        <td class="border border-black p-1">Pramuka SIT</td>
-                        <td class="border border-black p-1 text-center font-bold" id="rapor-ekstra-pramuka-nilai">-</td>
-                        <td class="border border-black p-1 text-center" id="rapor-ekstra-pramuka-ket">Baik</td>
+                        <td class="border border-black py-0.5 px-1">Pramuka SIT</td>
+                        <td class="border border-black py-0.5 px-1 text-center font-bold" id="rapor-ekstra-pramuka-nilai">-</td>
+                        <td class="border border-black py-0.5 px-1 text-center" id="rapor-ekstra-pramuka-ket">Baik</td>
                       </tr>
                     </tbody>
                   </table>
                 </div>
                 <div>
-                  <h4 class="font-bold text-[11px] uppercase mb-1">Pengembangan Diri & Sikap</h4>
-                  <table class="w-full border-collapse border border-black text-[10.5px]">
+                  <h4 class="font-bold text-[9.5px] uppercase mb-0.5">Pengembangan Diri & Sikap</h4>
+                  <table class="w-full border-collapse border border-black text-[9px]">
                     <thead>
                       <tr class="bg-gray-100 font-bold text-center">
-                        <th class="border border-black p-1">Aspek</th>
-                        <th class="border border-black p-1 w-12">Nilai</th>
-                        <th class="border border-black p-1">Keterangan</th>
+                        <th class="border border-black py-0.5 px-1">Aspek</th>
+                        <th class="border border-black py-0.5 px-1 w-10">Nilai</th>
+                        <th class="border border-black py-0.5 px-1">Keterangan</th>
                       </tr>
                     </thead>
                     <tbody>
-                      <tr><td class="border border-black p-1">1. Ibadah</td><td class="border border-black p-1 text-center font-bold" id="rapor-sikap-ibadah">-</td><td class="border border-black p-1 text-center">Baik</td></tr>
-                      <tr><td class="border border-black p-1">2. Sosial</td><td class="border border-black p-1 text-center font-bold" id="rapor-sikap-sosial">-</td><td class="border border-black p-1 text-center">Baik</td></tr>
-                      <tr><td class="border border-black p-1">3. Kemandirian</td><td class="border border-black p-1 text-center font-bold" id="rapor-sikap-mandiri">-</td><td class="border border-black p-1 text-center">Sangat Baik</td></tr>
+                      <tr><td class="border border-black py-0.5 px-1">1. Ibadah</td><td class="border border-black py-0.5 px-1 text-center font-bold" id="rapor-sikap-ibadah">-</td><td class="border border-black py-0.5 px-1 text-center">Baik</td></tr>
+                      <tr><td class="border border-black py-0.5 px-1">2. Sosial</td><td class="border border-black py-0.5 px-1 text-center font-bold" id="rapor-sikap-sosial">-</td><td class="border border-black py-0.5 px-1 text-center">Baik</td></tr>
+                      <tr><td class="border border-black py-0.5 px-1">3. Kemandirian</td><td class="border border-black py-0.5 px-1 text-center font-bold" id="rapor-sikap-mandiri">-</td><td class="border border-black py-0.5 px-1 text-center">Sangat Baik</td></tr>
                     </tbody>
                   </table>
                 </div>
               </div>
               
               <!-- AKHLAK & KEHADIRAN -->
-              <div class="grid grid-cols-2 gap-4 mb-3">
-                <table class="w-full border-collapse border border-black text-[10.5px]">
-                  <tr class="bg-gray-100 font-bold"><td class="border border-black p-1" colspan="2">Akhlak & Kepribadian</td></tr>
-                  <tr><td class="border border-black p-1">Akhlak</td><td class="border border-black p-1 text-center font-bold w-16" id="rapor-akh-val">-</td></tr>
-                  <tr><td class="border border-black p-1">Kepribadian</td><td class="border border-black p-1 text-center font-bold w-16" id="rapor-kpb-val">-</td></tr>
+              <div class="grid grid-cols-2 gap-2 mb-1.5">
+                <table class="w-full border-collapse border border-black text-[9px]">
+                  <tr class="bg-gray-100 font-bold"><td class="border border-black py-0.5 px-1" colspan="2">Akhlak & Kepribadian</td></tr>
+                  <tr><td class="border border-black py-0.5 px-1">Akhlak</td><td class="border border-black py-0.5 px-1 text-center font-bold w-12" id="rapor-akh-val">-</td></tr>
+                  <tr><td class="border border-black py-0.5 px-1">Kepribadian</td><td class="border border-black py-0.5 px-1 text-center font-bold w-12" id="rapor-kpb-val">-</td></tr>
                 </table>
-                <table class="w-full border-collapse border border-black text-[10.5px]">
-                  <tr class="bg-gray-100 font-bold"><td class="border border-black p-1" colspan="2">Ketidakhadiran</td></tr>
-                  <tr><td class="border border-black p-1">Sakit</td><td class="border border-black p-1 text-center w-16" id="rapor-abs-s">0 Hari</td></tr>
-                  <tr><td class="border border-black p-1">Izin</td><td class="border border-black p-1 text-center w-16" id="rapor-abs-i">0 Hari</td></tr>
-                  <tr><td class="border border-black p-1">Tanpa Keterangan</td><td class="border border-black p-1 text-center w-16" id="rapor-abs-a">0 Hari</td></tr>
+                <table class="w-full border-collapse border border-black text-[9px]">
+                  <tr class="bg-gray-100 font-bold"><td class="border border-black py-0.5 px-1" colspan="2">Ketidakhadiran</td></tr>
+                  <tr><td class="border border-black py-0.5 px-1">Sakit</td><td class="border border-black py-0.5 px-1 text-center w-12" id="rapor-abs-s">0 Hari</td></tr>
+                  <tr><td class="border border-black py-0.5 px-1">Izin</td><td class="border border-black py-0.5 px-1 text-center w-12" id="rapor-abs-i">0 Hari</td></tr>
+                  <tr><td class="border border-black py-0.5 px-1">Tanpa Keterangan</td><td class="border border-black py-0.5 px-1 text-center w-12" id="rapor-abs-a">0 Hari</td></tr>
                 </table>
               </div>
               
               <!-- REKAPITULASI PRESTASI SISWA -->
-              <table class="w-full border-collapse border border-black text-[10.5px] mb-4">
-                <tr class="bg-gray-50"><td class="border border-black p-1 font-bold w-40">Nilai Keseluruhan</td><td class="border border-black p-1 font-bold text-black" id="rapor-total-val">-</td></tr>
-                <tr class="bg-gray-50"><td class="border border-black p-1 font-bold">Nilai Rata-rata</td><td class="border border-black p-1 font-bold text-black" id="rapor-avg-val">-</td></tr>
+              <table class="w-full border-collapse border border-black text-[9px] mb-2">
+                <tr class="bg-gray-50"><td class="border border-black py-0.5 px-1 font-bold w-36">Nilai Keseluruhan</td><td class="border border-black py-0.5 px-1 font-bold text-black" id="rapor-total-val">-</td></tr>
+                <tr class="bg-gray-50"><td class="border border-black py-0.5 px-1 font-bold">Nilai Rata-rata</td><td class="border border-black py-0.5 px-1 font-bold text-black" id="rapor-avg-val">-</td></tr>
               </table>
               
-              <!-- TANDA TANGAN DINAMIS SPREADSHEET (JARAK TTD LEGA & PROPORSI A4/F4) -->
-              <div class="grid grid-cols-3 text-center text-[11px] mt-6 gap-4">
+              <!-- TANDA TANGAN DINAMIS SPREADSHEET -->
+              <div class="grid grid-cols-3 text-center text-[9.5px] mt-2 gap-2">
                 <!-- KOLOM 1: ORANG TUA / WALI -->
-                <div class="flex flex-col justify-between min-h-[120px]">
+                <div class="flex flex-col justify-between">
+                  <p class="font-medium">Orang Tua / Wali</p>
                   <div>
-                    <p class="font-medium">Orang Tua / Wali</p>
-                  </div>
-                  <div>
-                    <div class="h-16"></div> <!-- Space TTD lega (64px) untuk tanda tangan basah -->
+                    <div class="h-10"></div> <!-- Jarak tanda tangan basah (40px) -->
                     <p class="font-bold underline" id="rapor-ttd-ortu">( .................................... )</p>
-                    <p class="text-[9.5px] opacity-0">-</p> <!-- Spacer penyelaras NIPY -->
+                    <p class="text-[8.5px] opacity-0">-</p>
                   </div>
                 </div>
-
+          
                 <!-- KOLOM 2: WALI KELAS -->
-                <div class="flex flex-col justify-between min-h-[120px]">
+                <div class="flex flex-col justify-between">
+                  <p class="font-medium">Wali Kelas</p>
                   <div>
-                    <p class="font-medium">Wali Kelas</p>
-                  </div>
-                  <div>
-                    <div class="h-16"></div> <!-- Space TTD lega (64px) -->
+                    <div class="h-10"></div>
                     <p class="font-bold underline" id="rapor-ttd-walas">-</p>
-                    <p class="text-[9.5px]" id="rapor-ttd-walas-nipy"></p>
+                    <p class="text-[8.5px]" id="rapor-ttd-walas-nipy"></p>
                   </div>
                 </div>
-
+          
                 <!-- KOLOM 3: KEPALA SEKOLAH -->
-                <div class="flex flex-col justify-between min-h-[120px]">
+                <div class="flex flex-col justify-between">
                   <div>
-                    <p id="rapor-ttd-tgl" class="mb-0.5">Mukomuko, 9 Oktober 2026</p>
+                    <p id="rapor-ttd-tgl">Mukomuko, 9 Oktober 2026</p>
                     <p class="font-medium">Kepala SMPIT Al-Kautsar</p>
                   </div>
                   <div>
-                    <div class="h-12"></div> <!-- Space TTD Kepsek seimbang dengan teks tanggal/jabatan -->
+                    <div class="h-7"></div>
                     <p class="font-bold underline" id="rapor-ttd-kepsek">Warto, S.Pd.I., M.Pd., Gr.</p>
-                    <p class="text-[9.5px]" id="rapor-ttd-kepsek-nipy">NIPY. 141981071801014</p>
+                    <p class="text-[8.5px]" id="rapor-ttd-kepsek-nipy">NIPY. 141981071801014</p>
                   </div>
                 </div>
               </div>
             </div>
-
+          
             <!-- WATERMARK LOGO DI DEPAN (DEPAN TABEL Z-20) -->
-            <div class="absolute inset-0 flex items-center justify-center pointer-events-none opacity-[0.10] z-20">
-              <img src="pictures/LOGO SMPIT AL-KAUTSAR.png" alt="Watermark Logo" class="w-[450px] h-auto object-contain">
+            <div class="absolute inset-0 flex items-center justify-center pointer-events-none opacity-[0.08] z-20">
+              <img src="pictures/LOGO SMPIT AL-KAUTSAR.png" alt="Watermark Logo" class="w-[380px] h-auto object-contain">
             </div>
           </div>
         </div>
