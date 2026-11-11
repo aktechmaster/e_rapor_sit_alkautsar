@@ -5,19 +5,26 @@ document.addEventListener("DOMContentLoaded", () => {
   checkAuthSession();
   renderFormatifHeaders();
   
-  document.getElementById('select-mapel').addEventListener('change', (e) => {
-    updateKelasDropdown(e.target.value);
-    loadActiveMenuData();
-  });
+  const selectMapel = document.getElementById('select-mapel');
+  if (selectMapel) {
+    selectMapel.addEventListener('change', (e) => {
+      updateKelasDropdown(e.target.value);
+      loadActiveMenuData();
+    });
+  }
   
-  document.getElementById('select-kelas').addEventListener('change', () => loadActiveMenuData());
+  const selectKelas = document.getElementById('select-kelas');
+  if (selectKelas) {
+    selectKelas.addEventListener('change', () => loadActiveMenuData());
+  }
+
   attachTableKeyboardNav('table-formatif-body');
   attachTableKeyboardNav('table-sumatif-body');
 });
 
 function switchMenu(viewName, semester = null) {
   // 1. Simpan Semester Aktif jika diubah via menu STS
-  if (semester) {
+  if (semester !== null && semester !== undefined) {
     STATE.currentStsSemester = Number(semester);
   }
 
@@ -68,7 +75,8 @@ function switchMenu(viewName, semester = null) {
     if (overlay) overlay.classList.add('hidden');
   }
 
-  loadActiveMenuData();
+  // Panggil pemuat data dengan nama view yang dituju secara langsung
+  loadActiveMenuData(viewName);
 }
 
 // TOGGLE SUBMENU RAPOR STS
@@ -81,23 +89,38 @@ function toggleStsSubmenu() {
   }
 }
 
-function loadActiveMenuData() {
-  // Cari view yang sedang aktif (tidak memiliki class 'hidden')
-  const activeView = document.querySelector('[id^="view-"]:not(.hidden)');
-  if (!activeView) return;
+function loadActiveMenuData(targetViewName = null) {
+  let viewId = targetViewName ? `view-${targetViewName}` : null;
+
+  // Fallback pencarian ID elemen aktif jika tidak di-pass langsung
+  if (!viewId) {
+    const activeView = document.querySelector('[id^="view-"]:not(.hidden)');
+    if (activeView) viewId = activeView.id;
+  }
   
-  const viewId = activeView.id;
+  if (!viewId) return;
+
   if (viewId === 'view-tp') loadSettingTP();
   else if (viewId === 'view-sumatif') loadNilaiSumatif();
   else if (viewId === 'view-formatif') loadDataKelas();
   else if (viewId === 'view-katrol') loadKatrol();
-  else if (viewId === 'view-leger') loadLegerSTS();
-  else if (viewId === 'view-cetak-sts') loadCetakRaporSTS();
+  else if (viewId === 'view-leger') {
+    if (typeof loadLegerSTS === 'function') {
+      loadLegerSTS();
+    }
+  }
+  else if (viewId === 'view-cetak-sts') {
+    if (typeof loadCetakRaporSTS === 'function') {
+      loadCetakRaporSTS();
+    }
+  }
 }
 
 function populateDropdowns(user) {
   const selectMapel = document.getElementById('select-mapel');
   const selectKelas = document.getElementById('select-kelas');
+  if (!selectMapel || !selectKelas) return;
+
   selectMapel.innerHTML = '<option value="">-- Pilih Mapel --</option>';
   selectKelas.innerHTML = '<option value="">-- Pilih Kelas --</option>';
   
@@ -136,20 +159,22 @@ function populateDropdowns(user) {
 
 function updateKelasDropdown(selectedMapel) {
   const selectKelas = document.getElementById('select-kelas');
+  if (!selectKelas) return;
+
   selectKelas.innerHTML = '<option value="">-- Pilih Kelas --</option>';
   
   if (!selectedMapel || !MAPEL_KELAS_MAPPING[selectedMapel]) return;
   
-  const kelasList = MAPEL_KELAS_MAPPING[selectedMapel]; // Menggunakan 'kelasList'
-  kelasList.forEach(kls => {                             // Samakan dipanggil 'kelasList'
+  const kelasList = MAPEL_KELAS_MAPPING[selectedMapel];
+  kelasList.forEach(kls => {
     const formattedKls = kls.replace(/^kls-/i, '').toUpperCase();
     selectKelas.innerHTML += `<option value="${formattedKls}">${formattedKls}</option>`;
   });
 }
 
 function getTingkatKelas() {
-  const selectKelas = document.getElementById('select-kelas').value;
-  if (!selectKelas) return null;
-  const match = selectKelas.match(/\d+/);
+  const selectKelas = document.getElementById('select-kelas');
+  if (!selectKelas || !selectKelas.value) return null;
+  const match = selectKelas.value.match(/\d+/);
   return match ? match[0] : null;
 }
