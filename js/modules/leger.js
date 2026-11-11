@@ -7,16 +7,38 @@ async function loadLegerSTS(forceRefresh = false) {
     alert("Akun Anda tidak terdaftar sebagai Wali Kelas!");
     return;
   }
-  if (!forceRefresh && LEGER_STS_CACHE[kelasWalas]) {
-    CURRENT_LEGER_DATA = LEGER_STS_CACHE[kelasWalas];
+
+  // 1. Ambil semester aktif (STS 1 atau STS 2) dari State
+  const semActive = STATE.currentStsSemester || 1;
+
+  // 2. Ambil ID Spreadsheet dinamis dari config.js berdasarkan semester dan kelas
+  const spreadsheetId = CONFIG.RAPOR_STS_DB?.[semActive]?.[kelasWalas];
+  if (!spreadsheetId) {
+    alert(`ID Spreadsheet STS untuk Kelas ${kelasWalas} pada STS ${semActive} belum diisi di config.js!`);
+    return;
+  }
+
+  // 3. Kunci cache dipisahkan per semester dan kelas
+  const cacheKey = `${semActive}_${kelasWalas}`;
+
+  if (!forceRefresh && LEGER_STS_CACHE[cacheKey]) {
+    CURRENT_LEGER_DATA = LEGER_STS_CACHE[cacheKey];
     renderLegerTable();
     return;
   }
-  const res = await callGASAPI("getLegerSTS", { kelas: kelasWalas });
+
+  // 4. Kirim spreadsheetId dan kelas ke GAS API
+  const res = await callGASAPI("getLegerSTS", { 
+    spreadsheetId: spreadsheetId, 
+    kelas: kelasWalas 
+  });
+
   if (res && res.status === "success") {
-    LEGER_STS_CACHE[kelasWalas] = res;
+    LEGER_STS_CACHE[cacheKey] = res;
     CURRENT_LEGER_DATA = res;
     renderLegerTable();
+  } else {
+    alert("Gagal mengambil data Leger STS: " + (res?.message || "Terjadi kesalahan koneksi."));
   }
 }
 
@@ -27,13 +49,19 @@ function renderLegerTable() {
   // Mengambil nama Walas resmi dari akun login (Dashboard), atau fallback ke meta
   const namaWalasResmi = (STATE.currentUser && STATE.currentUser.nama_lengkap) 
     ? STATE.currentUser.nama_lengkap 
-    : (meta.walas || '-');
+    : (meta?.walas || '-');
 
-  document.getElementById('leger-meta-info').innerText = `Kelas: ${meta.kelas || '-'} | Wali Kelas: ${namaWalasResmi}`;
+  const elMeta = document.getElementById('leger-meta-info');
+  if (elMeta) {
+    elMeta.innerText = `Kelas: ${meta?.kelas || '-'} | Wali Kelas: ${namaWalasResmi}`;
+  }
   
   const tbody = document.getElementById('table-leger-body');
+  if (!tbody) return;
   tbody.innerHTML = '';
   
+  if (!data || !Array.isArray(data)) return;
+
   data.forEach((row) => {
     const no = row[0];
     const kelasStr = row[1];
