@@ -76,7 +76,22 @@ function renderLembarRapor(siswaIndex) {
   document.getElementById('lbl-rapor-nama').innerText = namaSiswa;
   document.getElementById('lbl-rapor-kelas').innerText = meta.kelas || '-';
   document.getElementById('lbl-rapor-nisn').innerText = realNisn;
-  
+
+  // INJEKSI JUDUL & SEMESTER DINAMIS BERDASARKAN SUBMENU STS (1 ATAU 2)
+  const semActive = STATE.currentStsSemester || 1;
+  const elJudul = document.getElementById('lbl-rapor-judul');
+  const elSemester = document.getElementById('lbl-rapor-semester');
+
+  if (elJudul) {
+    elJudul.textContent = semActive === 2 
+      ? "LAPORAN HASIL BELAJAR SUMATIF TENGAH SEMESTER GENAP" 
+      : "LAPORAN HASIL BELAJAR SUMATIF TENGAH SEMESTER GANJIL";
+  }
+
+  if (elSemester) {
+    elSemester.textContent = semActive === 2 ? "II (Genap)" : "I (Ganjil)";
+  }
+
   // Tanda Tangan Orang Tua
   const elOrtu = document.getElementById('rapor-ttd-ortu');
   if (elOrtu) {
