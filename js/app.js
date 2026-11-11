@@ -122,6 +122,18 @@ function populateDropdowns(user) {
     selectMapel.selectedIndex = 1;
     updateKelasDropdown(selectMapel.value);
   }
+
+  // =========================================================
+  // TAMBAHKAN BARIS INI: KONTROL MENU STS WALI KELAS
+  // =========================================================
+  const navStsGroup = document.getElementById('nav-sts-group');
+  if (navStsGroup) {
+    if (user && user.walas_kelas) {
+      navStsGroup.classList.remove('hidden'); // Tampilkan jika punya kelas wali
+    } else {
+      navStsGroup.classList.add('hidden');    // Sembunyikan jika guru biasa
+    }
+  }
 }
 
 function updateKelasDropdown(selectedMapel) {
