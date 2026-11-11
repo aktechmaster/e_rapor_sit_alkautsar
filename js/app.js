@@ -15,7 +15,12 @@ document.addEventListener("DOMContentLoaded", () => {
   attachTableKeyboardNav('table-sumatif-body');
 });
 
-function switchMenu(viewName) {
+function switchMenu(viewName, semester = null) {
+  // 1. Simpan Semester Aktif jika diubah via menu STS
+  if (semester) {
+    STATE.currentStsSemester = Number(semester);
+  }
+
   const views = ['dashboard', 'tp', 'sumatif', 'formatif', 'katrol', 'leger', 'cetak-sts'];
   views.forEach(v => {
     const el = document.getElementById(`view-${v}`);
@@ -24,10 +29,27 @@ function switchMenu(viewName) {
     const navEl = document.getElementById(`nav-${v}`);
     if (navEl) navEl.classList.remove('active');
   });
+
+  // Reset highlight sub-nav STS
+  ['nav-leger-sts1', 'nav-cetak-sts1', 'nav-leger-sts2', 'nav-cetak-sts2'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.classList.remove('active');
+  });
+
+  // Tampilkan View Target
   const targetView = document.getElementById(`view-${viewName}`);
   if (targetView) targetView.classList.remove('hidden');
-  const targetNav = document.getElementById(`nav-${viewName}`);
-  if (targetNav) targetNav.classList.add('active');
+
+  // Highlight Sub-Nav Aktif atau Main Nav
+  if (viewName === 'leger' || viewName === 'cetak-sts') {
+    const activeSubNavId = `nav-${viewName}-sts${STATE.currentStsSemester}`;
+    const targetSubNav = document.getElementById(activeSubNavId);
+    if (targetSubNav) targetSubNav.classList.add('active');
+  } else {
+    const targetNav = document.getElementById(`nav-${viewName}`);
+    if (targetNav) targetNav.classList.add('active');
+  }
+
   // KONTROL VISIBILITAS DROPDOWN HEADER MAPEL & KELAS
   const headerSelectMapel = document.getElementById('select-mapel')?.parentElement;
   const headerSelectKelas = document.getElementById('select-kelas')?.parentElement;
@@ -38,13 +60,25 @@ function switchMenu(viewName) {
     if (headerSelectMapel) headerSelectMapel.classList.remove('hidden');
     if (headerSelectKelas) headerSelectKelas.classList.remove('hidden');
   }
+
   if (window.innerWidth < 768) {
     const sidebar = document.getElementById('sidebar');
     const overlay = document.getElementById('sidebar-overlay');
     if (sidebar) sidebar.classList.add('-translate-x-full');
     if (overlay) overlay.classList.add('hidden');
   }
+
   loadActiveMenuData();
+}
+
+// TOGGLE SUBMENU RAPOR STS
+function toggleStsSubmenu() {
+  const submenu = document.getElementById('sts-submenu');
+  const arrow = document.getElementById('sts-arrow');
+  if (submenu) {
+    submenu.classList.toggle('hidden');
+    if (arrow) arrow.classList.toggle('rotate-180');
+  }
 }
 
 function loadActiveMenuData() {
