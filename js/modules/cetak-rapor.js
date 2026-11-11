@@ -66,20 +66,26 @@ async function loadCetakRaporSTS() {
     return;
   }
   
-  // Memuat data leger (otomatis menangani cache per semester & spreadsheetId)
-  const legerData = await loadLegerSTS(false);
-  if (!legerData) return;
+  const semActive = STATE.currentStsSemester || 1;
+  const cacheKey = `${semActive}_${kelasWalas}`;
   
+  // Jika cache belum ada atau meta.ortuMap belum ada, paksa refresh data dari GAS API
+  if (!LEGER_STS_CACHE[cacheKey] || !LEGER_STS_CACHE[cacheKey].meta || !LEGER_STS_CACHE[cacheKey].meta.ortuMap) {
+    await loadLegerSTS(true);
+  } else {
+    CURRENT_LEGER_DATA = LEGER_STS_CACHE[cacheKey];
+  }
+  
+  if (!CURRENT_LEGER_DATA) return;
   const selectSiswa = document.getElementById('select-siswa-rapor');
   selectSiswa.innerHTML = '';
   
   const dataSiswa = CURRENT_LEGER_DATA.data || [];
   dataSiswa.forEach((row, idx) => {
-    if (row[2]) {
+    if (row[2] && row[2] !== "NAMA SISWA" && row[2] !== "NAMA") {
       selectSiswa.innerHTML += `<option value="${idx}">${row[0]}. ${row[2]}</option>`;
     }
   });
-
   if (dataSiswa.length > 0) {
     CURRENT_SISWA_INDEX = 0;
     selectSiswa.value = "0";
