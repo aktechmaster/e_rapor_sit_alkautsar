@@ -139,8 +139,9 @@ function updateKelasDropdown(selectedMapel) {
   selectKelas.innerHTML = '<option value="">-- Pilih Kelas --</option>';
   
   if (!selectedMapel || !MAPEL_KELAS_MAPPING[selectedMapel]) return;
-  const kelasList = MAPEL_KELAS_MAPPING[selectedMapel];
-  klasList.forEach(kls => {
+  
+  const kelasList = MAPEL_KELAS_MAPPING[selectedMapel]; // Menggunakan 'kelasList'
+  kelasList.forEach(kls => {                             // Samakan dipanggil 'kelasList'
     const formattedKls = kls.replace(/^kls-/i, '').toUpperCase();
     selectKelas.innerHTML += `<option value="${formattedKls}">${formattedKls}</option>`;
   });
