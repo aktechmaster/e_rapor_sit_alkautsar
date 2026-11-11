@@ -7,17 +7,21 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="css/style.css?v=3">
+  
   <style>
-  /* Font Family Times New Roman khusus Lembar Cetak Rapor */
   .font-times {
     font-family: 'Times New Roman', Times, serif !important;
   }
 
   @media print {
-    @page {
-      size: 215.9mm 330.2mm; /* Ukuran Kertas Folio / F4 (Bisa disesuaikan A4 210mm 297mm) */
-      margin: 10mm 15mm;     /* Margin proporsional: 10mm atas-bawah, 15mm kiri-kanan */
-    }
+  @page {
+    size: 215.9mm 330.2mm;
+    margin-top: 17mm; /* <--- UBAH DI SINI untuk mengontrol margin atas */
+    margin-bottom: 10mm;
+    margin-left: 14mm;
+    margin-right: 14mm;
+  }
+}
     
     html, body, #app-container, main, main > div {
       height: auto !important;
@@ -28,15 +32,19 @@
       overflow: visible !important;
       display: block !important;
     }
+    
     #sidebar, header, #sidebar-overlay, .no-print, #global-loading {
       display: none !important;
     }
+    
     #view-cetak-sts {
       display: block !important;
       margin: 0 !important;
       padding: 0 !important;
       overflow: visible !important;
     }
+
+    /* KUNCI UKURAN FONT & SKALA VERTIKAL UNTUK PRINT (MENYUSUT 2 TINGKAT) */
     #rapor-print-container {
       border: none !important;
       box-shadow: none !important;
@@ -45,11 +53,41 @@
       width: 100% !important;
       margin: 0 !important;
       font-family: 'Times New Roman', Times, serif !important;
+      font-size: 8pt !important;          /* Font utama turun ke 8pt */
+      line-height: 1.15 !important;
       page-break-inside: avoid !important;
       break-inside: avoid !important;
     }
+
+    /* KOP SURAT */
+    #rapor-print-container h1 { font-size: 11pt !important; }
+    #rapor-print-container h2 { font-size: 10pt !important; }
+    #rapor-print-container h3 { font-size: 9.5pt !important; }
+    #rapor-print-container h4 { font-size: 9pt !important; }
+    #rapor-print-container p  { font-size: 7.5pt !important; }
+
+    /* TABEL DATA SISWA & NILAI (FONT 8pt DAN PADDING RAPAT) */
+    #rapor-print-container table {
+      font-size: 8pt !important;
+    }
+    
+    #rapor-print-container th, 
+    #rapor-print-container td {
+      padding: 2px 4px !important;       /* Memangkas ketebalan baris tabel */
+      font-size: 8pt !important;
+    }
+
+    /* AREA TANDATANGAN */
+    #rapor-print-container .grid {
+      font-size: 8.5pt !important;
+    }
+    
+    #rapor-print-container p[id$="-nipy"] {
+      font-size: 7.5pt !important;       /* Ukuran NIPY disusutkan agar rapat */
+    }
   }
-  </style>
+</style>
+  
 </head>
 <body class="bg-gray-100 font-sans text-gray-800 antialiased">
   <!-- OVERLAY LOADING GLOBAL -->
@@ -402,7 +440,7 @@
       <!-- HEADER RAPOR -->
       <div class="flex items-center justify-between border-b-2 border-black pb-2 mb-3">
         <!-- LOGO KIRI YAYASAN -->
-        <img src="pictures/logoyayasan.png" alt="Logo Yayasan" class="w-20 h-20 object-contain shrink-0">
+        <img src="pictures/logoyayasan.png" alt="Logo Yayasan" class="w-[90px] h-[90px] object-contain shrink-0">
         
         <div class="text-center flex-1 px-3">
           <h4 class="font-bold text-[12px] uppercase tracking-wide">YAYASAN AL-AMANAH MUKOMUKO</h4>
@@ -412,7 +450,7 @@
           <p class="text-[9px] text-gray-600">Alamat: Jl. Kuku Besi Suka Rame Desa Pasar Sebelah Kec. Kota Mukomuko Kab. Mukomuko Bengkulu</p>
         </div>
         <!-- LOGO KANAN SMPIT -->
-        <img src="pictures/logosmpit.png" alt="Logo SMPIT" class="w-20 h-20 object-contain shrink-0">
+        <img src="pictures/logoyayasan.png" alt="Logo Yayasan" class="w-[80px] h-[80px] object-contain shrink-0">
       </div>
       
       <h3 class="font-bold text-center text-[12px] uppercase underline mb-3 tracking-wide">LAPORAN HASIL BELAJAR SUMATIF TENGAH SEMESTER GANJIL</h3>
