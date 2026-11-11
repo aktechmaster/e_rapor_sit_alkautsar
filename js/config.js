@@ -5,18 +5,32 @@ const CONFIG = {
   // ID Spreadsheet Master (Tempat Tab Dist_Mengajar & Kelas)
   MASTER_SPREADSHEET_ID: "1IfRkDX_S3f2db6Pu4Oejbnr9k8CPrZlPWeVNFh9lGPM",
 
-  // Pemetaan ID Spreadsheet Rapor STS (10 Kelas)
+  // Pemetaan ID Spreadsheet Rapor STS per Semester
   RAPOR_STS_DB: {
-    "7A":  "1p6NsioqsTxuSFLaGyGX-A4gF33BmK7vDtsq94wmnqVQ",
-    "7B":  "18XvWtyMQx2CUn1va0pBXuIvZu1upgzlvFDStElE3z8M",
-    "7C":  "1uLE8R5D09F7HmG1ESKwZUfPQUORkL9ixPckH0a87pxQ",
-    "8A":  "1bUpd4BTruXNEU3BG2a6c-Xczq0VoRNnpoMzb45Cbnsc",
-    "8B":  "1pHYBtUHxKZua3PxW_J1lzPBoqzKo4SIT5MRMuhqDVRo",
-    "8C":  "1VDvgLA4XkqXYdFR9_8KXuiccDlT8QlBOpHRhE8DCKwE",
-    "9A":  "11LCF5YCfFg_s7MA2KtWqiuK2n2TTDfRKEEdYF73tSfs",
-    "9B":  "1JcNkN_Mi8YPdvf5FCIqvVcdBL_4v30g3b7Z7MHlGI6g",
-    "9C1": "1i4woCiBeeuRaiZoMMNNduLtrlf--igod9VrCmRgkDa0",
-    "9C2": "1nto0PhxX0-uTfuX3NqYntvh60SIQiANZ0313T3bbLOc"
+    1: { // STS 1 (Ganjil)
+      "7A":  "1p6NsioqsTxuSFLaGyGX-A4gF33BmK7vDtsq94wmnqVQ",
+      "7B":  "18XvWtyMQx2CUn1va0pBXuIvZu1upgzlvFDStElE3z8M",
+      "7C":  "1uLE8R5D09F7HmG1ESKwZUfPQUORkL9ixPckH0a87pxQ",
+      "8A":  "1bUpd4BTruXNEU3BG2a6c-Xczq0VoRNnpoMzb45Cbnsc",
+      "8B":  "1pHYBtUHxKZua3PxW_J1lzPBoqzKo4SIT5MRMuhqDVRo",
+      "8C":  "1VDvgLA4XkqXYdFR9_8KXuiccDlT8QlBOpHRhE8DCKwE",
+      "9A":  "11LCF5YCfFg_s7MA2KtWqiuK2n2TTDfRKEEdYF73tSfs",
+      "9B":  "1JcNkN_Mi8YPdvf5FCIqvVcdBL_4v30g3b7Z7MHlGI6g",
+      "9C1": "1i4woCiBeeuRaiZoMMNNduLtrlf--igod9VrCmRgkDa0",
+      "9C2": "1nto0PhxX0-uTfuX3NqYntvh60SIQiANZ0313T3bbLOc"
+    },
+    2: { // STS 2 (Genap) - Siap diisi ID Spreadsheet STS 2 nantinya
+      "7A":  "",
+      "7B":  "",
+      "7C":  "",
+      "8A":  "",
+      "8B":  "",
+      "8C":  "",
+      "9A":  "",
+      "9B":  "",
+      "9C1": "",
+      "9C2": ""
+    }
   },
 
   // Pemetaan ID Mapel ke Spreadsheet ID Spesifik
@@ -46,5 +60,6 @@ const STATE = {
   currentUser: null,
   currentMapelId: null,
   currentKelas: null,
+  currentStsSemester: 1, // Default ke STS 1 (Ganjil)
   distribuasiMengajar: []
 };
