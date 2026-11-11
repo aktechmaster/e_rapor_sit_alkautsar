@@ -8,45 +8,64 @@ async function loadLegerSTS(forceRefresh = false) {
     return;
   }
 
-  // 1. Ambil semester aktif (STS 1 atau STS 2) dari State
   const semActive = STATE.currentStsSemester || 1;
-
-  // 2. Ambil ID Spreadsheet dinamis dari config.js berdasarkan semester dan kelas
   const spreadsheetId = CONFIG.RAPOR_STS_DB?.[semActive]?.[kelasWalas];
+
   if (!spreadsheetId) {
     alert(`ID Spreadsheet STS untuk Kelas ${kelasWalas} pada STS ${semActive} belum diisi di config.js!`);
     return;
   }
 
-  // 3. Kunci cache dipisahkan per semester dan kelas
   const cacheKey = `${semActive}_${kelasWalas}`;
 
-  if (!forceRefresh && LEGER_STS_CACHE[cacheKey]) {
+  // 1. TAMPILKAN STATUS LOADING DI TABEL
+  const tbody = document.getElementById('table-leger-body');
+  if (tbody) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="32" class="p-8 text-center text-gray-500 font-medium italic">
+          <i class="fa-solid fa-spinner fa-spin text-indigo-600 text-xl mb-2 block"></i>
+          Sedang mengambil data Leger STS ${semActive} Kelas ${kelasWalas}...
+        </td>
+      </tr>
+    `;
+  }
+
+  // 2. GUNAKAN CACHE HANYA JIKA ADA DAN TIDAK DIPAKSA REFRESH
+  if (!forceRefresh && LEGER_STS_CACHE[cacheKey] && LEGER_STS_CACHE[cacheKey].status === "success") {
     CURRENT_LEGER_DATA = LEGER_STS_CACHE[cacheKey];
     renderLegerTable();
     return;
   }
 
-  // 4. Kirim spreadsheetId dan kelas ke GAS API
+  // 3. PANGGIL API GAS
   const res = await callGASAPI("getLegerSTS", { 
     spreadsheetId: spreadsheetId, 
     kelas: kelasWalas 
   });
 
   if (res && res.status === "success") {
-    LEGER_STS_CACHE[cacheKey] = res;
+    LEGER_STS_CACHE[cacheKey] = res; // Simpan cache jika berhasil
     CURRENT_LEGER_DATA = res;
     renderLegerTable();
   } else {
-    alert("Gagal mengambil data Leger STS: " + (res?.message || "Terjadi kesalahan koneksi."));
+    if (tbody) {
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="32" class="p-6 text-center text-rose-600 font-semibold bg-rose-50 border border-rose-200 rounded-lg">
+            <i class="fa-solid fa-triangle-exclamation text-lg mb-1 block"></i>
+            Gagal memuat data: ${res?.message || "Terjadi kesalahan koneksi ke server."}
+          </td>
+        </tr>
+      `;
+    }
   }
 }
 
 function renderLegerTable() {
-  if (!CURRENT_LEGER_DATA) return;
+  if (!CURRENT_LEGER_DATA || CURRENT_LEGER_DATA.status !== "success") return;
   const { meta, data } = CURRENT_LEGER_DATA;
 
-  // Mengambil nama Walas resmi dari akun login (Dashboard), atau fallback ke meta
   const namaWalasResmi = (STATE.currentUser && STATE.currentUser.nama_lengkap) 
     ? STATE.currentUser.nama_lengkap 
     : (meta?.walas || '-');
@@ -60,13 +79,18 @@ function renderLegerTable() {
   if (!tbody) return;
   tbody.innerHTML = '';
   
-  if (!data || !Array.isArray(data)) return;
+  if (!data || !Array.isArray(data) || data.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="32" class="p-4 text-center text-gray-400">Tidak ada data siswa ditemukan.</td></tr>`;
+    return;
+  }
 
   data.forEach((row) => {
     const no = row[0];
     const kelasStr = row[1];
     const namaSiswa = row[2];
-    if (!namaSiswa) return;
+
+    // Lewati baris header jika terbaca dari sheet
+    if (!namaSiswa || namaSiswa === "NAMA SISWA" || namaSiswa === "NAMA" || no === "NO") return;
     
     const tr = document.createElement('tr');
     tr.className = "hover:bg-slate-50 border-b border-gray-200 h-8 text-xs";
@@ -75,22 +99,31 @@ function renderLegerTable() {
       <td class="p-1.5 border-r text-center sticky-col left-10 text-gray-700 bg-white">${kelasStr}</td>
       <td class="p-1.5 border-r sticky-col left-[136px] font-medium text-gray-800 truncate bg-white" title="${namaSiswa}">${namaSiswa}</td>
     `;
+    
+    // Nilai Mapel (Kolom D - R / indeks 3 - 17)
     for (let c = 3; c <= 17; c++) {
-      const val = row[c] !== "" ? row[c] : "-";
-      html += `<td class="p-1.5 border-r text-center">${val}</td>`;
+      const val = row[c] !== "" && row[c] !== undefined ? Math.round(Number(row[c])) : "-";
+      html += `<td class="p-1.5 border-r text-center">${isNaN(val) ? (row[c] || "-") : val}</td>`;
     }
+    
+    // Sikap (Kolom S - X / indeks 18 - 23)
     for (let c = 18; c <= 23; c++) {
       const val = row[c] || "-";
       html += `<td class="p-1.5 border-r text-center font-semibold text-amber-700 bg-amber-50/30">${val}</td>`;
     }
+    
+    // Absensi (Kolom Y - AA / indeks 24 - 26)
     for (let c = 24; c <= 26; c++) {
-      const val = row[c] !== "" ? row[c] : "0";
+      const val = row[c] !== "" && row[c] !== undefined ? row[c] : "0";
       html += `<td class="p-1.5 border-r text-center bg-rose-50/30">${val}</td>`;
     }
-    const total = row[27] !== "" ? Number(row[27]).toLocaleString('id-ID') : "-";
-    const avg = row[28] !== "" ? Number(row[28]).toFixed(2).replace('.', ',') : "-";
-    const rank = row[29] !== "" ? row[29] : "-";
+    
+    // Rekap (Total, Rata, Rank, Hafalan)
+    const total = row[27] !== "" && row[27] !== undefined ? Number(row[27]).toLocaleString('id-ID') : "-";
+    const avg = row[28] !== "" && row[28] !== undefined ? Number(row[28]).toFixed(2).replace('.', ',') : "-";
+    const rank = row[29] !== "" && row[29] !== undefined ? row[29] : "-";
     const surat = row[31] || "-";
+
     html += `
       <td class="p-1.5 border-r text-center font-bold bg-emerald-50 text-emerald-900">${total}</td>
       <td class="p-1.5 border-r text-center font-bold bg-emerald-50 text-emerald-900">${avg}</td>
