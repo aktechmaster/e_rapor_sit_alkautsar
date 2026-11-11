@@ -11,7 +11,7 @@
    @media print {
   @page {
     size: 215.9mm 330.2mm; /* Ukuran Kertas Folio / F4 */
-    margin: 14mm 16mm;     /* Margin diperlebar agar tidak terlalu rapat ke tepi kertas */
+    margin: 6mm 12mm;      /* Margin atas-bawah diperkecil (6mm) agar NIPY tidak terdorong ke hal 2 */
   }
   
   html, body, #app-container, main, main > div {
@@ -39,9 +39,8 @@
     max-width: 100% !important;
     width: 100% !important;
     margin: 0 !important;
-    page-break-before: avoid !important;
-    page-break-after: avoid !important;
     page-break-inside: avoid !important;
+    break-inside: avoid !important;
   }
 }
   </style>
@@ -485,39 +484,35 @@
       </table>
       
       <!-- TANDA TANGAN DINAMIS SPREADSHEET -->
-      <div class="grid grid-cols-3 text-center text-xs mt-6 gap-4 items-end">
+      <div class="grid grid-cols-3 text-center text-xs mt-3 gap-2">
         <!-- KOLOM 1: ORANG TUA / WALI -->
-        <div class="flex flex-col justify-between h-full">
+        <div class="flex flex-col justify-between">
+          <p class="font-medium">Orang Tua / Wali</p>
+          <div class="h-12"></div> <!-- Ruang TTD terukur ideal (48px) -->
           <div>
-            <p class="font-medium">Orang Tua / Wali</p>
-          </div>
-          <div>
-            <div class="h-20"></div> <!-- Ruang tanda tangan diperluas (80px) -->
             <p class="font-bold underline" id="rapor-ttd-ortu">( .................................... )</p>
-            <p class="text-[9px] opacity-0">-</p> <!-- Spacer penyelaras baris NIPY -->
+            <p class="text-[9px] opacity-0">-</p> <!-- Spacer penyelaras posisi NIPY -->
           </div>
         </div>
 
         <!-- KOLOM 2: WALI KELAS -->
-        <div class="flex flex-col justify-between h-full">
+        <div class="flex flex-col justify-between">
+          <p class="font-medium">Wali Kelas</p>
+          <div class="h-12"></div>
           <div>
-            <p class="font-medium">Wali Kelas</p>
-          </div>
-          <div>
-            <div class="h-20"></div> <!-- Ruang tanda tangan diperluas (80px) -->
             <p class="font-bold underline" id="rapor-ttd-walas">-</p>
             <p class="text-[9px]" id="rapor-ttd-walas-nipy"></p>
           </div>
         </div>
 
         <!-- KOLOM 3: KEPALA SEKOLAH -->
-        <div class="flex flex-col justify-between h-full">
+        <div class="flex flex-col justify-between">
           <div>
-            <p id="rapor-ttd-tgl" class="mb-1">Mukomuko, 9 Oktober 2026</p> <!-- Beri margin bawah pada tanggal -->
+            <p id="rapor-ttd-tgl">Mukomuko, 9 Oktober 2026</p>
             <p class="font-medium">Kepala SMPIT Al-Kautsar</p>
           </div>
+          <div class="h-8"></div> <!-- Ruang TTD Kepsek diseimbangkan dengan teks Tanggal -->
           <div>
-            <div class="h-16"></div> <!-- Ruang tanda tangan seimbang dengan kolom lain -->
             <p class="font-bold underline" id="rapor-ttd-kepsek">Warto, S.Pd.I., M.Pd., Gr.</p>
             <p class="text-[9px]" id="rapor-ttd-kepsek-nipy">NIPY. 141981071801014</p>
           </div>
