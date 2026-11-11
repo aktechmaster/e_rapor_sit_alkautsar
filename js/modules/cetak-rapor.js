@@ -5,7 +5,7 @@
 /**
  * Fungsi untuk menarik data Leger STS dari GAS API berdasarkan spreadsheetId dinamis
  */
-async function loadLegerSTS(forceRefresh = false) {
+async function fetchLegerForCetak(forceRefresh = false) {
   const kelasWalas = STATE.currentUser ? STATE.currentUser.walas_kelas : null;
   if (!kelasWalas) {
     alert("Akun Anda tidak terdaftar sebagai Wali Kelas!");
@@ -71,7 +71,7 @@ async function loadCetakRaporSTS() {
   
   // Jika cache belum ada atau meta.ortuMap belum ada, paksa refresh data dari GAS API
   if (!LEGER_STS_CACHE[cacheKey] || !LEGER_STS_CACHE[cacheKey].meta || !LEGER_STS_CACHE[cacheKey].meta.ortuMap) {
-    await loadLegerSTS(true);
+    await fetchLegerForCetak(true);
   } else {
     CURRENT_LEGER_DATA = LEGER_STS_CACHE[cacheKey];
   }
