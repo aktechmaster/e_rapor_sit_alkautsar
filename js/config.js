@@ -1,5 +1,5 @@
 const CONFIG = {
-  // Web App Executable URL dari Standalone GAS Deploy <<===== (GAS E-Rapor standalone)
+  // Web App Executable URL dari Standalone GAS Deploy
   GAS_API_URL: "https://script.google.com/macros/s/AKfycbxB-2-_I2lhQz6hMPdMl3OEKpXXjpnmHJK6pg0N2kX9kC0PRh5_N9_ga4vkxnnrCU6hTw/exec",
   
   // ID Spreadsheet Master (Tempat Tab Dist_Mengajar & Kelas)
@@ -19,7 +19,7 @@ const CONFIG = {
       "9C1": "1i4woCiBeeuRaiZoMMNNduLtrlf--igod9VrCmRgkDa0",
       "9C2": "1nto0PhxX0-uTfuX3NqYntvh60SIQiANZ0313T3bbLOc"
     },
-    2: { // STS 2 (Genap) - Siap diisi ID Spreadsheet STS 2 nantinya
+    2: { // STS 2 (Genap)
       "7A":  "",
       "7B":  "",
       "7C":  "",
@@ -63,3 +63,23 @@ const STATE = {
   currentStsSemester: 1, // Default ke STS 1 (Ganjil)
   distribuasiMengajar: []
 };
+
+// Global Cache Object
+const LEGER_STS_CACHE = {};
+let CURRENT_LEGER_DATA = null;
+let CURRENT_SISWA_INDEX = 0;
+
+// HELPER KONEKSI APIS GAS
+async function callGASAPI(action, payload = {}) {
+  try {
+    const response = await fetch(CONFIG.GAS_API_URL, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify({ action, ...payload })
+    });
+    return await response.json();
+  } catch (err) {
+    console.error(`Error callGASAPI [${action}]:`, err);
+    return { status: "error", message: err.message };
+  }
+}
