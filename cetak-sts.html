@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cetak Rapor STS - SMPIT Al-Kautsar</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="css/style.css?v=3">
+
+  <style>
+    .font-times {
+      font-family: 'Times New Roman', Times, serif !important;
+    }
+
+    @media print {
+      @page {
+        size: 215.9mm 330.2mm;
+        margin-top: 17mm;
+        margin-bottom: 10mm;
+        margin-left: 14mm;
+        margin-right: 13mm;
+      }
+
+      html, body {
+        height: auto !important;
+        min-height: 0 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        background-color: white !important;
+        overflow: visible !important;
+      }
+
+      .no-print {
+        display: none !important;
+      }
+
+      #rapor-print-container {
+        border: none !important;
+        box-shadow: none !important;
+        padding: 0 !important;
+        max-width: 100% !important;
+        width: 100% !important;
+        margin: 0 !important;
+        font-family: 'Times New Roman', Times, serif !important;
+        font-size: 8pt !important;
+        line-height: 1.15 !important;
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+      }
+
+      /* KOP SURAT */
+      #rapor-print-container h1 { font-size: 11pt !important; }
+      #rapor-print-container h2 { font-size: 10pt !important; }
+      #rapor-print-container h3 { font-size: 9.5pt !important; }
+      #rapor-print-container h4 { font-size: 9pt !important; }
+      #rapor-print-container p  { font-size: 7.5pt !important; }
+
+      /* TABEL DATA SISWA & NILAI */
+      #rapor-print-container table {
+        font-size: 8pt !important;
+      }
+
+      #rapor-print-container th,
+      #rapor-print-container td {
+        padding: 2px 4px !important;
+        font-size: 8pt !important;
+      }
+
+      /* AREA TANDATANGAN */
+      #rapor-print-container .grid {
+        font-size: 8.5pt !important;
+      }
+
+      #rapor-print-container p[id$="-nipy"] {
+        font-size: 7.5pt !important;
+      }
+    }
+  </style>
+  
+</head>
+<body class="bg-gray-100 font-sans text-gray-800 antialiased py-4 px-2 sm:px-6">
+
+  <!-- PANEL NAVIGASI & KONTROL CETAK (TIDAK IKUT DICETAK) -->
+  <div class="no-print max-w-[195mm] mx-auto mb-4 flex flex-wrap items-center justify-between bg-white p-4 rounded-xl border border-gray-200 shadow-sm gap-3">
+    <div class="flex flex-wrap items-center gap-3">
+      <button onclick="window.close()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-2 rounded-lg text-xs font-semibold transition flex items-center space-x-1.5">
+        <i class="fa-solid fa-arrow-left"></i>
+        <span>Tutup</span>
+      </button>
+
+      <select id="select-semester-sts" onchange="gantiSemesterSTS(this.value)" class="border border-indigo-200 bg-indigo-50 text-indigo-800 rounded-lg px-2.5 py-2 text-xs font-bold focus:outline-none">
+        <option value="1">STS 1 (Ganjil)</option>
+        <option value="2">STS 2 (Genap)</option>
+      </select>
+
+      <select id="select-siswa-rapor" onchange="renderLembarRapor(this.value)" class="border border-gray-300 rounded-lg px-3 py-2 text-sm font-semibold bg-white focus:ring-2 focus:ring-indigo-500 min-w-[210px]">
+        <option value="">-- Memuat Data Siswa... --</option>
+      </select>
+    </div>
+
+    <div class="flex items-center space-x-2">
+      <button onclick="prevSiswaRapor()" class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-2 rounded-lg text-sm font-medium transition">
+        <i class="fa-solid fa-chevron-left"></i> Prev
+      </button>
+      <button onclick="nextSiswaRapor()" class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-2 rounded-lg text-sm font-medium transition">
+        Next <i class="fa-solid fa-chevron-right"></i>
+      </button>
+      <button onclick="window.print()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2 rounded-lg font-medium shadow-sm transition flex items-center space-x-2">
+        <i class="fa-solid fa-print"></i>
+        <span>Cetak Rapor (PDF)</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- CONTAINER LEMBAR RAPOR STS (PROPORSI 1 HALAMAN F4/A4, FONT TIMES NEW ROMAN) -->
+  <div id="rapor-print-container" class="relative bg-white p-6 max-w-[195mm] mx-auto border border-gray-300 shadow-lg text-black font-times text-[11px] leading-tight overflow-hidden">
+
+    <!-- KONTEN UTAMA RAPOR -->
+    <div class="relative z-10">
+
+      <!-- HEADER / KOP SURAT -->
+      <div class="flex items-center justify-between border-b-2 border-black pb-2 mb-3">
+        <img src="pictures/logoyayasan.png" alt="Logo Yayasan" class="w-[90px] h-[90px] object-contain shrink-0">
+
+        <div class="text-center flex-1 px-3">
+          <h4 class="font-bold text-[12px] uppercase tracking-wide">YAYASAN AL-AMANAH MUKOMUKO</h4>
+          <h2 class="font-extrabold text-[13px] uppercase tracking-wider">SEKOLAH MENENGAH PERTAMA ISLAM TERPADU</h2>
+          <h1 class="font-black text-[15px] uppercase text-black">( SMPIT ) AL-KAUTSAR</h1>
+          <p class="text-[10px] leading-tight">FULLDAY DAN BOARDING SCHOOL</p>
+          <p class="text-[9px] text-gray-600">Alamat: Jl. Kuku Besi Suka Rame Desa Pasar Sebelah Kec. Kota Mukomuko Kab. Mukomuko Bengkulu</p>
+        </div>
+
+        <img src="pictures/logosmpit.png" alt="Logo SMPIT" class="w-[80px] h-[80px] object-contain shrink-0">
+      </div>
+
+      <!-- JUDUL RAPOR DINAMIS -->
+      <h3 id="lbl-rapor-judul" class="font-bold text-center text-[12px] uppercase underline mb-3 tracking-wide">
+        LAPORAN HASIL BELAJAR SUMATIF TENGAH SEMESTER GANJIL
+      </h3>
+
+      <!-- IDENTITAS SISWA -->
+      <div class="grid grid-cols-2 gap-x-8 mb-3 text-[11px] items-start">
+        <table class="w-full">
+          <tr>
+            <td class="w-28 whitespace-nowrap font-semibold py-0.5">Nama Siswa</td>
+            <td class="w-3">:</td>
+            <td class="font-bold uppercase" id="lbl-rapor-nama">-</td>
+          </tr>
+          <tr>
+            <td class="w-28 whitespace-nowrap font-semibold py-0.5">Kelas</td>
+            <td>:</td>
+            <td id="lbl-rapor-kelas">-</td>
+          </tr>
+          <tr>
+            <td class="w-28 whitespace-nowrap font-semibold py-0.5">NIS / NISN</td>
+            <td>:</td>
+            <td id="lbl-rapor-nisn">-</td>
+          </tr>
+        </table>
+        <table class="w-full">
+          <tr>
+            <td class="w-28 whitespace-nowrap font-semibold py-0.5">Semester</td>
+            <td class="w-3">:</td>
+            <td id="lbl-rapor-semester">I (Ganjil)</td>
+          </tr>
+          <tr>
+            <td class="w-28 whitespace-nowrap font-semibold py-0.5">Tahun Pelajaran</td>
+            <td>:</td>
+            <td>2026/2027</td>
+          </tr>
+        </table>
+      </div>
+
+      <!-- TABEL NILAI UTAMA -->
+      <table class="w-full border-collapse border border-black text-[10.5px] mb-3">
+        <thead>
+          <tr class="bg-gray-100 text-center font-bold">
+            <th class="border border-black p-1 w-7" rowspan="2">No</th>
+            <th class="border border-black p-1" rowspan="2">Mata Pelajaran</th>
+            <th class="border border-black p-1 w-10" rowspan="2">KKM</th>
+            <th class="border border-black p-1" colspan="2">Nilai</th>
+            <th class="border border-black p-1" rowspan="2">Deskripsi Kemajuan Belajar</th>
+          </tr>
+          <tr class="bg-gray-100 text-center font-bold">
+            <th class="border border-black p-1 w-12">Angka</th>
+            <th class="border border-black p-1 w-12">Huruf</th>
+          </tr>
+        </thead>
+        <tbody id="rapor-tbody-nilai"></tbody>
+      </table>
+
+      <!-- EKSTRAKURIKULER & PENGEMBANGAN DIRI -->
+      <div class="grid grid-cols-2 gap-4 mb-3">
+        <div>
+          <h4 class="font-bold text-[11px] uppercase mb-1">Ekstrakurikuler</h4>
+          <table class="w-full border-collapse border border-black text-[10.5px]">
+            <thead>
+              <tr class="bg-gray-100 font-bold text-center">
+                <th class="border border-black p-1">Kegiatan</th>
+                <th class="border border-black p-1 w-12">Nilai</th>
+                <th class="border border-black p-1">Keterangan</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="border border-black p-1">Pramuka SIT</td>
+                <td class="border border-black p-1 text-center font-bold" id="rapor-ekstra-pramuka-nilai">-</td>
+                <td class="border border-black p-1 text-center" id="rapor-ekstra-pramuka-ket">Baik</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div>
+          <h4 class="font-bold text-[11px] uppercase mb-1">Pengembangan Diri & Sikap</h4>
+          <table class="w-full border-collapse border border-black text-[10.5px]">
+            <thead>
+              <tr class="bg-gray-100 font-bold text-center">
+                <th class="border border-black p-1">Aspek</th>
+                <th class="border border-black p-1 w-12">Nilai</th>
+                <th class="border border-black p-1">Keterangan</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td class="border border-black p-1">1. Ibadah</td><td class="border border-black p-1 text-center font-bold" id="rapor-sikap-ibadah">-</td><td class="border border-black p-1 text-center">Baik</td></tr>
+              <tr><td class="border border-black p-1">2. Sosial</td><td class="border border-black p-1 text-center font-bold" id="rapor-sikap-sosial">-</td><td class="border border-black p-1 text-center">Baik</td></tr>
+              <tr><td class="border border-black p-1">3. Kemandirian</td><td class="border border-black p-1 text-center font-bold" id="rapor-sikap-mandiri">-</td><td class="border border-black p-1 text-center">Sangat Baik</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- AKHLAK & KEHADIRAN -->
+      <div class="grid grid-cols-2 gap-4 mb-3">
+        <table class="w-full border-collapse border border-black text-[10.5px]">
+          <tr class="bg-gray-100 font-bold"><td class="border border-black p-1" colspan="2">Akhlak & Kepribadian</td></tr>
+          <tr><td class="border border-black p-1">Akhlak</td><td class="border border-black p-1 text-center font-bold w-16" id="rapor-akh-val">-</td></tr>
+          <tr><td class="border border-black p-1">Kepribadian</td><td class="border border-black p-1 text-center font-bold w-16" id="rapor-kpb-val">-</td></tr>
+        </table>
+        <table class="w-full border-collapse border border-black text-[10.5px]">
+          <tr class="bg-gray-100 font-bold"><td class="border border-black p-1" colspan="2">Ketidakhadiran</td></tr>
+          <tr><td class="border border-black p-1">Sakit</td><td class="border border-black p-1 text-center w-16" id="rapor-abs-s">0 Hari</td></tr>
+          <tr><td class="border border-black p-1">Izin</td><td class="border border-black p-1 text-center w-16" id="rapor-abs-i">0 Hari</td></tr>
+          <tr><td class="border border-black p-1">Tanpa Keterangan</td><td class="border border-black p-1 text-center w-16" id="rapor-abs-a">0 Hari</td></tr>
+        </table>
+      </div>
+
+      <!-- REKAPITULASI PRESTASI SISWA -->
+      <table class="w-full border-collapse border border-black text-[10.5px] mb-4">
+        <tr class="bg-gray-50">
+          <td class="border border-black p-1 font-bold w-40">Nilai Keseluruhan</td>
+          <td class="border border-black p-1 font-bold text-black text-center" id="rapor-total-val">-</td>
+        </tr>
+        <tr class="bg-gray-50">
+          <td class="border border-black p-1 font-bold">Nilai Rata-rata</td>
+          <td class="border border-black p-1 font-bold text-black text-center" id="rapor-avg-val">-</td>
+        </tr>
+      </table>
+
+      <!-- TANDA TANGAN -->
+      <div class="grid grid-cols-3 text-center text-[11px] mt-6 gap-4">
+        <div class="flex flex-col justify-between min-h-[110px]">
+          <div>
+            <p class="font-medium">Orang Tua / Wali</p>
+          </div>
+          <div>
+            <div class="h-16"></div>
+            <p class="font-bold underline" id="rapor-ttd-ortu">( .................................... )</p>
+            <p class="text-[9.5px] opacity-0">-</p>
+          </div>
+        </div>
+
+        <div class="flex flex-col justify-between min-h-[110px]">
+          <div>
+            <p class="font-medium">Wali Kelas</p>
+          </div>
+          <div>
+            <div class="h-16"></div>
+            <p class="font-bold underline" id="rapor-ttd-walas">-</p>
+            <p class="text-[9.5px]" id="rapor-ttd-walas-nipy"></p>
+          </div>
+        </div>
+
+        <div class="flex flex-col justify-between min-h-[110px]">
+          <div>
+            <p id="rapor-ttd-tgl" class="mb-0.5">Mukomuko, 9 Oktober 2026</p>
+            <p class="font-medium">Kepala SMPIT Al-Kautsar</p>
+          </div>
+          <div>
+            <div class="h-12"></div>
+            <p class="font-bold underline" id="rapor-ttd-kepsek">Warto, S.Pd.I., M.Pd., Gr.</p>
+            <p class="text-[9.5px]" id="rapor-ttd-kepsek-nipy">NIPY. 141981071801014</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- WATERMARK LOGO -->
+    <div class="absolute inset-0 flex items-center justify-center pointer-events-none opacity-[0.10] z-20">
+      <img src="pictures/LOGO SMPIT AL-KAUTSAR.png" alt="Watermark Logo" class="w-[480px] h-auto object-contain">
+    </div>
+  </div>
+
+  <!-- SCRIPT KHUSUS HALAMAN CETAK STS -->
+  <script src="js/config.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/state.js"></script>
+  <script src="js/modules/cetak-sts.js"></script>
+</body>
+</html>
