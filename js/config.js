@@ -35,21 +35,21 @@ const CONFIG = {
 
   // Pemetaan ID Mapel ke Spreadsheet ID Spesifik
   MAPEL_DB: {
-    "mp-001":  { kode: "PAI",  nama: "Pendidikan Agama Islam",                id: "1eRovev0irskowR3XvoVwjPLUcDumgJKZrrmnea9djrw" },
-    "mp-002":  { kode: "PKN",  nama: "Pendidikan Kewarganegaraan",            id: "1eRovev0irskowR3XvoVwjPLUcDumgJKZrrmnea9djrw" },
-    "mp-003":  { kode: "IND",  nama: "Bahasa Indonesia",                      id: "1eRovev0irskowR3XvoVwjPLUcDumgJKZrrmnea9djrw" },
-    "mp-004":  { kode: "MTK",  nama: "Matematika",                            id: "1eRovev0irskowR3XvoVwjPLUcDumgJKZrrmnea9djrw" },
+    "mp-001":  { kode: "PAI",  nama: "Pendidikan Agama Islam",                id: "1RL0TOteydA_iKjG_oGu2qsdG8c7mvx8kEjVBydC5kuQ" },
+    "mp-002":  { kode: "PKN",  nama: "Pendidikan Kewarganegaraan",            id: "1Rl9lH0KWBGdmW2oqFctd1jBRpHIHWmcFyv1qO54sNOY" },
+    "mp-003":  { kode: "IND",  nama: "Bahasa Indonesia",                      id: "1LFlQSFpAiF6NpRK21C5x7dysllGc0Xyf_dd2UKgm80U" },
+    "mp-004":  { kode: "MTK",  nama: "Matematika",                            id: "1hXh_O2UuaD4MbY7Hw8TOB8TS9SoWoy1zWxjGlgUZwyk" },
     "mp-005":  { kode: "IPA",  nama: "Ilmu Pengetahuan Alam",                 id: "1XOyiAblo--xqdSbFlpy0itWrr78-YVbr3-6kjENTd0A" },
-    "mp-006":  { kode: "IPS",  nama: "Ilmu Pengetahuan Sosial",               id: "1eRovev0irskowR3XvoVwjPLUcDumgJKZrrmnea9djrw" },
-    "mp-007":  { kode: "ING",  nama: "Bahasa Inggris",                        id: "1eRovev0irskowR3XvoVwjPLUcDumgJKZrrmnea9djrw" },
-    "mp-008":  { kode: "PJOK", nama: "Pendidikan Jasmani Olahraga dan Kesehatan", id: "1eRovev0irskowR3XvoVwjPLUcDumgJKZrrmnea9djrw" },
+    "mp-006":  { kode: "IPS",  nama: "Ilmu Pengetahuan Sosial",               id: "1aMoxT3MOzxqYhq1inNrXGV1ejBGH0470Mj_KsobqEZs" },
+    "mp-007":  { kode: "ING",  nama: "Bahasa Inggris",                        id: "1r3NfQjRrQoyU7RJPzb0WJ36gu28S9VyMrPL2h9BlPnQ" },
+    "mp-008":  { kode: "PJOK", nama: "Pendidikan Jasmani Olahraga dan Kesehatan", id: "19T0d5wYPYSJhJeTYNfj-jS1b5acFHl6cevv9zK0UM-Y" },
     "mp-009":  { kode: "TIK",  nama: "Teknologi Informasi dan Komunikasi",    id: "1JyvD9Tr1EZJq0-gjMSTAR3wLgQsRZsDRaZ2EvXK2MnA" },
-    "mp-010":  { kode: "SBK",  nama: "Seni Budaya dan Keterampilan",          id: "1eRovev0irskowR3XvoVwjPLUcDumgJKZrrmnea9djrw" },
+    "mp-010":  { kode: "SBK",  nama: "Seni Budaya dan Keterampilan",          id: "1E3XCqh0p-0JhohccC4J3_liQmfWckUUnV6RjwBtt6Lo" },
     "mp-011":  { kode: "ARAB", nama: "Bahasa Arab",                           id: "1By3iq25nEtTmYVSLpRz9J8Npj8BChCyVMnaoJ6S6vIg" },
-    "mp-012":  { kode: "T2Q",  nama: "Tahsin dan Tahfidz Qur'an",             id: "1eRovev0irskowR3XvoVwjPLUcDumgJKZrrmnea9djrw" },
+    "mp-012":  { kode: "T2Q",  nama: "Tahsin dan Tahfidz Qur'an",             id: "1STGtd_X41g7HyvMzaaT26KgQRi_DD-zhzsNHrUfR4QI" },
     "mp-013":  { kode: "BPI",  nama: "Bina Pribadi Islam",                    id: "1eRovev0irskowR3XvoVwjPLUcDumgJKZrrmnea9djrw" },
-    "mp-014":  { kode: "TJM",  nama: "Tarjim",                                id: "1eRovev0irskowR3XvoVwjPLUcDumgJKZrrmnea9djrw" },
-    "mp-015":  { kode: "COD",  nama: "Koding",                                id: "1eRovev0irskowR3XvoVwjPLUcDumgJKZrrmnea9djrw" },
+    "mp-014":  { kode: "TJM",  nama: "Tarjim",                                id: "1lMl_7g_kD6v6k25A5VzM_pjyAnoeyGj5PfAPu3DIr0E" },
+    "mp-015":  { kode: "COD",  nama: "Koding",                                id: "1tqyreofDzfM3pfCRhsh4cVbIc0YOiaJd5ZZu6rQ04iI" },
     "eks-016": { kode: "PRA",  nama: "Pramuka",                               id: "1eRovev0irskowR3XvoVwjPLUcDumgJKZrrmnea9djrw" },
     "snm-017": { kode: "SNM",  nama: "Senam Kebugaran Jasmani",               id: "1eRovev0irskowR3XvoVwjPLUcDumgJKZrrmnea9djrw" }
   }
