@@ -10,7 +10,7 @@ const CONFIG = {
     1: { // STS 1 (Ganjil)
       "7A":  "15SJQXzyogDszA1Jbb6W3AHrzsf97ZdcPDxHwjNMtSJo",
       "7B":  "1MuZUT0ilxfg8QsiB4fL2tfaxqBWMAmurb_hxxZC5P8s",
-      "7C":  "1uLE8R5D09F7HmG1ESKwZUfPQUORkL9ixPckH0a87pxQ",
+      "7C":  "1lszn6_FoW3Rih1HgRFA5A_QQnvLwytBBzAkRaNDVP3A",
       "8A":  "1bUpd4BTruXNEU3BG2a6c-Xczq0VoRNnpoMzb45Cbnsc",
       "8B":  "1pHYBtUHxKZua3PxW_J1lzPBoqzKo4SIT5MRMuhqDVRo",
       "8C":  "1VDvgLA4XkqXYdFR9_8KXuiccDlT8QlBOpHRhE8DCKwE",
