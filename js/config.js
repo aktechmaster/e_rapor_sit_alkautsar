@@ -9,7 +9,7 @@ const CONFIG = {
   RAPOR_STS_DB: {
     1: { // STS 1 (Ganjil)
       "7A":  "15SJQXzyogDszA1Jbb6W3AHrzsf97ZdcPDxHwjNMtSJo",
-      "7B":  "18XvWtyMQx2CUn1va0pBXuIvZu1upgzlvFDStElE3z8M",
+      "7B":  "1MuZUT0ilxfg8QsiB4fL2tfaxqBWMAmurb_hxxZC5P8s",
       "7C":  "1uLE8R5D09F7HmG1ESKwZUfPQUORkL9ixPckH0a87pxQ",
       "8A":  "1bUpd4BTruXNEU3BG2a6c-Xczq0VoRNnpoMzb45Cbnsc",
       "8B":  "1pHYBtUHxKZua3PxW_J1lzPBoqzKo4SIT5MRMuhqDVRo",
