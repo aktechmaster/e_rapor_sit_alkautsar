@@ -16,7 +16,7 @@ const CONFIG = {
       "8C":  "1VDvgLA4XkqXYdFR9_8KXuiccDlT8QlBOpHRhE8DCKwE",
       "9A":  "1xHiNApSQx4BaNGpz6v_jz1s3SKWiKy7TNnjsPyPTaus",
       "9B":  "1U9CJPzJtI3wv1q8Wx0RykxiUlR8DxBRgeOw_DG8X2q8",
-      "9C1": "1i4woCiBeeuRaiZoMMNNduLtrlf--igod9VrCmRgkDa0",
+      "9C1": "1U9CJPzJtI3wv1q8Wx0RykxiUlR8DxBRgeOw_DG8X2q8",
       "9C2": "1nto0PhxX0-uTfuX3NqYntvh60SIQiANZ0313T3bbLOc"
     },
     2: { // STS 2 (Genap)
