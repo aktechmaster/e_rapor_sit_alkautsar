@@ -13,7 +13,7 @@ const CONFIG = {
       "7C":  "1lszn6_FoW3Rih1HgRFA5A_QQnvLwytBBzAkRaNDVP3A",
       "8A":  "1bzr2g5jsr4KFGtfY7-2VCvRWXG9UpZZCJwJEeahpSnM",
       "8B":  "1G-7oRhzLhlILP4RYkvP1H3hu-reuOAlD6kypahbASJQ",
-      "8C":  "1VDvgLA4XkqXYdFR9_8KXuiccDlT8QlBOpHRhE8DCKwE",
+      "8C":  "1r36m4G9tVuIytI-Z8q3K9BSsnaKlnItfdGJ7AkRqG4g",
       "9A":  "1xHiNApSQx4BaNGpz6v_jz1s3SKWiKy7TNnjsPyPTaus",
       "9B":  "1U9CJPzJtI3wv1q8Wx0RykxiUlR8DxBRgeOw_DG8X2q8",
       "9C1": "1DPojibSyGyDO9CuRMPDbrpeR6VffRd0Fw19yfwM9T8s",
