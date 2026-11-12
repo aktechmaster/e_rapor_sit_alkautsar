@@ -272,15 +272,46 @@ function renderLembarRapor(siswaIndex) {
     </tr>
   `;
 
-  document.getElementById("rapor-ekstra-pramuka-nilai").innerText = row[18] || "B";
-  document.getElementById("rapor-sikap-ibadah").innerText = row[19] || "B";
-  document.getElementById("rapor-sikap-sosial").innerText = row[20] || "A";
-  document.getElementById("rapor-sikap-mandiri").innerText = row[21] || "B";
-  document.getElementById("rapor-akh-val").innerText = row[22] || "B";
-  document.getElementById("rapor-kpb-val").innerText = row[23] || "B";
-  document.getElementById("rapor-abs-s").innerText = `${row[24] !== "" && row[24] !== undefined ? row[24] : 0} Hari`;
-  document.getElementById("rapor-abs-i").innerText = `${row[25] !== "" && row[25] !== undefined ? row[25] : 0} Hari`;
-  document.getElementById("rapor-abs-a").innerText = `${row[26] !== "" && row[26] !== undefined ? row[26] : 0} Hari`;
-  document.getElementById("rapor-total-val").innerText = row[27] !== "" && row[27] !== undefined ? Number(row[27]).toLocaleString("id-ID") : "-";
-  document.getElementById("rapor-avg-val").innerText = row[28] !== "" && row[28] !== undefined ? Number(row[28]).toFixed(2).replace(".", ",") : "-";
+  // Helper Keterangan Sikap & Ekstrakurikuler (Sesuai isi asli Spreadsheet)
+  const getKetSikap = (predikat) => {
+    const p = String(predikat || "").trim().toUpperCase();
+    if (p === "A") return "Sangat Baik";
+    if (p === "B") return "Baik";
+    if (p === "C") return "Cukup";
+    if (p === "D") return "Kurang";
+    return "-";
+  };
+
+  const setText = (id, text) => {
+    const el = document.getElementById(id);
+    if (el) el.innerText = text;
+  };
+
+  const valPramuka = row[18] !== "" && row[18] !== undefined ? String(row[18]).trim() : "-";
+  const valIbadah  = row[19] !== "" && row[19] !== undefined ? String(row[19]).trim() : "-";
+  const valSosial  = row[20] !== "" && row[20] !== undefined ? String(row[20]).trim() : "-";
+  const valMandiri = row[21] !== "" && row[21] !== undefined ? String(row[21]).trim() : "-";
+  const valAkhlak  = row[22] !== "" && row[22] !== undefined ? String(row[22]).trim() : "-";
+  const valKpb     = row[23] !== "" && row[23] !== undefined ? String(row[23]).trim() : "-";
+
+  setText("rapor-ekstra-pramuka-nilai", valPramuka);
+  setText("rapor-ekstra-pramuka-ket", getKetSikap(valPramuka));
+
+  setText("rapor-sikap-ibadah", valIbadah);
+  setText("rapor-sikap-ibadah-ket", getKetSikap(valIbadah));
+
+  setText("rapor-sikap-sosial", valSosial);
+  setText("rapor-sikap-sosial-ket", getKetSikap(valSosial));
+
+  setText("rapor-sikap-mandiri", valMandiri);
+  setText("rapor-sikap-mandiri-ket", getKetSikap(valMandiri));
+
+  setText("rapor-akh-val", valAkhlak);
+  setText("rapor-kpb-val", valKpb);
+
+  setText("rapor-abs-s", `${row[24] !== "" && row[24] !== undefined ? row[24] : 0} Hari`);
+  setText("rapor-abs-i", `${row[25] !== "" && row[25] !== undefined ? row[25] : 0} Hari`);
+  setText("rapor-abs-a", `${row[26] !== "" && row[26] !== undefined ? row[26] : 0} Hari`);
+  setText("rapor-total-val", row[27] !== "" && row[27] !== undefined ? Number(row[27]).toLocaleString("id-ID") : "-");
+  setText("rapor-avg-val", row[28] !== "" && row[28] !== undefined ? Number(row[28]).toFixed(2).replace(".", ",") : "-");
 }
