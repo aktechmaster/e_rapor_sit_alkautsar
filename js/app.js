@@ -4,7 +4,7 @@
 document.addEventListener("DOMContentLoaded", () => {
   checkAuthSession();
   renderFormatifHeaders();
-  
+
   const selectMapel = document.getElementById('select-mapel');
   if (selectMapel) {
     selectMapel.addEventListener('change', (e) => {
@@ -12,7 +12,7 @@ document.addEventListener("DOMContentLoaded", () => {
       loadActiveMenuData();
     });
   }
-  
+
   const selectKelas = document.getElementById('select-kelas');
   if (selectKelas) {
     selectKelas.addEventListener('change', () => loadActiveMenuData());
@@ -23,16 +23,15 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 function switchMenu(viewName, semester = null) {
-  // 1. Simpan Semester Aktif jika diubah via menu STS
   if (semester !== null && semester !== undefined) {
     STATE.currentStsSemester = Number(semester);
   }
 
-  const views = ['dashboard', 'tp', 'sumatif', 'formatif', 'katrol', 'leger', 'cetak-sts'];
+  const views = ['dashboard', 'tp', 'sumatif', 'formatif', 'katrol', 'leger'];
   views.forEach(v => {
     const el = document.getElementById(`view-${v}`);
     if (el) el.classList.add('hidden');
-    
+
     const navEl = document.getElementById(`nav-${v}`);
     if (navEl) navEl.classList.remove('active');
   });
@@ -48,8 +47,8 @@ function switchMenu(viewName, semester = null) {
   if (targetView) targetView.classList.remove('hidden');
 
   // Highlight Sub-Nav Aktif atau Main Nav
-  if (viewName === 'leger' || viewName === 'cetak-sts') {
-    const activeSubNavId = `nav-${viewName}-sts${STATE.currentStsSemester}`;
+  if (viewName === 'leger') {
+    const activeSubNavId = `nav-leger-sts${STATE.currentStsSemester}`;
     const targetSubNav = document.getElementById(activeSubNavId);
     if (targetSubNav) targetSubNav.classList.add('active');
   } else {
@@ -60,7 +59,7 @@ function switchMenu(viewName, semester = null) {
   // KONTROL VISIBILITAS DROPDOWN HEADER MAPEL & KELAS
   const headerSelectMapel = document.getElementById('select-mapel')?.parentElement;
   const headerSelectKelas = document.getElementById('select-kelas')?.parentElement;
-  if (viewName === 'leger' || viewName === 'cetak-sts') {
+  if (viewName === 'leger') {
     if (headerSelectMapel) headerSelectMapel.classList.add('hidden');
     if (headerSelectKelas) headerSelectKelas.classList.add('hidden');
   } else {
@@ -75,8 +74,30 @@ function switchMenu(viewName, semester = null) {
     if (overlay) overlay.classList.add('hidden');
   }
 
-  // Panggil pemuat data dengan nama view yang dituju secara langsung
   loadActiveMenuData(viewName);
+}
+
+// BUKA HALAMAN CETAK RAPOR STS DI TAB BARU (cetak-sts.html)
+function bukaCetakSTS(semester) {
+  const kelasWalas = STATE.currentUser ? STATE.currentUser.walas_kelas : null;
+  if (!kelasWalas) {
+    alert("Akun Anda tidak terdaftar sebagai Wali Kelas!");
+    return;
+  }
+
+  const sem = Number(semester) || 1;
+  STATE.currentStsSemester = sem;
+
+  // Simpan sesi user & cache leger (jika sudah pernah dibuka) agar cetak-sts.html langsung terbuka instan
+  sessionStorage.setItem("ERAPOR_PRINT_USER", JSON.stringify(STATE.currentUser));
+  sessionStorage.setItem("ERAPOR_PRINT_SEM", String(sem));
+
+  const cacheKey = `${sem}_${kelasWalas}`;
+  if (typeof LEGER_STS_CACHE !== "undefined" && LEGER_STS_CACHE[cacheKey]) {
+    sessionStorage.setItem(`ERAPOR_LEGER_${cacheKey}`, JSON.stringify(LEGER_STS_CACHE[cacheKey]));
+  }
+
+  window.open(`cetak-sts.html?sem=${sem}`, "_blank");
 }
 
 // TOGGLE SUBMENU RAPOR STS
@@ -92,12 +113,11 @@ function toggleStsSubmenu() {
 function loadActiveMenuData(targetViewName = null) {
   let viewId = targetViewName ? `view-${targetViewName}` : null;
 
-  // Fallback pencarian ID elemen aktif jika tidak di-pass langsung
   if (!viewId) {
     const activeView = document.querySelector('[id^="view-"]:not(.hidden)');
     if (activeView) viewId = activeView.id;
   }
-  
+
   if (!viewId) return;
 
   if (viewId === 'view-tp') loadSettingTP();
@@ -109,11 +129,6 @@ function loadActiveMenuData(targetViewName = null) {
       loadLegerSTS();
     }
   }
-  else if (viewId === 'view-cetak-sts') {
-    if (typeof loadCetakRaporSTS === 'function') {
-      loadCetakRaporSTS();
-    }
-  }
 }
 
 function populateDropdowns(user) {
@@ -123,9 +138,9 @@ function populateDropdowns(user) {
 
   selectMapel.innerHTML = '<option value="">-- Pilih Mapel --</option>';
   selectKelas.innerHTML = '<option value="">-- Pilih Kelas --</option>';
-  
+
   MAPEL_KELAS_MAPPING = {};
-  const hakAksesString = user.hak_akses_mengajar || user.mapel_diajar; 
+  const hakAksesString = user.hak_akses_mengajar || user.mapel_diajar;
   if (hakAksesString) {
     const mapelGroups = hakAksesString.split('|').map(s => s.trim());
     mapelGroups.forEach(group => {
@@ -162,9 +177,9 @@ function updateKelasDropdown(selectedMapel) {
   if (!selectKelas) return;
 
   selectKelas.innerHTML = '<option value="">-- Pilih Kelas --</option>';
-  
+
   if (!selectedMapel || !MAPEL_KELAS_MAPPING[selectedMapel]) return;
-  
+
   const kelasList = MAPEL_KELAS_MAPPING[selectedMapel];
   kelasList.forEach(kls => {
     const formattedKls = kls.replace(/^kls-/i, '').toUpperCase();
