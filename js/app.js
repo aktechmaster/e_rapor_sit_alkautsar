@@ -88,6 +88,38 @@ function switchMenu(viewName, semester = null) {
   loadActiveMenuData(viewName);
 }
 
+// BUKA HALAMAN CETAK RAPOR STS DI TAB BARU (cetak-sts.html)
+function bukaCetakSTS(semester) {
+  const kelasWalas = STATE.currentUser ? STATE.currentUser.walas_kelas : null;
+  if (!kelasWalas) {
+    alert("Akun Anda tidak terdaftar sebagai Wali Kelas!");
+    return;
+  }
+
+  const sem = Number(semester) || 1;
+  STATE.currentStsSemester = sem;
+
+  sessionStorage.setItem("ERAPOR_PRINT_USER", JSON.stringify(STATE.currentUser));
+  sessionStorage.setItem("ERAPOR_PRINT_SEM", String(sem));
+
+  const cacheKey = `${sem}_${kelasWalas}`;
+  if (typeof LEGER_STS_CACHE !== "undefined" && LEGER_STS_CACHE[cacheKey]) {
+    sessionStorage.setItem(`ERAPOR_LEGER_${cacheKey}`, JSON.stringify(LEGER_STS_CACHE[cacheKey]));
+  }
+
+  window.open(`cetak-sts.html?sem=${sem}`, "_blank");
+}
+
+// TOGGLE SUBMENU RAPOR STS
+function toggleStsSubmenu() {
+  const submenu = document.getElementById('sts-submenu');
+  const arrow = document.getElementById('sts-arrow');
+  if (submenu) {
+    submenu.classList.toggle('hidden');
+    if (arrow) arrow.classList.toggle('rotate-180');
+  }
+}
+
 // BUKA HALAMAN CETAK RAPOR SAS DI TAB BARU (cetak-sas.html)
 function bukaCetakSAS(semester) {
   const kelasWalas = STATE.currentUser ? STATE.currentUser.walas_kelas : null;
@@ -130,18 +162,21 @@ function loadActiveMenuData(targetViewName = null) {
 
   if (!viewId) return;
 
-  if (viewId === 'view-tp') loadSettingTP();
-  else if (viewId === 'view-sumatif') loadNilaiSumatif();
-  else if (viewId === 'view-formatif') loadDataKelas();
-  else if (viewId === 'view-katrol') loadKatrol();
-  else if (viewId === 'view-leger') {
+  if (viewId === 'view-tp') {
+    loadSettingTP();
+  } else if (viewId === 'view-sumatif') {
+    loadNilaiSumatif();
+  } else if (viewId === 'view-formatif') {
+    loadDataKelas();
+  } else if (viewId === 'view-katrol') {
+    loadKatrol();
+  } else if (viewId === 'view-leger') {
     if (typeof loadLegerSTS === 'function') {
       loadLegerSTS();
-  else if (viewId === 'view-leger-sas') {
+    }
+  } else if (viewId === 'view-leger-sas') {
     if (typeof loadLegerSAS === 'function') {
       loadLegerSAS();
-    }
-  }
     }
   }
 }
@@ -183,14 +218,15 @@ function populateDropdowns(user) {
       navStsGroup.classList.remove('hidden');
     } else {
       navStsGroup.classList.add('hidden');
+    }
+  }
+
   const navSasGroup = document.getElementById('nav-sas-group');
   if (navSasGroup) {
     if (user && user.walas_kelas) {
       navSasGroup.classList.remove('hidden');
     } else {
       navSasGroup.classList.add('hidden');
-    }
-  }
     }
   }
 }
