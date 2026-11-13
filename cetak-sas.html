@@ -21,6 +21,17 @@
       line-height: 1.28;
     }
 
+    #sas-page-1 table,
+    #sas-page-2 table {
+      border-collapse: collapse;
+    }
+
+    #sas-page-1 tr,
+    #sas-page-2 tr {
+      break-inside: avoid !important;
+      page-break-inside: avoid !important;
+    }
+
     @media print {
       @page {
         size: 215.9mm 330.2mm;
@@ -70,8 +81,8 @@
 </head>
 <body class="bg-gray-100 font-sans text-gray-800 antialiased py-4 px-2 sm:px-6">
 
-  <!-- PENGUKUR TINGGI MAKSIMAL HALAMAN 1 (286mm dari 304.2mm area cetak F4) -->
-  <div id="sas-mm-ruler" style="height: 286mm; width: 1px; position: fixed; top: 0; left: -9999px; visibility: hidden; pointer-events: none;"></div>
+  <!-- PENGUKUR TINGGI MAKSIMAL HALAMAN 1 (282mm dari 304.2mm area cetak F4 agar baris tidak pernah terpotong) -->
+  <div id="sas-mm-ruler" style="height: 282mm; width: 1px; position: fixed; top: 0; left: -9999px; visibility: hidden; pointer-events: none;"></div>
 
   <!-- PANEL NAVIGASI & KONTROL CETAK -->
   <div class="no-print max-w-[188.9mm] mx-auto mb-4 flex flex-wrap items-center justify-between bg-white p-4 rounded-xl border border-gray-200 shadow-sm gap-3">
@@ -184,10 +195,10 @@
       <table class="w-full border-collapse border border-black text-[10.5px]">
         <thead>
           <tr class="bg-gray-100 text-center font-bold">
-            <th class="border border-black p-1 w-8">No</th>
-            <th class="border border-black p-1 w-48">Muatan Pelajaran</th>
-            <th class="border border-black p-1 w-16">Nilai Akhir</th>
-            <th class="border border-black p-1">Capaian Kompetensi</th>
+            <th class="border border-black p-1.5 w-8">No</th>
+            <th class="border border-black p-1.5 w-48">Muatan Pelajaran</th>
+            <th class="border border-black p-1.5 w-16">Nilai Akhir</th>
+            <th class="border border-black p-1.5">Capaian Kompetensi</th>
           </tr>
         </thead>
         <tbody id="sas-tbody-nilai-p1"></tbody>
@@ -210,22 +221,22 @@
       <table class="w-full border-collapse border border-black text-[10.5px] mb-4">
         <thead id="sas-thead-nilai-p2">
           <tr class="bg-gray-100 text-center font-bold">
-            <th class="border border-black p-1 w-8">No</th>
-            <th class="border border-black p-1 w-48">Muatan Pelajaran</th>
-            <th class="border border-black p-1 w-16">Nilai Akhir</th>
-            <th class="border border-black p-1">Capaian Kompetensi</th>
+            <th class="border border-black p-1.5 w-8">No</th>
+            <th class="border border-black p-1.5 w-48">Muatan Pelajaran</th>
+            <th class="border border-black p-1.5 w-16">Nilai Akhir</th>
+            <th class="border border-black p-1.5">Capaian Kompetensi</th>
           </tr>
         </thead>
         <tbody id="sas-tbody-nilai-p2"></tbody>
-        <tfoot>
+        <tfoot class="border-t border-black">
           <tr class="bg-gray-50 font-bold">
-            <td colspan="2" class="border border-black p-1.5 text-center">Jumlah Nilai</td>
-            <td class="border border-black p-1.5 text-center" id="sas-total-val">-</td>
+            <td colspan="2" class="border border-black p-1.5 text-center w-[224px]">Jumlah Nilai</td>
+            <td class="border border-black p-1.5 text-center w-16" id="sas-total-val">-</td>
             <td class="border border-black p-1.5"></td>
           </tr>
           <tr class="bg-gray-50 font-bold">
-            <td colspan="2" class="border border-black p-1.5 text-center">Nilai Rata-rata</td>
-            <td class="border border-black p-1.5 text-center" id="sas-avg-val">-</td>
+            <td colspan="2" class="border border-black p-1.5 text-center w-[224px]">Nilai Rata-rata</td>
+            <td class="border border-black p-1.5 text-center w-16" id="sas-avg-val">-</td>
             <td class="border border-black p-1.5"></td>
           </tr>
         </tfoot>
