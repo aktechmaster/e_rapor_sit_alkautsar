@@ -24,10 +24,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
 function switchMenu(viewName, semester = null) {
   if (semester !== null && semester !== undefined) {
-    STATE.currentStsSemester = Number(semester);
+    if (viewName === 'leger-sas') {
+      STATE.currentSasSemester = Number(semester);
+    } else {
+      STATE.currentStsSemester = Number(semester);
+    }
   }
 
-  const views = ['dashboard', 'tp', 'sumatif', 'formatif', 'katrol', 'leger'];
+  const views = ['dashboard', 'tp', 'sumatif', 'formatif', 'katrol', 'leger', 'leger-sas'];
   views.forEach(v => {
     const el = document.getElementById(`view-${v}`);
     if (el) el.classList.add('hidden');
@@ -36,8 +40,11 @@ function switchMenu(viewName, semester = null) {
     if (navEl) navEl.classList.remove('active');
   });
 
-  // Reset highlight sub-nav STS
-  ['nav-leger-sts1', 'nav-cetak-sts1', 'nav-leger-sts2', 'nav-cetak-sts2'].forEach(id => {
+  // Reset highlight sub-nav STS & SAS
+  [
+    'nav-leger-sts1', 'nav-cetak-sts1', 'nav-leger-sts2', 'nav-cetak-sts2',
+    'nav-leger-sas1', 'nav-cetak-sas1', 'nav-leger-sas2', 'nav-cetak-sas2'
+  ].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.classList.remove('active');
   });
@@ -51,6 +58,10 @@ function switchMenu(viewName, semester = null) {
     const activeSubNavId = `nav-leger-sts${STATE.currentStsSemester}`;
     const targetSubNav = document.getElementById(activeSubNavId);
     if (targetSubNav) targetSubNav.classList.add('active');
+  } else if (viewName === 'leger-sas') {
+    const activeSubNavId = `nav-leger-sas${STATE.currentSasSemester}`;
+    const targetSubNav = document.getElementById(activeSubNavId);
+    if (targetSubNav) targetSubNav.classList.add('active');
   } else {
     const targetNav = document.getElementById(`nav-${viewName}`);
     if (targetNav) targetNav.classList.add('active');
@@ -59,7 +70,7 @@ function switchMenu(viewName, semester = null) {
   // KONTROL VISIBILITAS DROPDOWN HEADER MAPEL & KELAS
   const headerSelectMapel = document.getElementById('select-mapel')?.parentElement;
   const headerSelectKelas = document.getElementById('select-kelas')?.parentElement;
-  if (viewName === 'leger') {
+  if (viewName === 'leger' || viewName === 'leger-sas') {
     if (headerSelectMapel) headerSelectMapel.classList.add('hidden');
     if (headerSelectKelas) headerSelectKelas.classList.add('hidden');
   } else {
@@ -77,8 +88,8 @@ function switchMenu(viewName, semester = null) {
   loadActiveMenuData(viewName);
 }
 
-// BUKA HALAMAN CETAK RAPOR STS DI TAB BARU (cetak-sts.html)
-function bukaCetakSTS(semester) {
+// BUKA HALAMAN CETAK RAPOR SAS DI TAB BARU (cetak-sas.html)
+function bukaCetakSAS(semester) {
   const kelasWalas = STATE.currentUser ? STATE.currentUser.walas_kelas : null;
   if (!kelasWalas) {
     alert("Akun Anda tidak terdaftar sebagai Wali Kelas!");
@@ -86,24 +97,23 @@ function bukaCetakSTS(semester) {
   }
 
   const sem = Number(semester) || 1;
-  STATE.currentStsSemester = sem;
+  STATE.currentSasSemester = sem;
 
-  // Simpan sesi user & cache leger (jika sudah pernah dibuka) agar cetak-sts.html langsung terbuka instan
   sessionStorage.setItem("ERAPOR_PRINT_USER", JSON.stringify(STATE.currentUser));
-  sessionStorage.setItem("ERAPOR_PRINT_SEM", String(sem));
+  sessionStorage.setItem("ERAPOR_PRINT_SAS_SEM", String(sem));
 
   const cacheKey = `${sem}_${kelasWalas}`;
-  if (typeof LEGER_STS_CACHE !== "undefined" && LEGER_STS_CACHE[cacheKey]) {
-    sessionStorage.setItem(`ERAPOR_LEGER_${cacheKey}`, JSON.stringify(LEGER_STS_CACHE[cacheKey]));
+  if (typeof LEGER_SAS_CACHE !== "undefined" && LEGER_SAS_CACHE[cacheKey]) {
+    sessionStorage.setItem(`ERAPOR_LEGER_SAS_${cacheKey}`, JSON.stringify(LEGER_SAS_CACHE[cacheKey]));
   }
 
-  window.open(`cetak-sts.html?sem=${sem}`, "_blank");
+  window.open(`cetak-sas.html?sem=${sem}`, "_blank");
 }
 
-// TOGGLE SUBMENU RAPOR STS
-function toggleStsSubmenu() {
-  const submenu = document.getElementById('sts-submenu');
-  const arrow = document.getElementById('sts-arrow');
+// TOGGLE SUBMENU RAPOR SAS
+function toggleSasSubmenu() {
+  const submenu = document.getElementById('sas-submenu');
+  const arrow = document.getElementById('sas-arrow');
   if (submenu) {
     submenu.classList.toggle('hidden');
     if (arrow) arrow.classList.toggle('rotate-180');
@@ -127,6 +137,11 @@ function loadActiveMenuData(targetViewName = null) {
   else if (viewId === 'view-leger') {
     if (typeof loadLegerSTS === 'function') {
       loadLegerSTS();
+  else if (viewId === 'view-leger-sas') {
+    if (typeof loadLegerSAS === 'function') {
+      loadLegerSAS();
+    }
+  }
     }
   }
 }
@@ -168,6 +183,14 @@ function populateDropdowns(user) {
       navStsGroup.classList.remove('hidden');
     } else {
       navStsGroup.classList.add('hidden');
+  const navSasGroup = document.getElementById('nav-sas-group');
+  if (navSasGroup) {
+    if (user && user.walas_kelas) {
+      navSasGroup.classList.remove('hidden');
+    } else {
+      navSasGroup.classList.add('hidden');
+    }
+  }
     }
   }
 }
