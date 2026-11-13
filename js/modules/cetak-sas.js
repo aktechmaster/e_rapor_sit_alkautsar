@@ -20,6 +20,13 @@ document.addEventListener("DOMContentLoaded", async () => {
   await initCetakRaporSAS();
 });
 
+// Kalkulasi ulang pembagian baris halaman setelah seluruh gambar kop selesai dimuat
+window.addEventListener("load", () => {
+  if (CURRENT_LEGER_SAS_DATA) {
+    renderLembarRaporSAS(CURRENT_SAS_SISWA_INDEX || 0);
+  }
+});
+
 async function gantiSemesterSAS(semValue) {
   STATE.currentSasSemester = Number(semValue);
   sessionStorage.setItem("ERAPOR_PRINT_SAS_SEM", String(semValue));
@@ -79,7 +86,6 @@ async function initCetakRaporSAS(forceFetch = false) {
   selectSiswa.innerHTML = "";
   const dataSiswa = CURRENT_LEGER_SAS_DATA.data || [];
 
-  // Gunakan nomor urut bersih 1, 2, 3... (tanpa prefix sis-767)
   dataSiswa.forEach((student, idx) => {
     selectSiswa.innerHTML += `<option value="${idx}">${idx + 1}. ${student.nama}</option>`;
   });
@@ -134,7 +140,7 @@ function renderLembarRaporSAS(siswaIndex) {
   document.getElementById("lbl-sas-semester").innerText = semActive === 2 ? "II (Genap)" : "I (Ganjil)";
   document.getElementById("lbl-sas-tapel").innerText = meta.tahunPelajaran || "2026/2027";
 
-  // 2. TABEL NILAI & CAPAIAN KOMPETENSI DINAMIS (PENUHKAN LEMBAR 1 TERLEBIH DAHULU)
+  // 2. TABEL NILAI & CAPAIAN KOMPETENSI (KOTAK SERAGAM MIN-H-42PX, MELAR JIKA PANJANG, PINDAH UTUH KE HALAMAN 2)
   const raporMapels = getSASMapelByKelas(kelasWalas, "rapor");
   const tbodyP1 = document.getElementById("sas-tbody-nilai-p1");
   const tbodyP2 = document.getElementById("sas-tbody-nilai-p2");
@@ -146,7 +152,6 @@ function renderLembarRaporSAS(siswaIndex) {
   let totalNilai = 0;
   let jumlahMapelDinilai = 0;
 
-  // Masukkan semua baris mapel ke Halaman 1 terlebih dahulu
   raporMapels.forEach((mp, idx) => {
     const noUrut = idx + 1;
     const rawScore = student.scores ? student.scores[mp.key] : null;
@@ -163,18 +168,26 @@ function renderLembarRaporSAS(siswaIndex) {
 
     const tr = document.createElement("tr");
     tr.innerHTML = `
-      <td class="border border-black p-1.5 text-center align-middle">${noUrut}</td>
-      <td class="border border-black p-1.5 align-middle">${mp.nama}</td>
-      <td class="border border-black p-1.5 text-center font-bold align-middle">${val !== null ? val : "-"}</td>
-      <td class="border border-black p-1.5 text-justify align-middle text-[10px] leading-snug">${deskText}</td>
+      <td class="border border-black py-1 px-1.5 w-8 align-middle">
+        <div class="min-h-[42px] flex items-center justify-center">${noUrut}</div>
+      </td>
+      <td class="border border-black py-1 px-1.5 w-48 align-middle">
+        <div class="min-h-[42px] flex items-center">${mp.nama}</div>
+      </td>
+      <td class="border border-black py-1 px-1.5 w-16 align-middle">
+        <div class="min-h-[42px] flex items-center justify-center font-bold">${val !== null ? val : "-"}</div>
+      </td>
+      <td class="border border-black py-1 px-1.5 align-middle">
+        <div class="min-h-[42px] flex items-center text-justify text-[10px] leading-snug">${deskText}</div>
+      </td>
     `;
     tbodyP1.appendChild(tr);
   });
 
-  // Hitung batas maksimal tinggi konten Halaman 1 (286mm) dan pindahkan sisa baris yang tidak muat ke Halaman 2
+  // Ukur tinggi aktual Halaman 1; pindahkan baris terbawah secara UTUH ke Halaman 2 jika melewati batas 282mm
   const rulerEl = document.getElementById("sas-mm-ruler");
   const page1InnerEl = document.getElementById("sas-page-1-inner");
-  const maxContentHeightPx = rulerEl ? rulerEl.offsetHeight : 1080;
+  const maxContentHeightPx = rulerEl ? rulerEl.offsetHeight : 1065;
 
   while (
     page1InnerEl &&
@@ -185,7 +198,7 @@ function renderLembarRaporSAS(siswaIndex) {
     tbodyP2.insertBefore(lastRow, tbodyP2.firstChild);
   }
 
-  // Tampilkan header tabel Halaman 2 hanya jika ada sisa mapel yang berpindah ke Halaman 2
+  // Tampilkan header tabel di Halaman 2 jika ada sisa mapel yang pindah ke Halaman 2
   if (theadP2) {
     if (tbodyP2.children.length > 0) {
       theadP2.classList.remove("hidden");
