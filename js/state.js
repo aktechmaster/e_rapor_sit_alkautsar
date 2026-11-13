@@ -6,6 +6,7 @@ const KELAS_DATA_CACHE = {};
 const TP_DATA_CACHE = {};      
 const KATROL_DATA_CACHE = {}; 
 const LEGER_STS_CACHE = {};
+const LEGER_SAS_CACHE = {};
 let MAPEL_KELAS_MAPPING = {}; 
 let CURRENT_LEGER_DATA = null;
 let CURRENT_SISWA_INDEX = 0;
