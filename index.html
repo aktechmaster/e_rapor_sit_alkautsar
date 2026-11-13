@@ -92,6 +92,36 @@
               </a>
             </div>
           </div>
+
+          <!-- MENU KHUSUS WALI KELAS: DROPDOWN SAS (DI DALAM SIDEBAR) -->
+          <div id="nav-sas-group" class="hidden">
+            <button onclick="toggleSasSubmenu()" class="menu-item justify-between w-full text-left bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/20">
+              <div class="flex items-center space-x-2">
+                <i class="fa-solid fa-book-open w-5 text-center"></i>
+                <span>Modul Rapor SAS</span>
+              </div>
+              <i id="sas-arrow" class="fa-solid fa-chevron-down text-xs transition-transform duration-200"></i>
+            </button>
+            <div id="sas-submenu" class="pl-3 pt-1 space-y-1 hidden">
+              <!-- SUB-MENU SAS 1 (GANJIL) -->
+              <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-2 pt-2">SAS 1 (Ganjil)</p>
+              <a href="#" id="nav-leger-sas1" onclick="switchMenu('leger-sas', 1)" class="menu-item text-xs py-2 px-3 text-slate-300 hover:text-white">
+                <i class="fa-solid fa-table w-4 text-center"></i> <span>Leger SAS 1</span>
+              </a>
+              <a href="#" id="nav-cetak-sas1" onclick="bukaCetakSAS(1)" class="menu-item text-xs py-2 px-3 text-slate-300 hover:text-white">
+                <i class="fa-solid fa-print w-4 text-center"></i> <span>Cetak Rapor SAS 1</span>
+              </a>
+
+              <!-- SUB-MENU SAS 2 (GENAP) -->
+              <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-2 pt-2">SAS 2 (Genap)</p>
+              <a href="#" id="nav-leger-sas2" onclick="switchMenu('leger-sas', 2)" class="menu-item text-xs py-2 px-3 text-slate-300 hover:text-white">
+                <i class="fa-solid fa-table w-4 text-center"></i> <span>Leger SAS 2</span>
+              </a>
+              <a href="#" id="nav-cetak-sas2" onclick="bukaCetakSAS(2)" class="menu-item text-xs py-2 px-3 text-slate-300 hover:text-white">
+                <i class="fa-solid fa-print w-4 text-center"></i> <span>Cetak Rapor SAS 2</span>
+              </a>
+            </div>
+          </div>
         </nav>
       </div>
 
@@ -102,66 +132,6 @@
         </button>
       </div>
     </aside>
-
-    <!-- MENU KHUSUS WALI KELAS: DROPDOWN SAS -->
-          <div id="nav-sas-group" class="hidden">
-            <button onclick="toggleSasSubmenu()" class="menu-item justify-between w-full text-left bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/20">
-              <div class="flex items-center space-x-2">
-                <i class="fa-solid fa-book-open w-5 text-center"></i>
-                <span>Modul Rapor SAS</span>
-              </div>
-              <i id="sas-arrow" class="fa-solid fa-chevron-down text-xs transition-transform duration-200"></i>
-            </button>
-            <div id="sas-submenu" class="pl-3 pt-1 space-y-1 hidden">
-              <!-- SUB-MENU SAS 1 (GANJIL) -->
-              <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-2 pt-2">SAS 1 (Ganjil)</p>
-              <a href="#" id="nav-leger-sas1" onclick="switchMenu('leger-sas', 1)" class="menu-item text-xs py-2 px-3 text-slate-300 hover:text-white">
-                <i class="fa-solid fa-table w-4 text-center"></i> <span>Leger SAS 1</span>
-              </a>
-              <a href="#" id="nav-cetak-sas1" onclick="bukaCetakSAS(1)" class="menu-item text-xs py-2 px-3 text-slate-300 hover:text-white">
-                <i class="fa-solid fa-print w-4 text-center"></i> <span>Cetak Rapor SAS 1</span>
-              </a>
-
-              <!-- SUB-MENU SAS 2 (GENAP) -->
-              <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-2 pt-2">SAS 2 (Genap)</p>
-              <a href="#" id="nav-leger-sas2" onclick="switchMenu('leger-sas', 2)" class="menu-item text-xs py-2 px-3 text-slate-300 hover:text-white">
-                <i class="fa-solid fa-table w-4 text-center"></i> <span>Leger SAS 2</span>
-              </a>
-              <a href="#" id="nav-cetak-sas2" onclick="bukaCetakSAS(2)" class="menu-item text-xs py-2 px-3 text-slate-300 hover:text-white">
-                <i class="fa-solid fa-print w-4 text-center"></i> <span>Cetak Rapor SAS 2</span>
-              </a>
-            </div>
-          </div>
-
-    <!-- MENU KHUSUS WALI KELAS: DROPDOWN SAS -->
-          <div id="nav-sas-group" class="hidden">
-            <button onclick="toggleSasSubmenu()" class="menu-item justify-between w-full text-left bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/20">
-              <div class="flex items-center space-x-2">
-                <i class="fa-solid fa-book-open w-5 text-center"></i>
-                <span>Modul Rapor SAS</span>
-              </div>
-              <i id="sas-arrow" class="fa-solid fa-chevron-down text-xs transition-transform duration-200"></i>
-            </button>
-            <div id="sas-submenu" class="pl-3 pt-1 space-y-1 hidden">
-              <!-- SUB-MENU SAS 1 (GANJIL) -->
-              <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-2 pt-2">SAS 1 (Ganjil)</p>
-              <a href="#" id="nav-leger-sas1" onclick="switchMenu('leger-sas', 1)" class="menu-item text-xs py-2 px-3 text-slate-300 hover:text-white">
-                <i class="fa-solid fa-table w-4 text-center"></i> <span>Leger SAS 1</span>
-              </a>
-              <a href="#" id="nav-cetak-sas1" onclick="bukaCetakSAS(1)" class="menu-item text-xs py-2 px-3 text-slate-300 hover:text-white">
-                <i class="fa-solid fa-print w-4 text-center"></i> <span>Cetak Rapor SAS 1</span>
-              </a>
-
-              <!-- SUB-MENU SAS 2 (GENAP) -->
-              <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-2 pt-2">SAS 2 (Genap)</p>
-              <a href="#" id="nav-leger-sas2" onclick="switchMenu('leger-sas', 2)" class="menu-item text-xs py-2 px-3 text-slate-300 hover:text-white">
-                <i class="fa-solid fa-table w-4 text-center"></i> <span>Leger SAS 2</span>
-              </a>
-              <a href="#" id="nav-cetak-sas2" onclick="bukaCetakSAS(2)" class="menu-item text-xs py-2 px-3 text-slate-300 hover:text-white">
-                <i class="fa-solid fa-print w-4 text-center"></i> <span>Cetak Rapor SAS 2</span>
-              </a>
-            </div>
-          </div>
 
     <!-- MAIN CONTENT -->
     <main class="flex-1 flex flex-col overflow-hidden">
