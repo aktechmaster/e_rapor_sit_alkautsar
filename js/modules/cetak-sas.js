@@ -79,8 +79,9 @@ async function initCetakRaporSAS(forceFetch = false) {
   selectSiswa.innerHTML = "";
   const dataSiswa = CURRENT_LEGER_SAS_DATA.data || [];
 
+  // Gunakan nomor urut bersih 1, 2, 3... (tanpa prefix sis-767)
   dataSiswa.forEach((student, idx) => {
-    selectSiswa.innerHTML += `<option value="${idx}">${student.no || idx + 1}. ${student.nama}</option>`;
+    selectSiswa.innerHTML += `<option value="${idx}">${idx + 1}. ${student.nama}</option>`;
   });
 
   if (dataSiswa.length > 0) {
@@ -131,21 +132,21 @@ function renderLembarRaporSAS(siswaIndex) {
   document.getElementById("lbl-sas-kelas").innerText = meta.kelas || kelasWalas || "-";
   document.getElementById("lbl-sas-fase").innerText = meta.fase || "D";
   document.getElementById("lbl-sas-semester").innerText = semActive === 2 ? "II (Genap)" : "I (Ganjil)";
-  document.getElementById("lbl-sas-tapel").innerText = meta.tahunPelajaran || "2025/2026";
+  document.getElementById("lbl-sas-tapel").innerText = meta.tahunPelajaran || "2026/2027";
 
-  // 2. TABEL NILAI & CAPAIAN KOMPETENSI (BPI DIKECUALIKAN DARI RAPOR)
+  // 2. TABEL NILAI & CAPAIAN KOMPETENSI DINAMIS (PENUHKAN LEMBAR 1 TERLEBIH DAHULU)
   const raporMapels = getSASMapelByKelas(kelasWalas, "rapor");
-  // Split halaman: Halaman 1 memuat 9 mapel (Kelas 8 & 9) atau 10 mapel (Kelas 7)
-  const splitCount = raporMapels.length >= 14 ? 10 : 9;
-
   const tbodyP1 = document.getElementById("sas-tbody-nilai-p1");
   const tbodyP2 = document.getElementById("sas-tbody-nilai-p2");
+  const theadP2 = document.getElementById("sas-thead-nilai-p2");
+
   tbodyP1.innerHTML = "";
   tbodyP2.innerHTML = "";
 
   let totalNilai = 0;
   let jumlahMapelDinilai = 0;
 
+  // Masukkan semua baris mapel ke Halaman 1 terlebih dahulu
   raporMapels.forEach((mp, idx) => {
     const noUrut = idx + 1;
     const rawScore = student.scores ? student.scores[mp.key] : null;
@@ -160,21 +161,38 @@ function renderLembarRaporSAS(siswaIndex) {
 
     const deskText = (student.deskripsi && student.deskripsi[mp.key]) ? student.deskripsi[mp.key] : "-";
 
-    const rowHtml = `
-      <tr>
-        <td class="border border-black p-1.5 text-center align-middle">${noUrut}</td>
-        <td class="border border-black p-1.5 align-middle">${mp.nama}</td>
-        <td class="border border-black p-1.5 text-center font-bold align-middle">${val !== null ? val : "-"}</td>
-        <td class="border border-black p-1.5 text-justify align-middle text-[10.5px] leading-snug">${deskText}</td>
-      </tr>
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td class="border border-black p-1.5 text-center align-middle">${noUrut}</td>
+      <td class="border border-black p-1.5 align-middle">${mp.nama}</td>
+      <td class="border border-black p-1.5 text-center font-bold align-middle">${val !== null ? val : "-"}</td>
+      <td class="border border-black p-1.5 text-justify align-middle text-[10px] leading-snug">${deskText}</td>
     `;
-
-    if (idx < splitCount) {
-      tbodyP1.innerHTML += rowHtml;
-    } else {
-      tbodyP2.innerHTML += rowHtml;
-    }
+    tbodyP1.appendChild(tr);
   });
+
+  // Hitung batas maksimal tinggi konten Halaman 1 (286mm) dan pindahkan sisa baris yang tidak muat ke Halaman 2
+  const rulerEl = document.getElementById("sas-mm-ruler");
+  const page1InnerEl = document.getElementById("sas-page-1-inner");
+  const maxContentHeightPx = rulerEl ? rulerEl.offsetHeight : 1080;
+
+  while (
+    page1InnerEl &&
+    page1InnerEl.offsetHeight > maxContentHeightPx &&
+    tbodyP1.children.length > 1
+  ) {
+    const lastRow = tbodyP1.lastElementChild;
+    tbodyP2.insertBefore(lastRow, tbodyP2.firstChild);
+  }
+
+  // Tampilkan header tabel Halaman 2 hanya jika ada sisa mapel yang berpindah ke Halaman 2
+  if (theadP2) {
+    if (tbodyP2.children.length > 0) {
+      theadP2.classList.remove("hidden");
+    } else {
+      theadP2.classList.add("hidden");
+    }
+  }
 
   // 3. JUMLAH & RATA-RATA (HANYA DARI MAPEL RAPOR, TANPA BPI)
   document.getElementById("sas-total-val").innerText =
@@ -193,7 +211,7 @@ function renderLembarRaporSAS(siswaIndex) {
         <td class="border border-black p-1.5 text-center">${i + 1}</td>
         <td class="border border-black p-1.5">${item.nama || "-"}</td>
         <td class="border border-black p-1.5 text-center font-semibold">${item.predikat || "-"}</td>
-        <td class="border border-black p-1.5 text-[10.5px]">${item.keterangan || "-"}</td>
+        <td class="border border-black p-1.5 text-[10px]">${item.keterangan || "-"}</td>
       </tr>
     `;
   }
@@ -238,7 +256,7 @@ function renderLembarRaporSAS(siswaIndex) {
     ? `NIPY. ${String(nipVal).replace(/^NIPY\.?\s*/i, "")}`
     : "";
 
-  document.getElementById("sas-ttd-tgl").innerText = meta.tglRapor || "Mukomuko, 19 Desember 2025";
+  document.getElementById("sas-ttd-tgl").innerText = meta.tglRapor || "Mukomuko, 18 Desember 2026";
   document.getElementById("sas-ttd-kepsek").innerText = meta.kepsek || "Warto, S.Pd.I., M.Pd., Gr.";
   document.getElementById("sas-ttd-kepsek-nipy").innerText = meta.nipyKepsek
     ? `NIPY. ${String(meta.nipyKepsek).replace(/^NIPY\.?\s*/i, "")}`
