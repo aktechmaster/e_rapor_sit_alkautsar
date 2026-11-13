@@ -33,6 +33,34 @@ const CONFIG = {
     }
   },
 
+  // Pemetaan ID Spreadsheet Rapor SAS per Semester
+  RAPOR_SAS_DB: {
+    1: { // SAS 1 (Ganjil)
+      "7A":  "",
+      "7B":  "",
+      "7C":  "",
+      "8A":  "",
+      "8B":  "",
+      "8C":  "",
+      "9A":  "1IfRkDX_S3f2db6Pu4Oejbnr9k8CPrZlPWeVNFh9lGPM",
+      "9B":  "",
+      "9C1": "",
+      "9C2": ""
+    },
+    2: { // SAS 2 (Genap)
+      "7A":  "",
+      "7B":  "",
+      "7C":  "",
+      "8A":  "",
+      "8B":  "",
+      "8C":  "",
+      "9A":  "",
+      "9B":  "",
+      "9C1": "",
+      "9C2": ""
+    }
+  },
+
   // Pemetaan ID Mapel ke Spreadsheet ID Spesifik
   MAPEL_DB: {
     "mp-001":  { kode: "PAI",  nama: "Pendidikan Agama Islam",                id: "1RL0TOteydA_iKjG_oGu2qsdG8c7mvx8kEjVBydC5kuQ" },
