@@ -146,7 +146,7 @@ function renderLegerSASTable() {
     tr.className = "hover:bg-slate-50 border-b border-gray-200 h-8 text-xs";
 
     let rowHtml = `
-      <td class="p-1.5 border-r text-center sticky left-0 font-semibold text-gray-600 bg-white">${student.no || idx + 1}</td>
+      <td class="p-1.5 border-r text-center sticky left-0 font-semibold text-gray-600 bg-white">${idx + 1}</td>
       <td class="p-1.5 border-r text-center sticky left-10 text-gray-700 bg-white">${student.nisn || "-"}</td>
       <td class="p-1.5 border-r sticky left-[152px] font-medium text-gray-800 truncate bg-white" title="${student.nama}">${student.nama}</td>
     `;
@@ -242,7 +242,7 @@ function cetakLegerSAS() {
 
     rowsHtml += `
       <tr>
-        <td class="tc">${student.no || idx + 1}</td>
+        <td class="tc">${idx + 1}</td>
         <td class="tc">${student.nisn || "-"}</td>
         <td class="tl" style="white-space: nowrap;">${student.nama}</td>
         ${tdScores}
