@@ -13,6 +13,14 @@
       font-family: 'Times New Roman', Times, serif !important;
     }
 
+    .sas-sheet-page {
+      width: 188.9mm;
+      min-height: 296mm;
+      font-family: 'Times New Roman', Times, serif !important;
+      font-size: 10pt;
+      line-height: 1.28;
+    }
+
     @media print {
       @page {
         size: 215.9mm 330.2mm;
@@ -39,12 +47,13 @@
         border: none !important;
         box-shadow: none !important;
         padding: 0 !important;
-        max-width: 100% !important;
         width: 100% !important;
+        max-width: 100% !important;
+        min-height: 0 !important;
         margin: 0 !important;
         font-family: 'Times New Roman', Times, serif !important;
-        font-size: 9.5pt !important;
-        line-height: 1.25 !important;
+        font-size: 10pt !important;
+        line-height: 1.28 !important;
       }
 
       #sas-page-1 {
@@ -61,8 +70,11 @@
 </head>
 <body class="bg-gray-100 font-sans text-gray-800 antialiased py-4 px-2 sm:px-6">
 
+  <!-- PENGUKUR TINGGI MAKSIMAL HALAMAN 1 (286mm dari 304.2mm area cetak F4) -->
+  <div id="sas-mm-ruler" style="height: 286mm; width: 1px; position: fixed; top: 0; left: -9999px; visibility: hidden; pointer-events: none;"></div>
+
   <!-- PANEL NAVIGASI & KONTROL CETAK -->
-  <div class="no-print max-w-[195mm] mx-auto mb-4 flex flex-wrap items-center justify-between bg-white p-4 rounded-xl border border-gray-200 shadow-sm gap-3">
+  <div class="no-print max-w-[188.9mm] mx-auto mb-4 flex flex-wrap items-center justify-between bg-white p-4 rounded-xl border border-gray-200 shadow-sm gap-3">
     <div class="flex flex-wrap items-center gap-3">
       <button onclick="window.close()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-2 rounded-lg text-xs font-semibold transition flex items-center space-x-1.5">
         <i class="fa-solid fa-arrow-left"></i>
@@ -74,7 +86,7 @@
         <option value="2">SAS 2 (Genap)</option>
       </select>
 
-      <select id="select-siswa-sas" onchange="renderLembarRaporSAS(this.value)" class="border border-gray-300 rounded-lg px-3 py-2 text-sm font-semibold bg-white focus:ring-2 focus:ring-emerald-500 min-w-[210px]">
+      <select id="select-siswa-sas" onchange="renderLembarRaporSAS(this.value)" class="border border-gray-300 rounded-lg px-3 py-2 text-sm font-semibold bg-white focus:ring-2 focus:ring-emerald-500 min-w-[220px]">
         <option value="">-- Memuat Data Siswa... --</option>
       </select>
     </div>
@@ -94,33 +106,33 @@
   </div>
 
   <!-- ================================================================ -->
-  <!-- HALAMAN 1: KOP, IDENTITAS PESERTA DIDIK & TABEL NILAI (BAGIAN 1)  -->
+  <!-- HALAMAN 1: KOP, IDENTITAS PESERTA DIDIK & TABEL NILAI (DINAMIS)   -->
   <!-- ================================================================ -->
-  <div id="sas-page-1" class="sas-sheet-page relative bg-white p-7 max-w-[195mm] mx-auto mb-6 border border-gray-300 shadow-lg text-black font-times text-[11.5px] leading-snug overflow-hidden">
-    <div class="relative z-10">
+  <div id="sas-page-1" class="sas-sheet-page relative bg-white p-6 mx-auto mb-6 border border-gray-300 shadow-lg text-black overflow-hidden">
+    <div id="sas-page-1-inner" class="relative z-10">
 
       <!-- KOP SURAT -->
-      <div class="flex items-center justify-between border-b-2 border-black pb-2 mb-3">
-        <img src="pictures/logoyayasan.png" alt="Logo Yayasan" class="w-[88px] h-[88px] object-contain shrink-0">
+      <div class="flex items-center justify-between border-b-2 border-black pb-2 mb-2.5">
+        <img src="pictures/logoyayasan.png" alt="Logo Yayasan" class="w-[82px] h-[82px] object-contain shrink-0">
 
         <div class="text-center flex-1 px-3">
-          <h4 class="font-bold text-[12px] uppercase tracking-wide">YAYASAN AL-AMANAH MUKOMUKO</h4>
-          <h2 class="font-extrabold text-[13px] uppercase tracking-wider">SEKOLAH MENENGAH PERTAMA ISLAM TERPADU</h2>
-          <h1 class="font-black text-[15px] uppercase text-black">( SMPIT ) AL-KAUTSAR</h1>
-          <p class="text-[10px] leading-tight">FULLDAY DAN BOARDING SCHOOL</p>
-          <p class="text-[9px] text-gray-700" id="sas-kop-alamat">Alamat: Jalan Kuku Besi Sukarame, Desa Pasar Sebelah, Kec. Kota Mukomuko, Kab. Mukomuko, Bengkulu</p>
+          <h4 class="font-bold text-[11.5px] uppercase tracking-wide">YAYASAN AL-AMANAH MUKOMUKO</h4>
+          <h2 class="font-extrabold text-[12.5px] uppercase tracking-wider">SEKOLAH MENENGAH PERTAMA ISLAM TERPADU</h2>
+          <h1 class="font-black text-[14.5px] uppercase text-black">( SMPIT ) AL-KAUTSAR</h1>
+          <p class="text-[9.5px] leading-tight">FULLDAY DAN BOARDING SCHOOL</p>
+          <p class="text-[8.5px] text-gray-700" id="sas-kop-alamat">Alamat: Jalan Kuku Besi Sukarame, Desa Pasar Sebelah, Kec. Kota Mukomuko, Kab. Mukomuko, Bengkulu</p>
         </div>
 
-        <img src="pictures/logosmpit.png" alt="Logo SMPIT" class="w-[78px] h-[78px] object-contain shrink-0">
+        <img src="pictures/logosmpit.png" alt="Logo SMPIT" class="w-[74px] h-[74px] object-contain shrink-0">
       </div>
 
       <!-- JUDUL RAPOR -->
-      <h3 id="lbl-sas-judul" class="font-bold text-center text-[12.5px] uppercase underline mb-3 tracking-wide">
+      <h3 id="lbl-sas-judul" class="font-bold text-center text-[12px] uppercase underline mb-2.5 tracking-wide">
         LAPORAN HASIL BELAJAR SUMATIF AKHIR SEMESTER (SAS)
       </h3>
 
       <!-- IDENTITAS PESERTA DIDIK -->
-      <div class="grid grid-cols-2 gap-x-8 mb-3.5 text-[11px] items-start">
+      <div class="grid grid-cols-2 gap-x-8 mb-3 text-[10.5px] items-start">
         <table class="w-full">
           <tr>
             <td class="w-32 whitespace-nowrap font-semibold py-0.5">Nama Peserta Didik</td>
@@ -163,19 +175,19 @@
           <tr>
             <td class="w-28 whitespace-nowrap font-semibold py-0.5">Tahun Pelajaran</td>
             <td>:</td>
-            <td id="lbl-sas-tapel">2025/2026</td>
+            <td id="lbl-sas-tapel">2026/2027</td>
           </tr>
         </table>
       </div>
 
       <!-- TABEL NILAI & CAPAIAN KOMPETENSI (HALAMAN 1) -->
-      <table class="w-full border-collapse border border-black text-[11px]">
+      <table class="w-full border-collapse border border-black text-[10.5px]">
         <thead>
           <tr class="bg-gray-100 text-center font-bold">
-            <th class="border border-black p-1.5 w-8">No</th>
-            <th class="border border-black p-1.5 w-48">Muatan Pelajaran</th>
-            <th class="border border-black p-1.5 w-16">Nilai Akhir</th>
-            <th class="border border-black p-1.5">Capaian Kompetensi</th>
+            <th class="border border-black p-1 w-8">No</th>
+            <th class="border border-black p-1 w-48">Muatan Pelajaran</th>
+            <th class="border border-black p-1 w-16">Nilai Akhir</th>
+            <th class="border border-black p-1">Capaian Kompetensi</th>
           </tr>
         </thead>
         <tbody id="sas-tbody-nilai-p1"></tbody>
@@ -189,19 +201,19 @@
   </div>
 
   <!-- ====================================================================== -->
-  <!-- HALAMAN 2: LANJUTAN MAPEL, EKSKUL, ABSENSI, CATATAN, KENAIKAN & TTD    -->
+  <!-- HALAMAN 2: SISA MAPEL, REKAP, EKSKUL, ABSENSI, CATATAN, KEPUTUSAN, TTD -->
   <!-- ====================================================================== -->
-  <div id="sas-page-2" class="sas-sheet-page relative bg-white p-7 max-w-[195mm] mx-auto border border-gray-300 shadow-lg text-black font-times text-[11.5px] leading-snug overflow-hidden">
+  <div id="sas-page-2" class="sas-sheet-page relative bg-white p-6 mx-auto border border-gray-300 shadow-lg text-black overflow-hidden">
     <div class="relative z-10">
 
       <!-- LANJUTAN TABEL NILAI & REKAP JUMLAH / RATA-RATA -->
-      <table class="w-full border-collapse border border-black text-[11px] mb-4">
-        <thead>
+      <table class="w-full border-collapse border border-black text-[10.5px] mb-4">
+        <thead id="sas-thead-nilai-p2">
           <tr class="bg-gray-100 text-center font-bold">
-            <th class="border border-black p-1.5 w-8">No</th>
-            <th class="border border-black p-1.5 w-48">Muatan Pelajaran</th>
-            <th class="border border-black p-1.5 w-16">Nilai Akhir</th>
-            <th class="border border-black p-1.5">Capaian Kompetensi</th>
+            <th class="border border-black p-1 w-8">No</th>
+            <th class="border border-black p-1 w-48">Muatan Pelajaran</th>
+            <th class="border border-black p-1 w-16">Nilai Akhir</th>
+            <th class="border border-black p-1">Capaian Kompetensi</th>
           </tr>
         </thead>
         <tbody id="sas-tbody-nilai-p2"></tbody>
@@ -220,8 +232,8 @@
       </table>
 
       <!-- EKSTRAKURIKULER -->
-      <h4 class="font-bold text-[11px] uppercase mb-1">Ekstrakurikuler</h4>
-      <table class="w-full border-collapse border border-black text-[11px] mb-4">
+      <h4 class="font-bold text-[10.5px] uppercase mb-1">Ekstrakurikuler</h4>
+      <table class="w-full border-collapse border border-black text-[10.5px] mb-4">
         <thead>
           <tr class="bg-gray-100 font-bold text-center">
             <th class="border border-black p-1.5 w-8">No</th>
@@ -236,7 +248,7 @@
       <!-- KETIDAKHADIRAN & CATATAN WALI KELAS -->
       <div class="grid grid-cols-12 gap-4 mb-4 items-stretch">
         <div class="col-span-5">
-          <table class="w-full border-collapse border border-black text-[11px] h-full">
+          <table class="w-full border-collapse border border-black text-[10.5px] h-full">
             <thead>
               <tr class="bg-gray-100 font-bold">
                 <th class="border border-black p-1.5 text-left" colspan="2">Ketidakhadiran</th>
@@ -260,7 +272,7 @@
         </div>
 
         <div class="col-span-7">
-          <table class="w-full border-collapse border border-black text-[11px] h-full">
+          <table class="w-full border-collapse border border-black text-[10.5px] h-full">
             <thead>
               <tr class="bg-gray-100 font-bold">
                 <th class="border border-black p-1.5 text-left">Catatan Wali Kelas :</th>
@@ -276,13 +288,13 @@
       </div>
 
       <!-- KOTAK KEPUTUSAN KENAIKAN KELAS / KELULUSAN (KHUSUS SAS 2 / GENAP) -->
-      <div id="sas-keputusan-box" class="hidden border border-black p-2.5 mb-5 bg-gray-50 text-[11px]">
+      <div id="sas-keputusan-box" class="hidden border border-black p-2.5 mb-5 bg-gray-50 text-[10.5px]">
         <p class="font-bold underline mb-1">Keputusan :</p>
         <p id="sas-keputusan-text">Berdasarkan pencapaian seluruh kompetensi pada Semester I dan Semester II, peserta didik ditetapkan: <strong>Naik ke Kelas IX (Sembilan)</strong>.</p>
       </div>
 
-      <!-- BLOK TANDA TANGAN 3 KOLOM (SPASI TTD PRESISI SESUAI ATURAN PROYEK) -->
-      <div class="grid grid-cols-3 text-center text-[11px] mt-6 gap-4">
+      <!-- BLOK TANDA TANGAN 3 KOLOM -->
+      <div class="grid grid-cols-3 text-center text-[10.5px] mt-6 gap-4">
         <div class="flex flex-col justify-between min-h-[125px]">
           <div>
             <p class="font-medium">Orang Tua / Wali</p>
@@ -307,7 +319,7 @@
 
         <div class="flex flex-col justify-between min-h-[125px]">
           <div>
-            <p id="sas-ttd-tgl" class="mb-0.5">Mukomuko, 19 Desember 2025</p>
+            <p id="sas-ttd-tgl" class="mb-0.5">Mukomuko, 18 Desember 2026</p>
             <p class="font-medium">Kepala SMPIT Al-Kautsar</p>
           </div>
           <div>
