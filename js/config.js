@@ -89,6 +89,7 @@ const STATE = {
   currentMapelId: null,
   currentKelas: null,
   currentStsSemester: 1, // Default ke STS 1 (Ganjil)
+  currentSasSemester: 1, // Default ke SAS 1 (Ganjil)
   distribuasiMengajar: []
 };
 
