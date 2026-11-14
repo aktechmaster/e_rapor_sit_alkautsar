@@ -140,7 +140,7 @@ function renderLembarRaporSAS(siswaIndex) {
   document.getElementById("lbl-sas-semester").innerText = semActive === 2 ? "II (Genap)" : "I (Ganjil)";
   document.getElementById("lbl-sas-tapel").innerText = meta.tahunPelajaran || "2026/2027";
 
-  // 2. TABEL NILAI & CAPAIAN KOMPETENSI (KOTAK SERAGAM MIN-H-42PX, MELAR JIKA PANJANG, PINDAH UTUH KE HALAMAN 2)
+  // 2. TABEL NILAI & CAPAIAN KOMPETENSI (KOTAK SERAGAM MIN-H-62PX, MELAR JIKA PANJANG, PINDAH UTUH KE HALAMAN 2)
   const raporMapels = getSASMapelByKelas(kelasWalas, "rapor");
   const tbodyP1 = document.getElementById("sas-tbody-nilai-p1");
   const tbodyP2 = document.getElementById("sas-tbody-nilai-p2");
@@ -182,6 +182,7 @@ function renderLembarRaporSAS(siswaIndex) {
       </td>
     `;
     tbodyP1.appendChild(tr);
+  });
 
   // Ukur tinggi aktual Halaman 1; pindahkan baris terbawah secara UTUH ke Halaman 2 jika melewati batas 282mm
   const rulerEl = document.getElementById("sas-mm-ruler");
@@ -234,7 +235,7 @@ function renderLembarRaporSAS(siswaIndex) {
   document.getElementById("sas-abs-a").innerText = `${student.alpa ?? 0} hari`;
   document.getElementById("sas-catatan-walas").innerText = student.catatan || "-";
 
-  // 6. KOTAK KEPUTUSAN NAIK KELAS / KELULUSAN (KHUSUS SEMESTER 2 / GENAP)
+  // 6. KOTAK KEPUTUSAN KENAIKAN KELAS / KELULUSAN (KHUSUS SEMESTER 2 / GENAP)
   const boxKeputusan = document.getElementById("sas-keputusan-box");
   const txtKeputusan = document.getElementById("sas-keputusan-text");
   if (semActive === 2) {
