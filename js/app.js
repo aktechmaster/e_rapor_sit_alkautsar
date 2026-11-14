@@ -24,14 +24,17 @@ document.addEventListener("DOMContentLoaded", () => {
 
 function switchMenu(viewName, semester = null) {
   if (semester !== null && semester !== undefined) {
-    if (viewName === 'leger-sas') {
+    if (viewName === 'leger-sas' || viewName === 'sas-workspace') {
       STATE.currentSasSemester = Number(semester);
     } else {
       STATE.currentStsSemester = Number(semester);
     }
   }
 
-  const views = ['dashboard', 'tp', 'sumatif', 'formatif', 'katrol', 'leger', 'leger-sas'];
+  // Kompatibilitas jika ada pemanggilan lama 'leger-sas'
+  const resolvedView = viewName === 'leger-sas' ? 'sas-workspace' : viewName;
+
+  const views = ['dashboard', 'tp', 'sumatif', 'formatif', 'katrol', 'leger', 'sas-workspace'];
   views.forEach(v => {
     const el = document.getElementById(`view-${v}`);
     if (el) el.classList.add('hidden');
@@ -43,6 +46,7 @@ function switchMenu(viewName, semester = null) {
   // Reset highlight sub-nav STS & SAS
   [
     'nav-leger-sts1', 'nav-cetak-sts1', 'nav-leger-sts2', 'nav-cetak-sts2',
+    'nav-sas-sem1', 'nav-sas-sem2',
     'nav-leger-sas1', 'nav-cetak-sas1', 'nav-leger-sas2', 'nav-cetak-sas2'
   ].forEach(id => {
     const el = document.getElementById(id);
@@ -50,27 +54,27 @@ function switchMenu(viewName, semester = null) {
   });
 
   // Tampilkan View Target
-  const targetView = document.getElementById(`view-${viewName}`);
+  const targetView = document.getElementById(`view-${resolvedView}`);
   if (targetView) targetView.classList.remove('hidden');
 
   // Highlight Sub-Nav Aktif atau Main Nav
-  if (viewName === 'leger') {
+  if (resolvedView === 'leger') {
     const activeSubNavId = `nav-leger-sts${STATE.currentStsSemester}`;
     const targetSubNav = document.getElementById(activeSubNavId);
     if (targetSubNav) targetSubNav.classList.add('active');
-  } else if (viewName === 'leger-sas') {
-    const activeSubNavId = `nav-leger-sas${STATE.currentSasSemester}`;
+  } else if (resolvedView === 'sas-workspace') {
+    const activeSubNavId = `nav-sas-sem${STATE.currentSasSemester}`;
     const targetSubNav = document.getElementById(activeSubNavId);
     if (targetSubNav) targetSubNav.classList.add('active');
   } else {
-    const targetNav = document.getElementById(`nav-${viewName}`);
+    const targetNav = document.getElementById(`nav-${resolvedView}`);
     if (targetNav) targetNav.classList.add('active');
   }
 
   // KONTROL VISIBILITAS DROPDOWN HEADER MAPEL & KELAS
   const headerSelectMapel = document.getElementById('select-mapel')?.parentElement;
   const headerSelectKelas = document.getElementById('select-kelas')?.parentElement;
-  if (viewName === 'leger' || viewName === 'leger-sas') {
+  if (resolvedView === 'leger' || resolvedView === 'sas-workspace') {
     if (headerSelectMapel) headerSelectMapel.classList.add('hidden');
     if (headerSelectKelas) headerSelectKelas.classList.add('hidden');
   } else {
@@ -85,7 +89,38 @@ function switchMenu(viewName, semester = null) {
     if (overlay) overlay.classList.add('hidden');
   }
 
-  loadActiveMenuData(viewName);
+  loadActiveMenuData(resolvedView);
+}
+
+// BUKA WORKSPACE MODUL RAPOR SAS (8 SUB-MENU)
+function openSasWorkspace(semester, initialSubTab = 'leger') {
+  STATE.currentSasSemester = Number(semester) || 1;
+  if (typeof CURRENT_SAS_SUBTAB !== 'undefined') {
+    CURRENT_SAS_SUBTAB = initialSubTab;
+  }
+  switchMenu('sas-workspace', STATE.currentSasSemester);
+}
+
+// BUKA HALAMAN CETAK COVER SAS (3 LEMBAR) DI TAB BARU
+function bukaCetakCoverSAS(semester) {
+  const kelasWalas = STATE.currentUser ? STATE.currentUser.walas_kelas : null;
+  if (!kelasWalas) {
+    alert("Akun Anda tidak terdaftar sebagai Wali Kelas!");
+    return;
+  }
+
+  const sem = Number(semester) || STATE.currentSasSemester || 1;
+  STATE.currentSasSemester = sem;
+
+  sessionStorage.setItem("ERAPOR_PRINT_USER", JSON.stringify(STATE.currentUser));
+  sessionStorage.setItem("ERAPOR_PRINT_SAS_SEM", String(sem));
+
+  const cacheKey = `${sem}_${kelasWalas}`;
+  if (typeof LEGER_SAS_CACHE !== "undefined" && LEGER_SAS_CACHE[cacheKey]) {
+    sessionStorage.setItem(`ERAPOR_LEGER_SAS_${cacheKey}`, JSON.stringify(LEGER_SAS_CACHE[cacheKey]));
+  }
+
+  window.open(`cetak-cover-sas.html?sem=${sem}`, "_blank");
 }
 
 // BUKA HALAMAN CETAK RAPOR STS DI TAB BARU (cetak-sts.html)
@@ -174,8 +209,10 @@ function loadActiveMenuData(targetViewName = null) {
     if (typeof loadLegerSTS === 'function') {
       loadLegerSTS();
     }
-  } else if (viewId === 'view-leger-sas') {
-    if (typeof loadLegerSAS === 'function') {
+  } else if (viewId === 'view-sas-workspace') {
+    if (typeof initSasWorkspace === 'function') {
+      initSasWorkspace();
+    } else if (typeof loadLegerSAS === 'function') {
       loadLegerSAS();
     }
   }
