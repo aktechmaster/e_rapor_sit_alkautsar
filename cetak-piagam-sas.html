@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cetak Piagam Penghargaan Kelas - SMPIT Al-Kautsar</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="css/style.css?v=3">
+
+  <style id="dynamic-page-size-style">
+    @media print {
+      @page {
+        size: 215.9mm 330.2mm; /* Default F4 Portrait */
+        margin: 10mm;
+      }
+    }
+  </style>
+
+  <style>
+    .piagam-sheet {
+      width: 195.9mm;
+      height: 310mm;
+      font-family: 'Times New Roman', Times, serif !important;
+      position: relative;
+      overflow: hidden;
+      background-color: #ffffff;
+      box-sizing: border-box;
+    }
+
+    .piagam-sheet.size-a4 {
+      width: 190mm;
+      height: 277mm;
+    }
+
+    /* Pola Titik-Titik Latar Belakang (Dot Matrix Halus) */
+    .piagam-dots-bg {
+      background-image: radial-gradient(#cbd5e1 2.2px, transparent 2.2px);
+      background-size: 16px 16px;
+      opacity: 0.45;
+    }
+
+    /* Bingkai Dalam Melengkung Sudut Kiri-Atas & Kanan-Bawah */
+    .piagam-inner-frame {
+      position: relative;
+      z-index: 10;
+      width: 100%;
+      height: 100%;
+      border: 1.5px solid #1e293b;
+      border-top-left-radius: 42px;
+      border-bottom-right-radius: 42px;
+      padding: 10mm 12mm;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      box-sizing: border-box;
+    }
+
+    @media print {
+      html, body {
+        height: auto !important;
+        min-height: 0 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        background-color: white !important;
+        overflow: visible !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+
+      .no-print {
+        display: none !important;
+      }
+
+      #piagam-pages-container {
+        margin: 0 !important;
+        padding: 0 !important;
+      }
+
+      .piagam-sheet {
+        box-shadow: none !important;
+        margin: 0 auto !important;
+        page-break-after: always !important;
+        break-after: page !important;
+      }
+
+      .piagam-sheet:last-child {
+        page-break-after: auto !important;
+        break-after: auto !important;
+      }
+    }
+  </style>
+</head>
+<body class="bg-gray-100 font-sans text-gray-800 antialiased py-4 px-2 sm:px-6">
+
+  <!-- PANEL KONTROL CETAK (TIDAK IKUT TERCETAK) -->
+  <div class="no-print max-w-[195.9mm] mx-auto mb-4 bg-white p-4 rounded-xl border border-gray-200 shadow-sm space-y-3">
+    <div class="flex flex-wrap items-center justify-between gap-3">
+      <div class="flex flex-wrap items-center gap-2">
+        <button onclick="window.close()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-2 rounded-lg text-xs font-semibold transition flex items-center space-x-1.5">
+          <i class="fa-solid fa-arrow-left"></i>
+          <span>Tutup</span>
+        </button>
+
+        <select id="select-semester-piagam" onchange="gantiSemesterPiagamSAS(this.value)" class="border border-amber-300 bg-amber-50 text-amber-900 rounded-lg px-2.5 py-2 text-xs font-bold focus:outline-none">
+          <option value="1">SAS 1 (Ganjil)</option>
+          <option value="2">SAS 2 (Genap)</option>
+        </select>
+
+        <select id="select-mode-piagam" onchange="renderPiagamList()" class="border border-gray-300 rounded-lg px-3 py-2 text-xs font-semibold bg-white focus:ring-2 focus:ring-amber-500 min-w-[220px]">
+          <option value="ALL">Semua Peringkat (Top 10 Sekaligus)</option>
+        </select>
+      </div>
+
+      <div class="flex items-center space-x-2">
+        <select id="select-paper-piagam" onchange="ubahUkuranKertasPiagam(this.value)" class="border border-slate-300 bg-slate-50 text-slate-700 rounded-lg px-2.5 py-2 text-xs font-semibold focus:outline-none">
+          <option value="F4">Kertas F4 Portrait</option>
+          <option value="A4">Kertas A4 Portrait</option>
+        </select>
+
+        <button onclick="window.print()" class="bg-amber-600 hover:bg-amber-700 text-white px-5 py-2 rounded-lg text-xs sm:text-sm font-semibold shadow-sm transition flex items-center space-x-2">
+          <i class="fa-solid fa-print"></i>
+          <span>Cetak Piagam</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- PENGATURAN NOMOR SURAT & KETERANGAN PENILAIAN -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-gray-100 text-xs">
+      <div>
+        <label class="block font-bold text-gray-600 mb-1">Format Nomor Piagam (Otomatis untuk Semua):</label>
+        <input type="text" id="input-nomor-piagam" oninput="renderPiagamList()" value=".../..../D.6/SMPIT-AK/XII/2026" class="w-full border border-gray-300 rounded-lg px-3 py-1.5 text-xs font-medium focus:ring-2 focus:ring-amber-500 focus:outline-none">
+      </div>
+      <div>
+        <label class="block font-bold text-gray-600 mb-1">Jenis Evaluasi pada Kalimat Piagam:</label>
+        <input type="text" id="input-jenis-evaluasi" oninput="renderPiagamList()" value="Sumatif Akhir Semester (SAS)" class="w-full border border-gray-300 rounded-lg px-3 py-1.5 text-xs font-medium focus:ring-2 focus:ring-amber-500 focus:outline-none">
+      </div>
+    </div>
+  </div>
+
+  <!-- WADAH LEMBAR PIAGAM (1 ATAU 10 HALAMAN) -->
+  <div id="piagam-pages-container" class="space-y-6"></div>
+
+  <!-- SCRIPT KHUSUS HALAMAN CETAK PIAGAM -->
+  <script src="js/config.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/state.js"></script>
+  <script src="js/modules/leger-sas.js"></script>
+  <script src="js/modules/cetak-piagam-sas.js"></script>
+</body>
+</html>
