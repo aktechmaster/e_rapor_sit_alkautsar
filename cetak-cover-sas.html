@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cetak Cover & Identitas Rapor SAS - SMPIT Al-Kautsar</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="css/style.css?v=3">
+
+  <style>
+    .cover-sheet-page {
+      width: 189.9mm;
+      height: 304mm;
+      font-family: 'Times New Roman', Times, serif !important;
+      font-size: 11.5pt;
+      line-height: 1.45;
+      box-sizing: border-box;
+    }
+
+    @media print {
+      @page {
+        size: 215.9mm 330.2mm; /* F4 Portrait */
+        margin-top: 13mm;
+        margin-bottom: 13mm;
+        margin-left: 13mm;
+        margin-right: 13mm;
+      }
+
+      html, body {
+        height: auto !important;
+        min-height: 0 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        background-color: white !important;
+        overflow: visible !important;
+      }
+
+      .no-print {
+        display: none !important;
+      }
+
+      .cover-sheet-page {
+        border: none !important;
+        box-shadow: none !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        height: 304mm !important;
+        margin: 0 !important;
+        padding: 6mm 8mm !important;
+        page-break-after: always !important;
+        break-after: page !important;
+      }
+
+      #cover-page-3 {
+        page-break-after: auto !important;
+        break-after: auto !important;
+      }
+    }
+  </style>
+</head>
+<body class="bg-gray-100 font-sans text-gray-800 antialiased py-4 px-2 sm:px-6">
+
+  <!-- PANEL NAVIGASI & KONTROL CETAK -->
+  <div class="no-print max-w-[189.9mm] mx-auto mb-4 flex flex-wrap items-center justify-between bg-white p-4 rounded-xl border border-gray-200 shadow-sm gap-3">
+    <div class="flex flex-wrap items-center gap-3">
+      <button onclick="window.close()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-2 rounded-lg text-xs font-semibold transition flex items-center space-x-1.5">
+        <i class="fa-solid fa-arrow-left"></i>
+        <span>Tutup</span>
+      </button>
+
+      <select id="select-semester-cover" onchange="gantiSemesterCoverSAS(this.value)" class="border border-amber-300 bg-amber-50 text-amber-900 rounded-lg px-2.5 py-2 text-xs font-bold focus:outline-none">
+        <option value="1">SAS 1 (Ganjil)</option>
+        <option value="2">SAS 2 (Genap)</option>
+      </select>
+
+      <select id="select-siswa-cover" onchange="renderCoverSAS(this.value)" class="border border-gray-300 rounded-lg px-3 py-2 text-sm font-semibold bg-white focus:ring-2 focus:ring-amber-500 min-w-[220px]">
+        <option value="">-- Memuat Data Siswa... --</option>
+      </select>
+    </div>
+
+    <div class="flex items-center space-x-2">
+      <button onclick="prevSiswaCoverSAS()" class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-2 rounded-lg text-sm font-medium transition">
+        <i class="fa-solid fa-chevron-left"></i> Prev
+      </button>
+      <button onclick="nextSiswaCoverSAS()" class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-2 rounded-lg text-sm font-medium transition">
+        Next <i class="fa-solid fa-chevron-right"></i>
+      </button>
+      <button onclick="window.print()" class="bg-amber-600 hover:bg-amber-700 text-white px-5 py-2 rounded-lg font-medium shadow-sm transition flex items-center space-x-2">
+        <i class="fa-solid fa-print"></i>
+        <span>Cetak Cover (3 Lembar)</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ================================================================ -->
+  <!-- LEMBAR 1: SAMPUL DEPAN RAPOR (COVER)                             -->
+  <!-- ================================================================ -->
+  <div id="cover-page-1" class="cover-sheet-page bg-white p-10 mx-auto mb-6 border border-gray-300 shadow-lg text-black flex flex-col justify-between items-center text-center">
+    <div class="mt-8 flex flex-col items-center">
+      <!-- LOGO SEKOLAH UKURAN BESAR -->
+      <img src="pictures/logosmpit.png" alt="Logo SMPIT Al-Kautsar" class="w-[210px] h-[210px] object-contain mb-10">
+
+      <!-- JUDUL SAMPUL -->
+      <div class="font-bold text-[14pt] tracking-wide leading-relaxed uppercase">
+        <p class="tracking-[0.25em] text-[15pt] mb-1">RAPOR</p>
+        <p>PESERTA DIDIK</p>
+        <p>SEKOLAH MENENGAH PERTAMA</p>
+        <p>ISLAM TERPADU AL-KAUTSAR MUKOMUKO</p>
+      </div>
+    </div>
+
+    <!-- IDENTITAS NAMA & NISN DI TENGAH -->
+    <div class="w-full max-w-[420px] my-6">
+      <p class="text-[11.5pt] mb-1">Nama Peserta Didik :</p>
+      <div class="border border-black py-2 px-4 font-bold text-[13pt]" id="cov-nama-siswa">-</div>
+
+      <p class="text-[11.5pt] mt-6 mb-1">NISN / NIS</p>
+      <div class="border border-black py-2 px-4 font-bold text-[13pt]" id="cov-nisn-siswa">-</div>
+    </div>
+
+    <!-- FOOTER KEMENTERIAN -->
+    <div class="mb-8 font-bold text-[12pt] leading-snug uppercase">
+      <p>KEMENTRIAN PENDIDIKAN DAN KEBUDAYAAN</p>
+      <p>REPUBLIK INDONESIA</p>
+    </div>
+  </div>
+
+  <!-- ================================================================ -->
+  <!-- LEMBAR 2: IDENTITAS SEKOLAH                                      -->
+  <!-- ================================================================ -->
+  <div id="cover-page-2" class="cover-sheet-page bg-white p-12 mx-auto mb-6 border border-gray-300 shadow-lg text-black flex flex-col justify-start">
+    <div class="text-center font-bold text-[13.5pt] leading-relaxed uppercase mt-14 mb-12">
+      <p class="tracking-[0.25em] text-[14.5pt] mb-1">RAPOR</p>
+      <p>PESERTA DIDIK</p>
+      <p>SEKOLAH MENENGAH PERTAMA</p>
+      <p>ISLAM TERPADU AL-KAUTSAR MUKOMUKO</p>
+    </div>
+
+    <table class="w-full max-w-[540px] mx-auto text-[12pt] leading-[2.1]">
+      <tr>
+        <td class="w-52">Nama Sekolah</td>
+        <td class="w-5">:</td>
+        <td id="cov-sek-nama">SMP IT AL-KAUTSAR</td>
+      </tr>
+      <tr>
+        <td>NPSN</td>
+        <td>:</td>
+        <td id="cov-sek-npsn">69982612</td>
+      </tr>
+      <tr>
+        <td class="align-top">Alamat Sekolah</td>
+        <td class="align-top">:</td>
+        <td id="cov-sek-alamat">Jalan Kuku Besi Sukarame</td>
+      </tr>
+      <tr>
+        <td>Kode Pos</td>
+        <td>:</td>
+        <td id="cov-sek-kodepos">38225</td>
+      </tr>
+      <tr>
+        <td>Desa / Kelurahan</td>
+        <td>:</td>
+        <td id="cov-sek-desa">Pasar Sebelah</td>
+      </tr>
+      <tr>
+        <td>Kecamatan</td>
+        <td>:</td>
+        <td id="cov-sek-kecamatan">Kota Mukomuko</td>
+      </tr>
+      <tr>
+        <td>Kabupaten / Kota</td>
+        <td>:</td>
+        <td id="cov-sek-kabupaten">Mukomuko</td>
+      </tr>
+      <tr>
+        <td>Provinsi</td>
+        <td>:</td>
+        <td id="cov-sek-provinsi">Bengkulu</td>
+      </tr>
+      <tr>
+        <td>Website</td>
+        <td>:</td>
+        <td id="cov-sek-website">-</td>
+      </tr>
+      <tr>
+        <td>E-mail</td>
+        <td>:</td>
+        <td id="cov-sek-email">smpitalkautsarmm@gmail.com</td>
+      </tr>
+    </table>
+  </div>
+
+  <!-- ================================================================ -->
+  <!-- LEMBAR 3: IDENTITAS PESERTA DIDIK                                -->
+  <!-- ================================================================ -->
+  <div id="cover-page-3" class="cover-sheet-page bg-white p-10 mx-auto border border-gray-300 shadow-lg text-black flex flex-col justify-between">
+    <div>
+      <h2 class="text-center font-bold text-[13.5pt] uppercase mt-4 mb-6 tracking-wide">IDENTITAS PESERTA DIDIK</h2>
+
+      <table class="w-full max-w-[560px] mx-auto text-[11pt] leading-[1.58]">
+        <tr>
+          <td class="w-56">Nama Peserta Didik</td>
+          <td class="w-4">:</td>
+          <td id="cov-id-nama">-</td>
+        </tr>
+        <tr>
+          <td>NISN / NIS</td>
+          <td>:</td>
+          <td id="cov-id-nisn-nis">-</td>
+        </tr>
+        <tr>
+          <td>Tempat, Tanggal Lahir</td>
+          <td>:</td>
+          <td id="cov-id-ttl">-</td>
+        </tr>
+        <tr>
+          <td>Jenis Kelamin</td>
+          <td>:</td>
+          <td id="cov-id-jk">-</td>
+        </tr>
+        <tr>
+          <td>Agama</td>
+          <td>:</td>
+          <td id="cov-id-agama">Islam</td>
+        </tr>
+        <tr>
+          <td class="align-top">Alamat Peserta Didik</td>
+          <td class="align-top">:</td>
+          <td id="cov-id-alamat">-</td>
+        </tr>
+
+        <tr><td colspan="3" class="pt-3">Nama Orang Tua</td></tr>
+        <tr>
+          <td class="pl-4">Ayah</td>
+          <td>:</td>
+          <td id="cov-id-ayah">-</td>
+        </tr>
+        <tr>
+          <td class="pl-4">Ibu</td>
+          <td>:</td>
+          <td id="cov-id-ibu">-</td>
+        </tr>
+
+        <tr><td colspan="3" class="pt-3">Pekerjaan Orang Tua</td></tr>
+        <tr>
+          <td class="pl-4">Ayah</td>
+          <td>:</td>
+          <td id="cov-id-kerja-ayah">-</td>
+        </tr>
+        <tr>
+          <td class="pl-4">Ibu</td>
+          <td>:</td>
+          <td id="cov-id-kerja-ibu">-</td>
+        </tr>
+
+        <tr><td colspan="3" class="pt-3">Alamat Orang Tua</td></tr>
+        <tr>
+          <td class="pl-4">Jalan</td>
+          <td>:</td>
+          <td id="cov-id-ortu-jalan">-</td>
+        </tr>
+        <tr>
+          <td class="pl-4">Kelurahan/Desa</td>
+          <td>:</td>
+          <td id="cov-id-ortu-desa">-</td>
+        </tr>
+        <tr>
+          <td class="pl-4">Kecamatan</td>
+          <td>:</td>
+          <td id="cov-id-ortu-kec">-</td>
+        </tr>
+        <tr>
+          <td class="pl-4">Kabupaten / Kota</td>
+          <td>:</td>
+          <td id="cov-id-ortu-kab">MUKOMUKO</td>
+        </tr>
+        <tr>
+          <td class="pl-4">Provinsi</td>
+          <td>:</td>
+          <td id="cov-id-ortu-prov">BENGKULU</td>
+        </tr>
+
+        <tr><td colspan="3" class="pt-3">Wali Peserta Didik</td></tr>
+        <tr>
+          <td class="pl-4">Nama</td>
+          <td>:</td>
+          <td id="cov-id-wali-nama"></td>
+        </tr>
+        <tr>
+          <td class="pl-4">Pekerjaan</td>
+          <td>:</td>
+          <td id="cov-id-wali-kerja"></td>
+        </tr>
+        <tr>
+          <td class="pl-4">Alamat</td>
+          <td>:</td>
+          <td id="cov-id-wali-alamat"></td>
+        </tr>
+      </table>
+    </div>
+
+    <!-- PAS FOTO 3X4 & TANDA TANGAN KEPALA SEKOLAH -->
+    <div class="w-full max-w-[560px] mx-auto mt-6 mb-4 flex items-center justify-between pl-28 pr-2 text-[11pt]">
+      <!-- KOTAK PAS FOTO 3x4 CM -->
+      <div class="w-[30mm] h-[40mm] border border-gray-400 flex items-center justify-center text-[9pt] text-gray-400">
+        Pas Foto<br>3 x 4
+      </div>
+
+      <!-- KEPALA SEKOLAH -->
+      <div class="text-left w-64">
+        <p id="cov-ttd-tgl">Mukomuko, 18 Desember 2026</p>
+        <p>Kepala Sekolah</p>
+        <div class="h-16"></div>
+        <p class="underline font-normal" id="cov-ttd-kepsek">Warto, S.Pd.I., M.Pd., Gr</p>
+        <p id="cov-ttd-kepsek-nipy">NIPY. 141981071801014</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCRIPT KHUSUS HALAMAN CETAK COVER SAS -->
+  <script src="js/config.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/state.js"></script>
+  <script src="js/modules/leger-sas.js"></script>
+  <script src="js/modules/cetak-cover-sas.js"></script>
+</body>
+</html>
