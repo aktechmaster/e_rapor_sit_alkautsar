@@ -238,7 +238,7 @@ function renderPiagamList() {
   const jenisEvaluasi = document.getElementById("input-jenis-evaluasi")?.value.trim() || "Sumatif Akhir Semester (SAS)";
   const topOffsetMm = Number(document.getElementById("input-top-offset")?.value) || 64;
 
-  const kepsekNama = meta.kepsek || "WARTO, S.Pd.I., M.Pd., Gr";
+  const kepsekNama = meta.kepsek || "Warto, S.Pd.I., M.Pd., Gr";
   const kepsekNipy = meta.nipyKepsek
     ? `NIPY.${String(meta.nipyKepsek).replace(/^NIPY\.?\s*/i, "")}`
     : "NIPY.141981071801014";
@@ -320,17 +320,17 @@ function renderPiagamList() {
             </p>
           </div>
 
-          <!-- PENGESAHAN KEPALA SEKOLAH & WALI KELAS -->
-          <div class="px-6 pt-2 pb-2 flex justify-between items-start text-[11.5pt] leading-snug">
-            <div class="w-64 text-left">
+          <!-- PENGESAHAN KEPALA SEKOLAH & WALI KELAS (GESER TENGAH & SEIMBANG) -->
+          <div class="pl-16 pr-2 pt-2 pb-2 flex justify-between items-start text-[11.5pt] leading-snug">
+            <div class="w-56 text-left">
               <p>Mengetahui,</p>
               <p>Kepala SMPIT Al-Kautsar</p>
               <div class="h-16"></div>
-              <p class="font-bold underline uppercase">${kepsekNama}</p>
+              <p class="font-bold underline">${kepsekNama}</p>
               <p class="font-bold">${kepsekNipy}</p>
             </div>
 
-            <div class="w-64 text-left">
+            <div class="w-56 text-left">
               <p>${item.tanggal}</p>
               <p>Wali Kelas</p>
               <div class="h-16"></div>
