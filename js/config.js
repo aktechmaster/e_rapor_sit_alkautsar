@@ -36,7 +36,7 @@ const CONFIG = {
   // Pemetaan ID Spreadsheet Rapor SAS per Semester
   RAPOR_SAS_DB: {
     1: { // SAS 1 (Ganjil)
-      "7A":  "",
+      "7A":  "1vhKbOlDsuxy2hBffhLkebEjozh6eb-YNJ8yXhDh2394",
       "7B":  "",
       "7C":  "",
       "8A":  "",
