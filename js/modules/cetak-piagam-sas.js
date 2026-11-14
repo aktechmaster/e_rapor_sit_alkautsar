@@ -20,7 +20,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   const selectSem = document.getElementById("select-semester-piagam");
   if (selectSem) selectSem.value = String(semParam);
 
-  // Set default nomor surat & jenis evaluasi sesuai semester
   const tahunNow = new Date().getFullYear();
   const inpNomor = document.getElementById("input-nomor-piagam");
   const inpEval  = document.getElementById("input-jenis-evaluasi");
@@ -61,19 +60,14 @@ async function gantiSemesterPiagamSAS(semValue) {
 
 function ubahUkuranKertasPiagam(paperType) {
   const styleEl = document.getElementById("dynamic-page-size-style");
+  const inpOffset = document.getElementById("input-top-offset");
   if (styleEl) {
     if (paperType === "A4") {
-      styleEl.innerHTML = `
-        @media print {
-          @page { size: A4 portrait; margin: 10mm; }
-        }
-      `;
+      styleEl.innerHTML = `@media print { @page { size: A4 portrait; margin: 0mm; } }`;
+      if (inpOffset && Number(inpOffset.value) === 64) inpOffset.value = "58";
     } else {
-      styleEl.innerHTML = `
-        @media print {
-          @page { size: 215.9mm 330.2mm; margin: 10mm; }
-        }
-      `;
+      styleEl.innerHTML = `@media print { @page { size: 215.9mm 330.2mm; margin: 0mm; } }`;
+      if (inpOffset && Number(inpOffset.value) === 58) inpOffset.value = "64";
     }
   }
   renderPiagamList();
@@ -94,6 +88,23 @@ function hitungRataRataSiswaSAS(studentObj) {
     }
   }
   return "-";
+}
+
+// Bersihkan nama kelas jika masih berbentuk ID "kls-9A"
+function resolveNamaKelasPiagam(rawKelasRank, metaKelas, fallbackKelas) {
+  const rk = String(rawKelasRank || "").trim();
+  if (rk && !/^kls-/i.test(rk)) return rk;
+  if (metaKelas && !/^kls-/i.test(metaKelas)) return metaKelas;
+  return (rk || metaKelas || fallbackKelas || "-").replace(/^kls-/i, "").toUpperCase();
+}
+
+// Bersihkan nama wali kelas jika masih berbentuk ID "gr_008"
+function resolveNamaWalasPiagam(rawWalasRank, metaWalas) {
+  const rw = String(rawWalasRank || "").trim();
+  if (rw && !/^gr_/i.test(rw)) return rw;
+  if (STATE.currentUser?.nama_lengkap) return STATE.currentUser.nama_lengkap;
+  if (metaWalas && !/^gr_/i.test(metaWalas)) return metaWalas;
+  return rw || metaWalas || "-";
 }
 
 async function initCetakPiagamSAS(forceFetch = false, initialIdxParam = null) {
@@ -147,7 +158,6 @@ async function initCetakPiagamSAS(forceFetch = false, initialIdxParam = null) {
   const students = CURRENT_LEGER_SAS_DATA.data || [];
   const rawRankList = meta.rangkingList || [];
 
-  // Gabungkan data tab RANGKING dengan rata-rata nilai dari LEGER
   if (rawRankList.length > 0) {
     PIAGAM_WINNERS_LIST = rawRankList.slice(0, 10).map((r, i) => {
       const rNisn = String(r.nisn || "").trim();
@@ -162,10 +172,10 @@ async function initCetakPiagamSAS(forceFetch = false, initialIdxParam = null) {
         no: r.no || (i + 1),
         nama: r.nama,
         nisn: r.nisn || matchedStudent?.nisn || "-",
-        kelas: r.kelas || meta.kelas || kelasWalas,
+        kelas: resolveNamaKelasPiagam(r.kelas, meta.kelas, kelasWalas),
         rank: r.rank || `PERINGKAT ${i + 1}`,
         rataRata: hitungRataRataSiswaSAS(matchedStudent),
-        walas: r.walas || STATE.currentUser?.nama_lengkap || meta.walas || "-",
+        walas: resolveNamaWalasPiagam(r.walas, meta.walas),
         nipy: r.nipy || STATE.currentUser?.nip_nik || meta.nipyWalas || "",
         tanggal: r.tanggal || meta.tglRapor || "Mukomuko, 18 Desember 2026",
         semester: r.semester || (semActive === 2 ? "II (Genap)" : "I (Ganjil)"),
@@ -173,7 +183,6 @@ async function initCetakPiagamSAS(forceFetch = false, initialIdxParam = null) {
       };
     });
   } else {
-    // Fallback jika tab RANGKING belum terisi: ambil 10 besar dari tab LEGER
     PIAGAM_WINNERS_LIST = [...students]
       .filter(s => !isNaN(Number(s.rank)))
       .sort((a, b) => Number(a.rank) - Number(b.rank))
@@ -182,10 +191,10 @@ async function initCetakPiagamSAS(forceFetch = false, initialIdxParam = null) {
         no: i + 1,
         nama: st.nama,
         nisn: st.nisn || "-",
-        kelas: meta.kelas || kelasWalas,
+        kelas: resolveNamaKelasPiagam("", meta.kelas, kelasWalas),
         rank: `PERINGKAT ${st.rank}`,
         rataRata: hitungRataRataSiswaSAS(st),
-        walas: STATE.currentUser?.nama_lengkap || meta.walas || "-",
+        walas: resolveNamaWalasPiagam("", meta.walas),
         nipy: STATE.currentUser?.nip_nik || meta.nipyWalas || "",
         tanggal: meta.tglRapor || "Mukomuko, 18 Desember 2026",
         semester: semActive === 2 ? "II (Genap)" : "I (Ganjil)",
@@ -193,7 +202,6 @@ async function initCetakPiagamSAS(forceFetch = false, initialIdxParam = null) {
       }));
   }
 
-  // Isi Dropdown Pilihan Siswa
   if (selectMode) {
     selectMode.innerHTML = `<option value="ALL">Semua Peringkat (${PIAGAM_WINNERS_LIST.length} Siswa Sekaligus)</option>`;
     PIAGAM_WINNERS_LIST.forEach((w, idx) => {
@@ -216,7 +224,7 @@ function renderPiagamList() {
 
   if (PIAGAM_WINNERS_LIST.length === 0) {
     container.innerHTML = `
-      <div class="max-w-[195.9mm] mx-auto bg-white p-10 rounded-xl border border-gray-200 text-center text-gray-500">
+      <div class="max-w-[215.9mm] mx-auto bg-white p-10 rounded-xl border border-gray-200 text-center text-gray-500">
         Belum ada data peringkat pada tab <strong>RANGKING</strong>.
       </div>
     `;
@@ -228,6 +236,7 @@ function renderPiagamList() {
   const paperType = document.getElementById("select-paper-piagam")?.value || "F4";
   const nomorPiagam = document.getElementById("input-nomor-piagam")?.value.trim() || ".../..../D.6/SMPIT-AK/XII/2026";
   const jenisEvaluasi = document.getElementById("input-jenis-evaluasi")?.value.trim() || "Sumatif Akhir Semester (SAS)";
+  const topOffsetMm = Number(document.getElementById("input-top-offset")?.value) || 64;
 
   const kepsekNama = meta.kepsek || "WARTO, S.Pd.I., M.Pd., Gr";
   const kepsekNipy = meta.nipyKepsek
@@ -247,69 +256,29 @@ function renderPiagamList() {
 
     return `
       <div class="piagam-sheet ${sizeClass} mx-auto border border-gray-300 shadow-lg text-black">
-        <!-- LATAR TITIK-TITIK HALUS -->
-        <div class="piagam-dots-bg absolute inset-0 pointer-events-none"></div>
+        <!-- GAMBAR BLANGKO DESAIN ASLI (OTOMATIS CEK .PNG LALU .JPG) -->
+        <img
+          src="pictures/template-piagam.png"
+          onerror="if(!this.dataset.triedJpg){this.dataset.triedJpg='1';this.src='pictures/template-piagam.jpg';}"
+          alt="Template Piagam"
+          class="piagam-bg-img"
+        >
 
-        <!-- ORNAMEN PITA SUDUT KANAN ATAS (VECTOR SVG) -->
-        <svg class="absolute top-0 right-0 w-[145px] h-[145px] pointer-events-none z-20" viewBox="0 0 150 150" fill="none">
-          <defs>
-            <linearGradient id="gradTopRight" x1="0" y1="0" x2="150" y2="150" gradientUnits="userSpaceOnUse">
-              <stop offset="0%" stop-color="#38bdf8"/>
-              <stop offset="100%" stop-color="#1d4ed8"/>
-            </linearGradient>
-          </defs>
-          <path d="M25 0 H150 V125 C120 120 95 95 75 75 C55 55 30 30 25 0 Z" fill="url(#gradTopRight)"/>
-          <path d="M55 0 H150 V95 C130 90 110 72 95 57 C80 42 60 20 55 0 Z" fill="#06b6d4" opacity="0.65"/>
-          <circle cx="96" cy="48" r="10" fill="#bae6fd" opacity="0.85"/>
-          <circle cx="114" cy="64" r="6" fill="#e0f2fe" opacity="0.9"/>
-        </svg>
-
-        <!-- ORNAMEN PITA SUDUT KIRI BAWAH (VECTOR SVG) -->
-        <svg class="absolute bottom-0 left-0 w-[145px] h-[145px] pointer-events-none z-20" viewBox="0 0 150 150" fill="none">
-          <defs>
-            <linearGradient id="gradBottomLeft" x1="0" y1="0" x2="150" y2="150" gradientUnits="userSpaceOnUse">
-              <stop offset="0%" stop-color="#1d4ed8"/>
-              <stop offset="100%" stop-color="#38bdf8"/>
-            </linearGradient>
-          </defs>
-          <path d="M0 25 V150 H125 C120 120 95 95 75 75 C55 55 30 30 0 25 Z" fill="url(#gradBottomLeft)"/>
-          <path d="M0 55 V150 H95 C90 130 72 110 57 95 C42 80 20 60 0 55 Z" fill="#06b6d4" opacity="0.65"/>
-          <circle cx="52" cy="102" r="10" fill="#bae6fd" opacity="0.85"/>
-          <circle cx="34" cy="86" r="6" fill="#e0f2fe" opacity="0.9"/>
-        </svg>
-
-        <!-- BINGKAI UTAMA & KONTEN PIAGAM -->
-        <div class="piagam-inner-frame">
-          <!-- 1. KOP SURAT YAYASAN & SEKOLAH -->
-          <div class="border-b-2 border-black pb-2">
-            <div class="flex items-center justify-between gap-2">
-              <img src="pictures/logoyayasan.png" alt="Logo Yayasan" onerror="this.style.visibility='hidden'" class="w-16 h-16 object-contain shrink-0">
-              <div class="text-center flex-1 leading-tight">
-                <p class="font-bold text-[11pt] tracking-wide uppercase">YAYASAN AL-AMANAH MUKOMUKO</p>
-                <p class="font-bold text-[10.5pt] uppercase">SEKOLAH MENENGAH PERTAMA ISLAM TERPADU</p>
-                <p class="font-bold text-[10.5pt] uppercase">( SMPIT ) AL-KAUTSAR</p>
-                <p class="font-bold text-[8.5pt] uppercase">FULLDAY SCHOOL DAN BOARDING SCHOOL</p>
-                <p class="italic text-[7.5pt] mt-0.5">Alamat: Jl. Kuku Besi Suka Rame Desa Pasar Sebelah Kec. Kota Mukomuko</p>
-                <p class="italic text-[7.5pt]">Kab. Mukomuko Provinsi Bengkulu</p>
-                <p class="italic text-[7.5pt]">E-mail : <span class="underline">smpitalkautsarmm@gmail.com</span></p>
-              </div>
-              <img src="pictures/logosmpit.png" alt="Logo SMPIT" onerror="this.style.visibility='hidden'" class="w-16 h-16 object-contain shrink-0">
-            </div>
-          </div>
-
-          <!-- 2. JUDUL & NOMOR PIAGAM -->
-          <div class="text-center my-2">
+        <!-- TEKS DINAMIS PIAGAM -->
+        <div class="piagam-text-layer" style="padding-top: ${topOffsetMm}mm;">
+          <!-- JUDUL & NOMOR -->
+          <div class="text-center">
             <h1 class="font-bold text-[22pt] tracking-wider uppercase leading-none">PIAGAM PENGHARGAAN</h1>
-            <p class="text-[11pt] mt-2">Nomor : ${nomorPiagam}</p>
+            <p class="text-[11.5pt] mt-2">Nomor : ${nomorPiagam}</p>
           </div>
 
-          <!-- 3. KALIMAT PEMBUKA & BIODATA PENERIMA -->
-          <div class="px-4 text-[11.5pt] leading-relaxed">
+          <!-- KALIMAT PEMBUKA & BIODATA -->
+          <div class="px-4 text-[12pt] leading-relaxed">
             <p class="text-justify">
               Yang bertanda tangan di bawah ini, Wali Kelas <strong>${item.kelas}</strong> SMPIT Al-Kautsar Kecamatan Kota Mukomuko, Kabupaten Mukomuko, menerangkan bahwa :
             </p>
 
-            <table class="w-full max-w-[440px] mx-auto my-3 text-[11.5pt] font-bold leading-[1.75]">
+            <table class="w-full max-w-[440px] mx-auto my-3 text-[12pt] font-bold leading-[1.75]">
               <tr>
                 <td class="w-28">Nama</td>
                 <td class="w-4">:</td>
@@ -328,32 +297,32 @@ function renderPiagamList() {
             </table>
           </div>
 
-          <!-- 4. PENCAPAIAN PERINGKAT & RATA-RATA -->
+          <!-- PERINGKAT & RATA-RATA -->
           <div class="px-4 text-center">
-            <p class="text-[11.5pt] leading-relaxed">
+            <p class="text-[12pt] leading-relaxed">
               Berdasarkan hasil ${jenisEvaluasi}, Semester ${item.semester} Tahun Pelajaran ${item.tahun}, siswa tersebut dinyatakan sebagai:
             </p>
 
             <div class="my-4">
-              <div class="inline-block border-b-2 border-black pb-0.5 px-4 font-bold text-[19pt] uppercase tracking-wide">
+              <div class="inline-block border-b-2 border-black pb-0.5 px-4 font-bold text-[20pt] uppercase tracking-wide">
                 ${item.rank}
               </div>
-              <p class="font-bold text-[11.5pt] uppercase mt-2 tracking-wide">
+              <p class="font-bold text-[12pt] uppercase mt-2 tracking-wide">
                 DI KELAS ${item.kelas} SMPIT AL-KAUTSAR
               </p>
-              <p class="font-bold text-[11.5pt] uppercase mt-0.5 tracking-wide">
+              <p class="font-bold text-[12pt] uppercase mt-0.5 tracking-wide">
                 DENGAN RATA-RATA ${item.rataRata}
               </p>
             </div>
 
-            <p class="text-[11.5pt] leading-relaxed mt-3">
+            <p class="text-[12pt] leading-relaxed mt-3">
               Semoga piagam penghargaan ini dapat berguna dan menjadi pendorong untuk prestasi yang akan datang. Kami ucapkan selamat dan terima kasih.
             </p>
           </div>
 
-          <!-- 5. PENGESAHAN KEPALA SEKOLAH & WALI KELAS -->
-          <div class="px-6 pt-3 pb-2 flex justify-between items-start text-[11pt] leading-snug">
-            <div class="w-60 text-left">
+          <!-- PENGESAHAN KEPALA SEKOLAH & WALI KELAS -->
+          <div class="px-6 pt-2 pb-2 flex justify-between items-start text-[11.5pt] leading-snug">
+            <div class="w-64 text-left">
               <p>Mengetahui,</p>
               <p>Kepala SMPIT Al-Kautsar</p>
               <div class="h-16"></div>
@@ -361,7 +330,7 @@ function renderPiagamList() {
               <p class="font-bold">${kepsekNipy}</p>
             </div>
 
-            <div class="w-60 text-left">
+            <div class="w-64 text-left">
               <p>${item.tanggal}</p>
               <p>Wali Kelas</p>
               <div class="h-16"></div>
