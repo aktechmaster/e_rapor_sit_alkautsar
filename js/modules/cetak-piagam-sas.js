@@ -268,19 +268,19 @@ function renderPiagamList() {
         <div class="piagam-text-layer" style="padding-top: ${topOffsetMm}mm;">
           <!-- JUDUL & NOMOR -->
           <div class="text-center">
-            <h1 class="font-bold text-[22pt] tracking-wider uppercase leading-none">PIAGAM PENGHARGAAN</h1>
-            <p class="text-[11.5pt] mt-2">Nomor : ${nomorPiagam}</p>
+            <h1 class="font-bold text-[25pt] tracking-wider uppercase leading-none">PIAGAM PENGHARGAAN</h1>
+            <p class="text-[13pt] mt-2">Nomor : ${nomorPiagam}</p>
           </div>
 
           <!-- KALIMAT PEMBUKA & BIODATA -->
-          <div class="px-4 text-[12pt] leading-relaxed">
+          <div class="px-3 text-[13.5pt] leading-relaxed">
             <p class="text-justify">
               Yang bertanda tangan di bawah ini, Wali Kelas <strong>${item.kelas}</strong> SMPIT Al-Kautsar Kecamatan Kota Mukomuko, Kabupaten Mukomuko, menerangkan bahwa :
             </p>
 
-            <table class="w-full max-w-[440px] mx-auto my-3 text-[12pt] font-bold leading-[1.75]">
+            <table class="w-full max-w-[480px] mx-auto my-3.5 text-[13.5pt] font-bold leading-[1.75]">
               <tr>
-                <td class="w-28">Nama</td>
+                <td class="w-32">Nama</td>
                 <td class="w-4">:</td>
                 <td class="uppercase">${item.nama}</td>
               </tr>
@@ -298,31 +298,31 @@ function renderPiagamList() {
           </div>
 
           <!-- PERINGKAT & RATA-RATA -->
-          <div class="px-4 text-center">
-            <p class="text-[12pt] leading-relaxed">
+          <div class="px-3 text-center">
+            <p class="text-[13.5pt] leading-relaxed">
               Berdasarkan hasil ${jenisEvaluasi}, Semester ${item.semester} Tahun Pelajaran ${item.tahun}, siswa tersebut dinyatakan sebagai:
             </p>
 
             <div class="my-4">
-              <div class="inline-block border-b-2 border-black pb-0.5 px-4 font-bold text-[20pt] uppercase tracking-wide">
+              <div class="inline-block border-b-2 border-black pb-0.5 px-5 font-bold text-[23pt] uppercase tracking-wide">
                 ${item.rank}
               </div>
-              <p class="font-bold text-[12pt] uppercase mt-2 tracking-wide">
+              <p class="font-bold text-[13.5pt] uppercase mt-2.5 tracking-wide">
                 DI KELAS ${item.kelas} SMPIT AL-KAUTSAR
               </p>
-              <p class="font-bold text-[12pt] uppercase mt-0.5 tracking-wide">
+              <p class="font-bold text-[13.5pt] uppercase mt-1 tracking-wide">
                 DENGAN RATA-RATA ${item.rataRata}
               </p>
             </div>
 
-            <p class="text-[12pt] leading-relaxed mt-3">
+            <p class="text-[13.5pt] leading-relaxed mt-3">
               Semoga piagam penghargaan ini dapat berguna dan menjadi pendorong untuk prestasi yang akan datang. Kami ucapkan selamat dan terima kasih.
             </p>
           </div>
 
-          <!-- PENGESAHAN KEPALA SEKOLAH & WALI KELAS (GESER TENGAH & SEIMBANG) -->
-          <div class="pl-16 pr-2 pt-2 pb-2 flex justify-between items-start text-[11.5pt] leading-snug">
-            <div class="w-56 text-left">
+          <!-- PENGESAHAN KEPALA SEKOLAH & WALI KELAS -->
+          <div class="pl-16 pr-2 pt-2 pb-2 flex justify-between items-start text-[12.5pt] leading-snug">
+            <div class="w-60 text-left">
               <p>Mengetahui,</p>
               <p>Kepala SMPIT Al-Kautsar</p>
               <div class="h-16"></div>
@@ -330,7 +330,7 @@ function renderPiagamList() {
               <p class="font-bold">${kepsekNipy}</p>
             </div>
 
-            <div class="w-56 text-left">
+            <div class="w-60 text-left">
               <p>${item.tanggal}</p>
               <p>Wali Kelas</p>
               <div class="h-16"></div>
