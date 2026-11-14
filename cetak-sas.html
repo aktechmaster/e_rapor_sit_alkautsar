@@ -21,14 +21,13 @@
       line-height: 1.25;
     }
 
+    /* Tinggi default seragam 22mm, otomatis memanjang ke bawah jika teks lebih dari 4 baris */
     .sas-mapel-row {
-      height: 22mm !important;
-      max-height: 22mm !important;
+      height: 22mm;
     }
 
     .sas-desc-box {
-      height: 19.5mm;
-      overflow: hidden;
+      min-height: 19.5mm;
       font-size: 9.5pt;
       line-height: 1.24;
     }
@@ -88,6 +87,7 @@
       }
     }
   </style>
+  
 </head>
 <body class="bg-gray-100 font-sans text-gray-800 antialiased py-4 px-2 sm:px-6">
 
@@ -122,6 +122,9 @@
       </button>
     </div>
   </div>
+
+  <!-- PENGUKUR BATAS MAKSIMAL TINGGI HALAMAN 1 F4 (286mm) -->
+  <div id="sas-mm-ruler" style="height: 286mm; width: 1px; position: fixed; top: 0; left: -9999px; visibility: hidden; pointer-events: none;"></div>
 
   <!-- ================================================================ -->
   <!-- HALAMAN 1: KOP, IDENTITAS PESERTA DIDIK & TABEL NILAI (MAPEL 1-9) -->
