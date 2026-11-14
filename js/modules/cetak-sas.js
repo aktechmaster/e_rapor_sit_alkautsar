@@ -144,7 +144,7 @@ function renderLembarRaporSAS(siswaIndex) {
   document.getElementById("lbl-sas-nama").innerText = student.nama || "-";
   document.getElementById("lbl-sas-nisn").innerText = nisNisnStr;
   document.getElementById("lbl-sas-sekolah").innerText = meta.namaSekolah || "SMP IT AL-KAUTSAR";
-  document.getElementById("lbl-sas-alamat").innerText = meta.alamatSekolah || "Jalan Kuku Besi Sukarame";
+  document.getElementById("lbl-sas-alamat").innerText = (student.alamat && student.alamat !== "-") ? student.alamat : "-";
   document.getElementById("lbl-sas-kelas").innerText = namaKelasTampil;
   document.getElementById("lbl-sas-fase").innerText = meta.fase || "D";
   document.getElementById("lbl-sas-semester").innerText = semActive === 2 ? "II" : "I";
@@ -159,7 +159,7 @@ function renderLembarRaporSAS(siswaIndex) {
   tbodyP1.innerHTML = "";
   tbodyP2.innerHTML = "";
 
-  const splitAt = 9; // Lembar 1 memuat tepat 9 mapel seragam (tinggi 22mm/kotak)
+  const splitAt = 9;
 
   raporMapels.forEach((mp, idx) => {
     const noUrut = idx + 1;
@@ -196,7 +196,6 @@ function renderLembarRaporSAS(siswaIndex) {
     }
   }
 
-  // Sesuaikan font deskripsi panjang agar muat utuh di dalam kotak 22mm
   autoFitDescriptionsSAS();
 
   // 3. EKSTRAKURIKULER (3 BARIS)
