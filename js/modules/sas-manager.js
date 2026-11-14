@@ -578,14 +578,34 @@ function renderSasDeskripsiPanel() {
 }
 
 // ====================================================
-// SUB-MENU 8: RANKING & PIAGAM (KERANGKA AWAL)
+// SUB-MENU 8: RANKING & PIAGAM
 // ====================================================
+function bukaCetakPiagamSAS(selectedIdx = -1) {
+  const kelasWalas = STATE.currentUser ? STATE.currentUser.walas_kelas : null;
+  if (!kelasWalas) {
+    alert("Akun Anda tidak terdaftar sebagai Wali Kelas!");
+    return;
+  }
+
+  const sem = Number(STATE.currentSasSemester) || 1;
+  sessionStorage.setItem("ERAPOR_PRINT_USER", JSON.stringify(STATE.currentUser));
+  sessionStorage.setItem("ERAPOR_PRINT_SAS_SEM", String(sem));
+
+  const cacheKey = `${sem}_${kelasWalas}`;
+  if (typeof LEGER_SAS_CACHE !== "undefined" && LEGER_SAS_CACHE[cacheKey]) {
+    sessionStorage.setItem(`ERAPOR_LEGER_SAS_${cacheKey}`, JSON.stringify(LEGER_SAS_CACHE[cacheKey]));
+  }
+
+  const queryIdx = selectedIdx >= 0 ? `&idx=${selectedIdx}` : "";
+  window.open(`cetak-piagam-sas.html?sem=${sem}${queryIdx}`, "_blank");
+}
+
 function renderSasRankingPanel() {
   const tbody = document.getElementById("sas-ranking-tbody");
   if (!tbody || !CURRENT_LEGER_SAS_DATA) return;
 
   const meta = CURRENT_LEGER_SAS_DATA.meta || {};
-  const rankSheetList = meta.rangkingList || [];
+  const rankSheetList = (meta.rangkingList || []).slice(0, 10);
 
   if (rankSheetList.length > 0) {
     tbody.innerHTML = rankSheetList.map((r, i) => `
@@ -595,7 +615,12 @@ function renderSasRankingPanel() {
         <td class="p-2.5 border-r text-center text-gray-600">${r.nisn || "-"}</td>
         <td class="p-2.5 border-r text-center text-gray-600">${r.kelas || meta.kelas || "-"}</td>
         <td class="p-2.5 border-r text-center font-extrabold bg-amber-50 text-amber-800">${r.rank}</td>
-        <td class="p-2.5 text-center text-gray-400 italic">Menunggu Desain Piagam</td>
+        <td class="p-2.5 text-center">
+          <button onclick="bukaCetakPiagamSAS(${i})" class="bg-amber-100 hover:bg-amber-200 text-amber-900 border border-amber-300 px-3 py-1 rounded-md text-xs font-bold transition inline-flex items-center space-x-1">
+            <i class="fa-solid fa-print"></i>
+            <span>Cetak Piagam</span>
+          </button>
+        </td>
       </tr>
     `).join("");
     return;
@@ -619,7 +644,12 @@ function renderSasRankingPanel() {
       <td class="p-2.5 border-r text-center text-gray-600">${st.nisn || "-"}</td>
       <td class="p-2.5 border-r text-center text-gray-600">${meta.kelas || "-"}</td>
       <td class="p-2.5 border-r text-center font-extrabold bg-amber-50 text-amber-800">PERINGKAT ${st.rank}</td>
-      <td class="p-2.5 text-center text-gray-400 italic">Menunggu Desain Piagam</td>
+      <td class="p-2.5 text-center">
+        <button onclick="bukaCetakPiagamSAS(${i})" class="bg-amber-100 hover:bg-amber-200 text-amber-900 border border-amber-300 px-3 py-1 rounded-md text-xs font-bold transition inline-flex items-center space-x-1">
+          <i class="fa-solid fa-print"></i>
+          <span>Cetak Piagam</span>
+        </button>
+      </td>
     </tr>
   `).join("");
 }
