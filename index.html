@@ -93,7 +93,6 @@
             </div>
           </div>
 
-          <!-- MENU KHUSUS WALI KELAS: DROPDOWN SAS (DI DALAM SIDEBAR) -->
           <div id="nav-sas-group" class="hidden">
             <button onclick="toggleSasSubmenu()" class="menu-item justify-between w-full text-left bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/20">
               <div class="flex items-center space-x-2">
@@ -103,27 +102,14 @@
               <i id="sas-arrow" class="fa-solid fa-chevron-down text-xs transition-transform duration-200"></i>
             </button>
             <div id="sas-submenu" class="pl-3 pt-1 space-y-1 hidden">
-              <!-- SUB-MENU SAS 1 (GANJIL) -->
-              <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-2 pt-2">SAS 1 (Ganjil)</p>
-              <a href="#" id="nav-leger-sas1" onclick="switchMenu('leger-sas', 1)" class="menu-item text-xs py-2 px-3 text-slate-300 hover:text-white">
-                <i class="fa-solid fa-table w-4 text-center"></i> <span>Leger SAS 1</span>
+              <a href="#" id="nav-sas-sem1" onclick="openSasWorkspace(1)" class="menu-item text-xs py-2 px-3 text-slate-300 hover:text-white">
+                <i class="fa-solid fa-folder-tree w-4 text-center"></i> <span>SAS 1 (Ganjil)</span>
               </a>
-              <a href="#" id="nav-cetak-sas1" onclick="bukaCetakSAS(1)" class="menu-item text-xs py-2 px-3 text-slate-300 hover:text-white">
-                <i class="fa-solid fa-print w-4 text-center"></i> <span>Cetak Rapor SAS 1</span>
-              </a>
-
-              <!-- SUB-MENU SAS 2 (GENAP) -->
-              <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-2 pt-2">SAS 2 (Genap)</p>
-              <a href="#" id="nav-leger-sas2" onclick="switchMenu('leger-sas', 2)" class="menu-item text-xs py-2 px-3 text-slate-300 hover:text-white">
-                <i class="fa-solid fa-table w-4 text-center"></i> <span>Leger SAS 2</span>
-              </a>
-              <a href="#" id="nav-cetak-sas2" onclick="bukaCetakSAS(2)" class="menu-item text-xs py-2 px-3 text-slate-300 hover:text-white">
-                <i class="fa-solid fa-print w-4 text-center"></i> <span>Cetak Rapor SAS 2</span>
+              <a href="#" id="nav-sas-sem2" onclick="openSasWorkspace(2)" class="menu-item text-xs py-2 px-3 text-slate-300 hover:text-white">
+                <i class="fa-solid fa-folder-tree w-4 text-center"></i> <span>SAS 2 (Genap)</span>
               </a>
             </div>
           </div>
-        </nav>
-      </div>
 
       <div class="p-4 border-t border-slate-800">
         <button id="btn-logout" onclick="logout()" class="w-full py-2.5 px-4 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium flex items-center justify-center space-x-2 transition">
@@ -370,32 +356,249 @@
           </div>
         </div>
 
-        <!-- VIEW 7: LEGER SAS -->
-        <div id="view-leger-sas" class="hidden space-y-4 flex-1 flex flex-col min-h-0">
-          <div class="flex flex-wrap items-center justify-between bg-white p-4 rounded-xl border border-gray-200 shadow-sm gap-4 shrink-0">
-            <div>
-              <h3 class="font-bold text-lg text-slate-800" id="leger-sas-title">Leger Rekap Nilai SAS</h3>
-              <p class="text-xs text-gray-500" id="leger-sas-meta-info">Kelas: - | Wali Kelas: -</p>
-            </div>
-            <div class="flex items-center space-x-2">
-              <button onclick="cetakLegerSAS()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-medium shadow-sm transition flex items-center space-x-2">
-                <i class="fa-solid fa-print"></i>
-                <span>Cetak Leger (Landscape F4/A4)</span>
-              </button>
-              <button onclick="loadLegerSAS(true)" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-medium shadow-sm transition flex items-center space-x-2">
+        <!-- VIEW 7: WORKSPACE MODUL RAPOR SAS (8 SUB-MENU) -->
+        <div id="view-sas-workspace" class="hidden space-y-3 flex-1 flex flex-col min-h-0">
+          <!-- BARIS ATAS: PEMILIH SEMESTER & BAR NAVIGASI 8 SUB-TAB -->
+          <div class="bg-white p-3 rounded-xl border border-gray-200 shadow-sm shrink-0 space-y-3">
+            <div class="flex flex-wrap items-center justify-between gap-3 border-b border-gray-100 pb-2.5">
+              <div class="flex items-center space-x-3">
+                <span class="px-2.5 py-1 rounded-lg bg-emerald-100 text-emerald-800 text-xs font-extrabold tracking-wide">
+                  <i class="fa-solid fa-layer-group mr-1"></i> MODUL SAS
+                </span>
+                <select id="sas-workspace-semester" onchange="changeSasWorkspaceSemester(this.value)" class="border border-emerald-300 bg-emerald-50 text-emerald-900 rounded-lg px-3 py-1.5 text-xs sm:text-sm font-bold focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                  <option value="1">SAS 1 (Semester Ganjil)</option>
+                  <option value="2">SAS 2 (Semester Genap)</option>
+                </select>
+                <span id="sas-workspace-kelas-badge" class="text-xs font-semibold text-gray-500">Kelas: -</span>
+              </div>
+
+              <button onclick="refreshSasWorkspaceData()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg text-xs font-semibold transition flex items-center space-x-1.5 border border-slate-300">
                 <i class="fa-solid fa-rotate"></i>
-                <span>Refresh Leger</span>
+                <span>Muat Ulang Data Sheet</span>
+              </button>
+            </div>
+
+            <!-- 8 SUB-TAB NAVIGASI SEJAJAR TAB SPREADSHEET -->
+            <div class="flex items-center gap-1.5 overflow-x-auto pb-1">
+              <button id="sas-tab-btn-id-sekolah" onclick="switchSasSubTab('id-sekolah')" class="sas-subtab-btn px-3 py-2 rounded-lg text-xs font-semibold whitespace-nowrap border transition flex items-center space-x-1.5 bg-slate-50 text-slate-700 border-slate-200 hover:bg-emerald-50">
+                <i class="fa-solid fa-school"></i><span>1. ID Sekolah</span>
+              </button>
+              <button id="sas-tab-btn-cover" onclick="switchSasSubTab('cover')" class="sas-subtab-btn px-3 py-2 rounded-lg text-xs font-semibold whitespace-nowrap border transition flex items-center space-x-1.5 bg-amber-50 text-amber-800 border-amber-200 hover:bg-amber-100">
+                <i class="fa-solid fa-book"></i><span>2. Cover (Cetak 3 Lbr)</span><i class="fa-solid fa-arrow-up-right-from-square text-[10px] opacity-75"></i>
+              </button>
+              <button id="sas-tab-btn-ekstra" onclick="switchSasSubTab('ekstra')" class="sas-subtab-btn px-3 py-2 rounded-lg text-xs font-semibold whitespace-nowrap border transition flex items-center space-x-1.5 bg-slate-50 text-slate-700 border-slate-200 hover:bg-emerald-50">
+                <i class="fa-solid fa-medal"></i><span>3. Ekstra</span>
+              </button>
+              <button id="sas-tab-btn-note" onclick="switchSasSubTab('note')" class="sas-subtab-btn px-3 py-2 rounded-lg text-xs font-semibold whitespace-nowrap border transition flex items-center space-x-1.5 bg-slate-50 text-slate-700 border-slate-200 hover:bg-emerald-50">
+                <i class="fa-solid fa-comment-dots"></i><span>4. Note</span>
+              </button>
+              <button id="sas-tab-btn-deskripsi" onclick="switchSasSubTab('deskripsi')" class="sas-subtab-btn px-3 py-2 rounded-lg text-xs font-semibold whitespace-nowrap border transition flex items-center space-x-1.5 bg-slate-50 text-slate-700 border-slate-200 hover:bg-emerald-50">
+                <i class="fa-solid fa-eye"></i><span>5. Deskripsi</span>
+              </button>
+              <button id="sas-tab-btn-leger" onclick="switchSasSubTab('leger')" class="sas-subtab-btn px-3 py-2 rounded-lg text-xs font-semibold whitespace-nowrap border transition flex items-center space-x-1.5 bg-emerald-600 text-white border-emerald-600">
+                <i class="fa-solid fa-table"></i><span>6. LEGER</span>
+              </button>
+              <button id="sas-tab-btn-rapor" onclick="switchSasSubTab('rapor')" class="sas-subtab-btn px-3 py-2 rounded-lg text-xs font-semibold whitespace-nowrap border transition flex items-center space-x-1.5 bg-indigo-50 text-indigo-800 border-indigo-200 hover:bg-indigo-100">
+                <i class="fa-solid fa-print"></i><span>7. Rapor</span><i class="fa-solid fa-arrow-up-right-from-square text-[10px] opacity-75"></i>
+              </button>
+              <button id="sas-tab-btn-ranking" onclick="switchSasSubTab('ranking')" class="sas-subtab-btn px-3 py-2 rounded-lg text-xs font-semibold whitespace-nowrap border transition flex items-center space-x-1.5 bg-slate-50 text-slate-700 border-slate-200 hover:bg-emerald-50">
+                <i class="fa-solid fa-trophy"></i><span>8. Ranking & Piagam</span>
               </button>
             </div>
           </div>
-          <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden flex-1 flex flex-col min-h-0">
-            <div class="table-container overflow-auto flex-1 min-h-0">
-              <table class="table-fixed text-left border-collapse text-xs w-full">
-                <thead class="bg-slate-100 sticky top-0 z-10 border-b border-gray-200">
-                  <tr id="table-leger-sas-header"></tr>
-                </thead>
-                <tbody id="table-leger-sas-body" class="divide-y divide-gray-200"></tbody>
-              </table>
+
+          <!-- SUB-PANEL 1: ID SEKOLAH (CRUD) -->
+          <div id="sas-panel-id-sekolah" class="hidden flex-1 overflow-y-auto min-h-0 space-y-4">
+            <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <h3 class="font-bold text-base text-slate-800">Pengaturan Identitas Rapor & Master Ekstrakurikuler</h3>
+                <p class="text-xs text-gray-500">Perubahan disimpan langsung ke tab <strong>ID SEKOLAH</strong> tanpa mengubah rumus otomatis kelas.</p>
+              </div>
+              <button onclick="simpanIdSekolahSAS()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2 rounded-lg text-sm font-semibold shadow-sm transition flex items-center space-x-2">
+                <i class="fa-solid fa-floppy-disk"></i>
+                <span>Simpan ID Sekolah</span>
+              </button>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <!-- KIRI: IDENTITAS RAPOR -->
+              <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm space-y-3">
+                <h4 class="font-bold text-sm text-slate-700 border-b pb-2">Identitas Rapor & Kepala Sekolah (Editable)</h4>
+                <div>
+                  <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Tahun Pelajaran (Sel D22)</label>
+                  <input type="text" id="sas-id-tapel" placeholder="Contoh: 2026/2027" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                </div>
+                <div>
+                  <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Tempat / Tanggal Rapor (Sel D23)</label>
+                  <input type="text" id="sas-id-tgl" placeholder="Contoh: Mukomuko, 18 Desember 2026" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                </div>
+                <div>
+                  <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Nama Kepala Sekolah (Sel D15)</label>
+                  <input type="text" id="sas-id-kepsek" placeholder="Warto, S.Pd.I., M.Pd., Gr" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                </div>
+                <div>
+                  <label class="block text-xs font-bold text-gray-600 uppercase mb-1">NIPY Kepala Sekolah (Sel D16)</label>
+                  <input type="text" id="sas-id-nipy-kepsek" placeholder="141981071801014" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                </div>
+
+                <div class="pt-3 border-t border-gray-100">
+                  <p class="text-[11px] font-bold text-slate-400 uppercase mb-2">Info Otomatis Spreadsheet (Read-Only)</p>
+                  <div class="grid grid-cols-2 gap-2 text-xs bg-slate-50 p-3 rounded-lg border border-slate-200">
+                    <div><span class="text-gray-500">Wali Kelas:</span> <strong id="sas-id-readonly-walas">-</strong></div>
+                    <div><span class="text-gray-500">Kelas:</span> <strong id="sas-id-readonly-kelas">-</strong></div>
+                    <div><span class="text-gray-500">Fase:</span> <strong id="sas-id-readonly-fase">-</strong></div>
+                    <div><span class="text-gray-500">Semester:</span> <strong id="sas-id-readonly-sem">-</strong></div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- KANAN: MASTER JENIS EKSTRAKURIKULER (K5:K19) -->
+              <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm flex flex-col">
+                <div class="flex items-center justify-between border-b pb-2 mb-3">
+                  <h4 class="font-bold text-sm text-slate-700">Daftar Master Jenis Ekstrakurikuler (K5:K19)</h4>
+                  <span class="text-[11px] text-gray-400">Maks. 15 Pilihan</span>
+                </div>
+                <div id="sas-id-ekstra-container" class="space-y-2 max-h-[380px] overflow-y-auto pr-1"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- SUB-PANEL 3: EKSTRAKURIKULER (CRUD MASSAL) -->
+          <div id="sas-panel-ekstra" class="hidden flex-1 flex flex-col min-h-0 space-y-3">
+            <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex flex-wrap items-center justify-between gap-3 shrink-0">
+              <div>
+                <h3 class="font-bold text-base text-slate-800">Input Ekstrakurikuler Siswa (Simpan Massal)</h3>
+                <p class="text-xs text-gray-500">Pilih hingga 3 kegiatan ekstrakurikuler dari daftar master, tentukan predikat, dan isi keterangan guru.</p>
+              </div>
+              <button onclick="simpanEkstraSAS()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2 rounded-lg text-sm font-semibold shadow-sm transition flex items-center space-x-2">
+                <i class="fa-solid fa-floppy-disk"></i>
+                <span>Simpan Semua Ekstrakurikuler</span>
+              </button>
+            </div>
+            <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden flex-1 flex flex-col min-h-0">
+              <div class="table-container overflow-auto flex-1 min-h-0">
+                <table class="w-full text-left border-collapse text-xs">
+                  <thead class="bg-slate-100 sticky top-0 z-10 border-b border-gray-200">
+                    <tr>
+                      <th class="p-2.5 border-r w-10 text-center">NO</th>
+                      <th class="p-2.5 border-r w-48">NAMA SISWA</th>
+                      <th class="p-2.5 border-r min-w-[260px] bg-emerald-50/70">EKSTRAKURIKULER 1</th>
+                      <th class="p-2.5 border-r min-w-[260px] bg-blue-50/70">EKSTRAKURIKULER 2</th>
+                      <th class="p-2.5 min-w-[260px] bg-amber-50/70">EKSTRAKURIKULER 3</th>
+                    </tr>
+                  </thead>
+                  <tbody id="sas-ekstra-tbody" class="divide-y divide-gray-200"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- SUB-PANEL 4: NOTE / CATATAN WALI KELAS (CRUD MASSAL) -->
+          <div id="sas-panel-note" class="hidden flex-1 flex flex-col min-h-0 space-y-3">
+            <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex flex-wrap items-center justify-between gap-3 shrink-0">
+              <div>
+                <h3 class="font-bold text-base text-slate-800">Catatan Wali Kelas per Siswa (Otomatis / Manual)</h3>
+                <p class="text-xs text-gray-500">Pilih mode <strong>Otomatis</strong> (dari 27 template pilihan) atau <strong>Manual</strong> (ketik khusus) untuk setiap siswa.</p>
+              </div>
+              <button onclick="simpanNoteSAS()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2 rounded-lg text-sm font-semibold shadow-sm transition flex items-center space-x-2">
+                <i class="fa-solid fa-floppy-disk"></i>
+                <span>Simpan Semua Catatan</span>
+              </button>
+            </div>
+            <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden flex-1 flex flex-col min-h-0">
+              <div class="table-container overflow-auto flex-1 min-h-0">
+                <table class="w-full text-left border-collapse text-xs">
+                  <thead class="bg-slate-100 sticky top-0 z-10 border-b border-gray-200">
+                    <tr>
+                      <th class="p-2.5 border-r w-10 text-center">NO</th>
+                      <th class="p-2.5 border-r w-52">NAMA SISWA</th>
+                      <th class="p-2.5 border-r w-44 text-center">MODE CATATAN</th>
+                      <th class="p-2.5">ISI CATATAN WALI KELAS</th>
+                    </tr>
+                  </thead>
+                  <tbody id="sas-note-tbody" class="divide-y divide-gray-200"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- SUB-PANEL 5: DESKRIPSI (MONITORING - NO CRUD) -->
+          <div id="sas-panel-deskripsi" class="hidden flex-1 flex flex-col min-h-0 space-y-3">
+            <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex flex-wrap items-center justify-between gap-3 shrink-0">
+              <div>
+                <h3 class="font-bold text-base text-slate-800">Monitoring Kelengkapan Deskripsi Capaian Kompetensi</h3>
+                <p class="text-xs text-gray-500">Tampilan baca-saja dari tab <strong>DESKRIPSI</strong> untuk memeriksa kelengkapan sebelum cetak rapor.</p>
+              </div>
+              <div class="flex items-center space-x-2">
+                <label class="text-xs font-bold text-gray-600">Filter Mapel:</label>
+                <select id="sas-deskripsi-filter-mapel" onchange="renderSasDeskripsiPanel()" class="border border-gray-300 rounded-lg px-3 py-1.5 text-xs font-semibold bg-white focus:ring-2 focus:ring-emerald-500">
+                  <option value="ALL">Semua Mata Pelajaran (Matriks)</option>
+                </select>
+              </div>
+            </div>
+            <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden flex-1 flex flex-col min-h-0">
+              <div class="table-container overflow-auto flex-1 min-h-0">
+                <table class="w-full text-left border-collapse text-xs">
+                  <thead id="sas-deskripsi-thead" class="bg-slate-100 sticky top-0 z-10 border-b border-gray-200"></thead>
+                  <tbody id="sas-deskripsi-tbody" class="divide-y divide-gray-200"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- SUB-PANEL 6: LEGER SAS (SUDAH AKTIF) -->
+          <div id="sas-panel-leger" class="flex-1 flex flex-col min-h-0 space-y-3">
+            <div class="flex flex-wrap items-center justify-between bg-white p-4 rounded-xl border border-gray-200 shadow-sm gap-4 shrink-0">
+              <div>
+                <h3 class="font-bold text-base text-slate-800" id="leger-sas-title">Leger Rekap Nilai SAS</h3>
+                <p class="text-xs text-gray-500" id="leger-sas-meta-info">Kelas: - | Wali Kelas: -</p>
+              </div>
+              <div class="flex items-center space-x-2">
+                <button onclick="cetakLegerSAS()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-xs sm:text-sm font-medium shadow-sm transition flex items-center space-x-2">
+                  <i class="fa-solid fa-print"></i>
+                  <span>Cetak Leger (Landscape F4/A4)</span>
+                </button>
+              </div>
+            </div>
+            <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden flex-1 flex flex-col min-h-0">
+              <div class="table-container overflow-auto flex-1 min-h-0">
+                <table class="table-fixed text-left border-collapse text-xs w-full">
+                  <thead class="bg-slate-100 sticky top-0 z-10 border-b border-gray-200">
+                    <tr id="table-leger-sas-header"></tr>
+                  </thead>
+                  <tbody id="table-leger-sas-body" class="divide-y divide-gray-200"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- SUB-PANEL 8: RANKING & PIAGAM (KERANGKA AWAL) -->
+          <div id="sas-panel-ranking" class="hidden flex-1 flex flex-col min-h-0 space-y-3 overflow-y-auto">
+            <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <h3 class="font-bold text-base text-slate-800">Peringkat Kelas (Top 10) & Piagam Penghargaan</h3>
+                <p class="text-xs text-gray-500">Data peringkat dari tab <strong>RANGKING</strong>. Fitur cetak desain piagam sedang disiapkan pada tahap berikutnya.</p>
+              </div>
+              <span class="px-3 py-1.5 rounded-lg bg-amber-100 text-amber-800 text-xs font-bold border border-amber-200">
+                <i class="fa-solid fa-compass-drafting mr-1"></i> Slot Desain Piagam Menyusul
+              </span>
+            </div>
+            <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+              <div class="table-container overflow-auto">
+                <table class="w-full text-left border-collapse text-xs">
+                  <thead class="bg-slate-100 border-b border-gray-200">
+                    <tr>
+                      <th class="p-2.5 border-r w-12 text-center">NO</th>
+                      <th class="p-2.5 border-r">NAMA PESERTA DIDIK</th>
+                      <th class="p-2.5 border-r w-28 text-center">NISN</th>
+                      <th class="p-2.5 border-r w-24 text-center">KELAS</th>
+                      <th class="p-2.5 border-r w-36 text-center bg-amber-50">PERINGKAT</th>
+                      <th class="p-2.5 w-40 text-center">STATUS PIAGAM</th>
+                    </tr>
+                  </thead>
+                  <tbody id="sas-ranking-tbody" class="divide-y divide-gray-200"></tbody>
+                </table>
+              </div>
             </div>
           </div>
         </div>
@@ -418,6 +621,7 @@
   <script src="js/modules/katrol.js"></script>
   <script src="js/modules/leger.js"></script>
   <script src="js/modules/leger-sas.js"></script>
+  <script src="js/modules/sas-manager.js"></script>
   <!-- Script Utama (Controller Routing) -->
   <script src="js/app.js"></script>
 </body>
