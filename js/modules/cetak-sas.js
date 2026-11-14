@@ -1,333 +1,268 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Cetak Rapor SAS - SMPIT Al-Kautsar</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link rel="stylesheet" href="css/style.css?v=3">
+// ====================================================
+// MODUL KHUSUS HALAMAN CETAK RAPOR SAS (cetak-sas.html)
+// ====================================================
+document.addEventListener("DOMContentLoaded", async () => {
+  if (typeof checkAuthSession === "function") {
+    try { checkAuthSession(); } catch (e) {}
+  }
+  if (!STATE.currentUser) {
+    const savedUser = sessionStorage.getItem("ERAPOR_PRINT_USER");
+    if (savedUser) STATE.currentUser = JSON.parse(savedUser);
+  }
 
-  <style>
-    .font-times {
-      font-family: 'Times New Roman', Times, serif !important;
+  const urlParams = new URLSearchParams(window.location.search);
+  const semParam = Number(urlParams.get("sem")) || Number(sessionStorage.getItem("ERAPOR_PRINT_SAS_SEM")) || 1;
+  STATE.currentSasSemester = semParam;
+
+  const selectSem = document.getElementById("select-semester-sas");
+  if (selectSem) selectSem.value = String(semParam);
+
+  await initCetakRaporSAS();
+});
+
+async function gantiSemesterSAS(semValue) {
+  STATE.currentSasSemester = Number(semValue);
+  sessionStorage.setItem("ERAPOR_PRINT_SAS_SEM", String(semValue));
+  await initCetakRaporSAS(true);
+}
+
+async function initCetakRaporSAS(forceFetch = false) {
+  const kelasWalas = STATE.currentUser ? STATE.currentUser.walas_kelas : null;
+  if (!kelasWalas) {
+    alert("Sesi Wali Kelas tidak ditemukan. Silakan buka halaman ini melalui menu Cetak Rapor SAS di Dashboard.");
+    return;
+  }
+
+  const semActive = STATE.currentSasSemester || 1;
+  const cacheKey = `${semActive}_${kelasWalas}`;
+  const selectSiswa = document.getElementById("select-siswa-sas");
+
+  if (!forceFetch && !LEGER_SAS_CACHE[cacheKey]) {
+    const rawCache = sessionStorage.getItem(`ERAPOR_LEGER_SAS_${cacheKey}`);
+    if (rawCache) {
+      try {
+        const parsed = JSON.parse(rawCache);
+        if (parsed && parsed.status === "success") {
+          LEGER_SAS_CACHE[cacheKey] = parsed;
+        }
+      } catch (e) {}
+    }
+  }
+
+  if (forceFetch || !LEGER_SAS_CACHE[cacheKey]) {
+    const spreadsheetId = CONFIG.RAPOR_SAS_DB?.[semActive]?.[kelasWalas];
+    if (!spreadsheetId) {
+      alert(`ID Spreadsheet untuk Kelas ${kelasWalas} pada SAS ${semActive} belum diisi di config.js!`);
+      if (selectSiswa) selectSiswa.innerHTML = `<option value="">-- Data SAS ${semActive} Kosong --</option>`;
+      return;
     }
 
-    .sas-sheet-page {
-      width: 189.9mm;
-      min-height: 304mm;
-      font-family: 'Times New Roman', Times, serif !important;
-      font-size: 10pt;
-      line-height: 1.25;
+    if (selectSiswa) selectSiswa.innerHTML = `<option value="">-- Mengambil Data dari Server... --</option>`;
+
+    const res = await callGASAPI("getLegerSAS", {
+      spreadsheetId: spreadsheetId,
+      kelas: kelasWalas
+    });
+
+    if (res && res.status === "success") {
+      LEGER_SAS_CACHE[cacheKey] = res;
+      sessionStorage.setItem(`ERAPOR_LEGER_SAS_${cacheKey}`, JSON.stringify(res));
+    } else {
+      alert("Gagal mengambil data rapor SAS: " + (res?.message || "Koneksi bermasalah."));
+      return;
     }
+  }
 
-    .sas-mapel-row {
-      height: 22mm !important;
-      max-height: 22mm !important;
+  CURRENT_LEGER_SAS_DATA = LEGER_SAS_CACHE[cacheKey];
+  if (!CURRENT_LEGER_SAS_DATA || !selectSiswa) return;
+
+  selectSiswa.innerHTML = "";
+  const dataSiswa = CURRENT_LEGER_SAS_DATA.data || [];
+
+  dataSiswa.forEach((student, idx) => {
+    selectSiswa.innerHTML += `<option value="${idx}">${idx + 1}. ${student.nama}</option>`;
+  });
+
+  if (dataSiswa.length > 0) {
+    CURRENT_SAS_SISWA_INDEX = 0;
+    selectSiswa.value = "0";
+    renderLembarRaporSAS(0);
+  }
+}
+
+function prevSiswaSAS() {
+  const selectSiswa = document.getElementById("select-siswa-sas");
+  if (selectSiswa && selectSiswa.selectedIndex > 0) {
+    selectSiswa.selectedIndex--;
+    renderLembarRaporSAS(selectSiswa.value);
+  }
+}
+
+function nextSiswaSAS() {
+  const selectSiswa = document.getElementById("select-siswa-sas");
+  if (selectSiswa && selectSiswa.selectedIndex < selectSiswa.options.length - 1) {
+    selectSiswa.selectedIndex++;
+    renderLembarRaporSAS(selectSiswa.value);
+  }
+}
+
+// Perkecil ukuran font deskripsi otomatis jika kalimat terlalu panjang melebihi tinggi kotak 22mm
+function autoFitDescriptionsSAS() {
+  const boxes = document.querySelectorAll(".sas-desc-box");
+  boxes.forEach(box => {
+    let fontSizePt = 9.5;
+    box.style.fontSize = fontSizePt + "pt";
+    box.style.lineHeight = "1.24";
+
+    while (box.scrollHeight > box.clientHeight + 1 && fontSizePt > 6.5) {
+      fontSizePt = Number((fontSizePt - 0.3).toFixed(1));
+      box.style.fontSize = fontSizePt + "pt";
+      box.style.lineHeight = "1.18";
     }
+  });
+}
 
-    .sas-desc-box {
-      height: 19.5mm;
-      overflow: hidden;
-      font-size: 9.5pt;
-      line-height: 1.24;
+function renderLembarRaporSAS(siswaIndex) {
+  siswaIndex = Number(siswaIndex);
+  CURRENT_SAS_SISWA_INDEX = siswaIndex;
+  if (!CURRENT_LEGER_SAS_DATA) return;
+
+  const meta = CURRENT_LEGER_SAS_DATA.meta || {};
+  const student = CURRENT_LEGER_SAS_DATA.data[siswaIndex];
+  if (!student) return;
+
+  const kelasWalas = STATE.currentUser?.walas_kelas || meta.kelas || "";
+  const namaKelasTampil = meta.kelas || kelasWalas || "-";
+  const semActive = STATE.currentSasSemester || 1;
+  const tingkat = getTingkatNumberSAS(kelasWalas);
+
+  // 1. IDENTITAS PESERTA DIDIK
+  const nisNisnStr = (student.nis && student.nis !== "-" && student.nisn && student.nisn !== "-")
+    ? `${student.nis} / ${student.nisn}`
+    : (student.nisn || "-");
+
+  document.getElementById("lbl-sas-nama").innerText = student.nama || "-";
+  document.getElementById("lbl-sas-nisn").innerText = nisNisnStr;
+  document.getElementById("lbl-sas-sekolah").innerText = meta.namaSekolah || "SMP IT AL-KAUTSAR";
+  document.getElementById("lbl-sas-alamat").innerText = meta.alamatSekolah || "Jalan Kuku Besi Sukarame";
+  document.getElementById("lbl-sas-kelas").innerText = namaKelasTampil;
+  document.getElementById("lbl-sas-fase").innerText = meta.fase || "D";
+  document.getElementById("lbl-sas-semester").innerText = semActive === 2 ? "II" : "I";
+  document.getElementById("lbl-sas-tapel").innerText = meta.tahunPelajaran || "2026/2027";
+
+  // 2. TABEL NILAI & CAPAIAN KOMPETENSI (9 MAPEL SERAGAM DI LEMBAR 1, SISANYA DI LEMBAR 2)
+  const raporMapels = getSASMapelByKelas(kelasWalas, "rapor");
+  const tbodyP1 = document.getElementById("sas-tbody-nilai-p1");
+  const tbodyP2 = document.getElementById("sas-tbody-nilai-p2");
+  const tableP2 = document.getElementById("sas-table-nilai-p2");
+
+  tbodyP1.innerHTML = "";
+  tbodyP2.innerHTML = "";
+
+  const splitAt = 9; // Lembar 1 memuat tepat 9 mapel seragam (tinggi 22mm/kotak)
+
+  raporMapels.forEach((mp, idx) => {
+    const noUrut = idx + 1;
+    const rawScore = student.scores ? student.scores[mp.key] : null;
+    const val = (rawScore !== null && rawScore !== undefined && !isNaN(Number(rawScore)))
+      ? Math.round(Number(rawScore))
+      : null;
+
+    const deskText = (student.deskripsi && student.deskripsi[mp.key]) ? student.deskripsi[mp.key] : "-";
+
+    const rowHtml = `
+      <tr class="sas-mapel-row">
+        <td class="border border-black px-1 text-center align-middle w-9">${noUrut}</td>
+        <td class="border border-black px-2 text-left align-middle w-44 leading-snug">${mp.nama}</td>
+        <td class="border border-black px-1 text-center align-middle w-14">${val !== null ? val : "-"}</td>
+        <td class="border border-black py-1 px-2 align-top text-left">
+          <div class="sas-desc-box">${deskText}</div>
+        </td>
+      </tr>
+    `;
+
+    if (idx < splitAt) {
+      tbodyP1.innerHTML += rowHtml;
+    } else {
+      tbodyP2.innerHTML += rowHtml;
     }
+  });
 
-    #sas-page-1 table,
-    #sas-page-2 table {
-      border-collapse: collapse;
+  if (tableP2) {
+    if (tbodyP2.children.length > 0) {
+      tableP2.classList.remove("hidden");
+    } else {
+      tableP2.classList.add("hidden");
     }
+  }
 
-    #sas-page-1 tr,
-    #sas-page-2 tr {
-      break-inside: avoid !important;
-      page-break-inside: avoid !important;
+  // Sesuaikan font deskripsi panjang agar muat utuh di dalam kotak 22mm
+  autoFitDescriptionsSAS();
+
+  // 3. EKSTRAKURIKULER (3 BARIS)
+  const tbodyEkstra = document.getElementById("sas-tbody-ekstra");
+  tbodyEkstra.innerHTML = "";
+  const ekstraList = student.ekstra || [];
+  for (let i = 0; i < 3; i++) {
+    const item = ekstraList[i] || { nama: "", predikat: "", keterangan: "" };
+    tbodyEkstra.innerHTML += `
+      <tr class="h-7">
+        <td class="border border-black py-1 px-1 text-center">${i + 1}</td>
+        <td class="border border-black py-1 px-2">${item.nama || ""}</td>
+        <td class="border border-black py-1 px-1 text-center">${item.predikat || ""}</td>
+        <td class="border border-black py-1 px-2 text-[9.5pt]">${item.keterangan || ""}</td>
+      </tr>
+    `;
+  }
+
+  // 4. KETIDAKHADIRAN & CATATAN WALI KELAS
+  document.getElementById("sas-abs-s").innerText = `${student.sakit ?? 0} hari`;
+  document.getElementById("sas-abs-i").innerText = `${student.izin ?? 0} hari`;
+  document.getElementById("sas-abs-a").innerText = `${student.alpa ?? 0} hari`;
+  document.getElementById("sas-catatan-walas").innerText = student.catatan || "-";
+
+  // 5. KOTAK KEPUTUSAN NAIK KELAS / KELULUSAN (KHUSUS SEMESTER 2 / GENAP)
+  const boxKeputusan = document.getElementById("sas-keputusan-box");
+  const txtKeputusan = document.getElementById("sas-keputusan-text");
+  if (semActive === 2) {
+    boxKeputusan.classList.remove("hidden");
+    if (tingkat === 9) {
+      txtKeputusan.innerHTML = `Berdasarkan pencapaian seluruh kompetensi pada Semester I dan Semester II, peserta didik dinyatakan: <strong>LULUS</strong> dari Satuan Pendidikan.`;
+    } else if (tingkat === 8) {
+      txtKeputusan.innerHTML = `Berdasarkan pencapaian seluruh kompetensi pada Semester I dan Semester II, peserta didik ditetapkan: <strong>Naik ke Kelas IX (Sembilan)</strong>.`;
+    } else {
+      txtKeputusan.innerHTML = `Berdasarkan pencapaian seluruh kompetensi pada Semester I dan Semester II, peserta didik ditetapkan: <strong>Naik ke Kelas VIII (Delapan)</strong>.`;
     }
+  } else {
+    boxKeputusan.classList.add("hidden");
+  }
 
-    @media print {
-      @page {
-        size: 215.9mm 330.2mm;
-        margin-top: 12mm;
-        margin-bottom: 12mm;
-        margin-left: 13mm;
-        margin-right: 13mm;
-      }
+  // 6. TANDA TANGAN (ORANG TUA, WALI KELAS, KEPALA SEKOLAH)
+  const elOrtu = document.getElementById("sas-ttd-ortu");
+  if (elOrtu) {
+    elOrtu.innerText = student.ortu ? student.ortu : "( .................................... )";
+  }
 
-      html, body {
-        height: auto !important;
-        min-height: 0 !important;
-        margin: 0 !important;
-        padding: 0 !important;
-        background-color: white !important;
-        overflow: visible !important;
-      }
+  const elTtdKelas = document.getElementById("sas-ttd-kelas");
+  if (elTtdKelas) {
+    elTtdKelas.innerText = namaKelasTampil;
+  }
 
-      .no-print {
-        display: none !important;
-      }
+  const namaWalasResmi = (STATE.currentUser && STATE.currentUser.nama_lengkap)
+    ? STATE.currentUser.nama_lengkap
+    : (meta.walas || "( Wali Kelas )");
+  document.getElementById("sas-ttd-walas").innerText = namaWalasResmi;
 
-      .sas-sheet-page {
-        border: none !important;
-        box-shadow: none !important;
-        padding: 0 !important;
-        width: 100% !important;
-        max-width: 100% !important;
-        min-height: 0 !important;
-        margin: 0 !important;
-        font-family: 'Times New Roman', Times, serif !important;
-      }
+  const nipVal = (STATE.currentUser && STATE.currentUser.nip_nik)
+    ? STATE.currentUser.nip_nik
+    : meta.nipyWalas;
+  document.getElementById("sas-ttd-walas-nipy").innerText = nipVal
+    ? `NIPY. ${String(nipVal).replace(/^NIPY\.?\s*/i, "")}`
+    : "";
 
-      #sas-page-1 {
-        page-break-after: always !important;
-        break-after: page !important;
-      }
-
-      #sas-page-2 {
-        page-break-inside: avoid !important;
-        break-inside: avoid !important;
-      }
-    }
-  </style>
-</head>
-<body class="bg-gray-100 font-sans text-gray-800 antialiased py-4 px-2 sm:px-6">
-
-  <!-- PANEL NAVIGASI & KONTROL CETAK -->
-  <div class="no-print max-w-[189.9mm] mx-auto mb-4 flex flex-wrap items-center justify-between bg-white p-4 rounded-xl border border-gray-200 shadow-sm gap-3">
-    <div class="flex flex-wrap items-center gap-3">
-      <button onclick="window.close()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-2 rounded-lg text-xs font-semibold transition flex items-center space-x-1.5">
-        <i class="fa-solid fa-arrow-left"></i>
-        <span>Tutup</span>
-      </button>
-
-      <select id="select-semester-sas" onchange="gantiSemesterSAS(this.value)" class="border border-emerald-200 bg-emerald-50 text-emerald-800 rounded-lg px-2.5 py-2 text-xs font-bold focus:outline-none">
-        <option value="1">SAS 1 (Ganjil)</option>
-        <option value="2">SAS 2 (Genap)</option>
-      </select>
-
-      <select id="select-siswa-sas" onchange="renderLembarRaporSAS(this.value)" class="border border-gray-300 rounded-lg px-3 py-2 text-sm font-semibold bg-white focus:ring-2 focus:ring-emerald-500 min-w-[220px]">
-        <option value="">-- Memuat Data Siswa... --</option>
-      </select>
-    </div>
-
-    <div class="flex items-center space-x-2">
-      <button onclick="prevSiswaSAS()" class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-2 rounded-lg text-sm font-medium transition">
-        <i class="fa-solid fa-chevron-left"></i> Prev
-      </button>
-      <button onclick="nextSiswaSAS()" class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-2 rounded-lg text-sm font-medium transition">
-        Next <i class="fa-solid fa-chevron-right"></i>
-      </button>
-      <button onclick="window.print()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2 rounded-lg font-medium shadow-sm transition flex items-center space-x-2">
-        <i class="fa-solid fa-print"></i>
-        <span>Cetak Rapor (PDF)</span>
-      </button>
-    </div>
-  </div>
-
-  <!-- ================================================================ -->
-  <!-- HALAMAN 1: KOP, IDENTITAS PESERTA DIDIK & TABEL NILAI (MAPEL 1-9) -->
-  <!-- ================================================================ -->
-  <div id="sas-page-1" class="sas-sheet-page relative bg-white p-6 mx-auto mb-6 border border-gray-300 shadow-lg text-black overflow-hidden">
-    <div class="relative z-10">
-
-      <!-- KOP SURAT -->
-      <div class="flex items-center justify-between pb-1.5 mb-2">
-        <img src="pictures/logoyayasan.png" alt="Logo Yayasan" class="w-[84px] h-[84px] object-contain shrink-0">
-
-        <div class="text-center flex-1 px-2 leading-tight">
-          <h4 class="font-bold text-[11px] uppercase">YAYASAN AL-AMANAH MUKOMUKO</h4>
-          <h2 class="font-bold text-[11.5px] uppercase">SEKOLAH MENENGAH PERTAMA ISLAM TERPADU</h2>
-          <h1 class="font-bold text-[12.5px] uppercase text-black">(SMPIT) AL-KAUTSAR</h1>
-          <p class="font-bold text-[10.5px] uppercase">FULLDAY DAN BOARDING SCHOOL</p>
-          <p class="font-bold text-[9.5px] text-black">Alamat: Jalan Kuku Besi, Suka Rame, Desa Pasar Sebelah, Kec. Kota Mukomuko</p>
-          <p class="font-bold text-[9.5px] text-black">Kab. Mukomuko, Provinsi Bengkulu</p>
-          <p class="text-[9.5px] text-black">Email: <span class="text-blue-700 underline">smpitalkautsarmm@gmail.com</span></p>
-        </div>
-
-        <img src="pictures/logosmpit.png" alt="Logo SMPIT" class="w-[78px] h-[78px] object-contain shrink-0">
-      </div>
-
-      <!-- JUDUL RAPOR -->
-      <div class="text-center font-bold text-[11.5px] uppercase mb-3 leading-snug">
-        <p>LAPORAN HASIL BELAJAR PESERTA DIDIK</p>
-        <p>RAPOR</p>
-      </div>
-
-      <!-- IDENTITAS PESERTA DIDIK -->
-      <div class="grid grid-cols-12 gap-x-4 mb-3 text-[10.5px] items-start">
-        <table class="col-span-7 w-full">
-          <tr>
-            <td class="w-36 whitespace-nowrap py-0.5">Nama Peserta Didik</td>
-            <td class="w-3">:</td>
-            <td id="lbl-sas-nama">-</td>
-          </tr>
-          <tr>
-            <td class="w-36 whitespace-nowrap py-0.5">NIS / NISN</td>
-            <td>:</td>
-            <td id="lbl-sas-nisn">-</td>
-          </tr>
-          <tr>
-            <td class="w-36 whitespace-nowrap py-0.5">Sekolah</td>
-            <td>:</td>
-            <td id="lbl-sas-sekolah">SMP IT AL-KAUTSAR</td>
-          </tr>
-          <tr>
-            <td class="w-36 whitespace-nowrap py-0.5 align-top">Alamat</td>
-            <td class="align-top">:</td>
-            <td id="lbl-sas-alamat">Jalan Kuku Besi Sukarame</td>
-          </tr>
-        </table>
-
-        <table class="col-span-5 w-full">
-          <tr>
-            <td class="w-28 whitespace-nowrap py-0.5">Kelas</td>
-            <td class="w-3">:</td>
-            <td id="lbl-sas-kelas">-</td>
-          </tr>
-          <tr>
-            <td class="w-28 whitespace-nowrap py-0.5">Fase</td>
-            <td>:</td>
-            <td id="lbl-sas-fase">D</td>
-          </tr>
-          <tr>
-            <td class="w-28 whitespace-nowrap py-0.5">Semester</td>
-            <td>:</td>
-            <td id="lbl-sas-semester">I</td>
-          </tr>
-          <tr>
-            <td class="w-28 whitespace-nowrap py-0.5">Tahun Pelajaran</td>
-            <td>:</td>
-            <td id="lbl-sas-tapel">2026/2027</td>
-          </tr>
-        </table>
-      </div>
-
-      <!-- TABEL NILAI & CAPAIAN KOMPETENSI (HALAMAN 1: 9 MAPEL SERAGAM) -->
-      <table class="w-full border-collapse border border-black text-[10.5px]">
-        <thead>
-          <tr class="bg-[#d9d9d9] text-center font-bold">
-            <th class="border border-black py-1.5 px-1 w-9">No</th>
-            <th class="border border-black py-1.5 px-2 w-44">Muatan Pelajaran</th>
-            <th class="border border-black py-1.5 px-1 w-14 leading-tight">Nilai<br>Akhir</th>
-            <th class="border border-black py-1.5 px-2">Capaian Kompetensi</th>
-          </tr>
-        </thead>
-        <tbody id="sas-tbody-nilai-p1"></tbody>
-      </table>
-    </div>
-
-    <!-- WATERMARK LOGO HALAMAN 1 -->
-    <div class="absolute inset-0 flex items-center justify-center pointer-events-none opacity-[0.07] z-20">
-      <img src="pictures/LOGO SMPIT AL-KAUTSAR.png" alt="Watermark Logo" class="w-[440px] h-auto object-contain">
-    </div>
-  </div>
-
-  <!-- ====================================================================== -->
-  <!-- HALAMAN 2: SISA MAPEL, EKSKUL, ABSENSI & CATATAN MENYATU, KEPUTUSAN, TTD -->
-  <!-- ====================================================================== -->
-  <div id="sas-page-2" class="sas-sheet-page relative bg-white p-6 mx-auto border border-gray-300 shadow-lg text-black overflow-hidden">
-    <div class="relative z-10">
-
-      <!-- LANJUTAN TABEL NILAI (KOTAK SERAGAM SAMA PERSIS DENGAN HALAMAN 1) -->
-      <table id="sas-table-nilai-p2" class="w-full border-collapse border border-black text-[10.5px] mb-5">
-        <thead>
-          <tr class="bg-[#d9d9d9] text-center font-bold">
-            <th class="border border-black py-1.5 px-1 w-9">No</th>
-            <th class="border border-black py-1.5 px-2 w-44">Muatan Pelajaran</th>
-            <th class="border border-black py-1.5 px-1 w-14 leading-tight">Nilai<br>Akhir</th>
-            <th class="border border-black py-1.5 px-2">Capaian Kompetensi</th>
-          </tr>
-        </thead>
-        <tbody id="sas-tbody-nilai-p2"></tbody>
-      </table>
-
-      <!-- EKSTRAKURIKULER -->
-      <table class="w-full border-collapse border border-black text-[10.5px] mb-4">
-        <thead>
-          <tr class="bg-[#d9d9d9] font-bold text-center">
-            <th class="border border-black py-1 px-1 w-9">No</th>
-            <th class="border border-black py-1 px-2 w-44">Ekstrakurikuler</th>
-            <th class="border border-black py-1 px-1 w-16">Predikat</th>
-            <th class="border border-black py-1 px-2">Keterangan</th>
-          </tr>
-        </thead>
-        <tbody id="sas-tbody-ekstra"></tbody>
-      </table>
-
-      <!-- KETIDAKHADIRAN & CATATAN WALI KELAS (MENYATU DALAM 1 TABEL) -->
-      <table class="w-full border-collapse border border-black text-[10.5px] mb-5">
-        <thead>
-          <tr class="bg-[#d9d9d9] font-bold">
-            <th class="border border-black py-1 px-2 text-center w-[33%]" colspan="2">Ketidakhadiran</th>
-            <th class="border border-black py-1 px-2 text-left">Catatan :</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td class="border border-black py-1.5 px-2">Sakit</td>
-            <td class="border border-black py-1.5 px-2 text-center w-16" id="sas-abs-s">0 hari</td>
-            <td rowspan="3" class="border border-black p-2.5 align-middle text-left leading-relaxed" id="sas-catatan-walas">-</td>
-          </tr>
-          <tr>
-            <td class="border border-black py-1.5 px-2">Izin</td>
-            <td class="border border-black py-1.5 px-2 text-center" id="sas-abs-i">0 hari</td>
-          </tr>
-          <tr>
-            <td class="border border-black py-1.5 px-2">Tanpa Keterangan</td>
-            <td class="border border-black py-1.5 px-2 text-center" id="sas-abs-a">0 hari</td>
-          </tr>
-        </tbody>
-      </table>
-
-      <!-- KOTAK KEPUTUSAN KENAIKAN KELAS / KELULUSAN (KHUSUS SAS 2 / GENAP) -->
-      <div id="sas-keputusan-box" class="hidden border border-black p-2.5 mb-5 bg-gray-50 text-[10.5px]">
-        <p class="font-bold underline mb-1">Keputusan :</p>
-        <p id="sas-keputusan-text">Berdasarkan pencapaian seluruh kompetensi pada Semester I dan Semester II, peserta didik ditetapkan: <strong>Naik ke Kelas IX (Sembilan)</strong>.</p>
-      </div>
-
-      <!-- BLOK TANDA TANGAN PIRAMIDA (ORANG TUA KIRI, WALI KELAS KANAN, KEPSEK TENGAH BAWAH) -->
-      <div class="text-[10.5px] mt-6 px-4">
-        <div class="flex justify-between items-start">
-          <!-- KIRI: ORANG TUA / WALI MURID -->
-          <div class="text-center w-60">
-            <p class="mb-0.5 opacity-0">.</p>
-            <p>Orang Tua/Wali murid</p>
-            <div class="h-20"></div>
-            <p class="underline" id="sas-ttd-ortu">( .................................... )</p>
-          </div>
-
-          <!-- KANAN: TANGGAL & WALI KELAS -->
-          <div class="text-center w-64">
-            <p id="sas-ttd-tgl" class="mb-0.5">Mukomuko, 18 Desember 2026</p>
-            <p>Wali Kelas <span id="sas-ttd-kelas">-</span></p>
-            <div class="h-20"></div>
-            <p class="underline" id="sas-ttd-walas">-</p>
-            <p class="text-[10px]" id="sas-ttd-walas-nipy"></p>
-          </div>
-        </div>
-
-        <!-- TENGAH BAWAH: MENGETAHUI, KEPALA SEKOLAH -->
-        <div class="text-center w-64 mx-auto mt-3">
-          <p>Mengetahui,</p>
-          <p>Kepala Sekolah</p>
-          <div class="h-16"></div>
-          <p class="font-bold underline" id="sas-ttd-kepsek">Warto, S.Pd.I., M.Pd., Gr</p>
-          <p class="text-[10px]" id="sas-ttd-kepsek-nipy">NIPY. 141981071801014</p>
-        </div>
-      </div>
-
-    </div>
-
-    <!-- WATERMARK LOGO HALAMAN 2 -->
-    <div class="absolute inset-0 flex items-center justify-center pointer-events-none opacity-[0.07] z-20">
-      <img src="pictures/LOGO SMPIT AL-KAUTSAR.png" alt="Watermark Logo" class="w-[440px] h-auto object-contain">
-    </div>
-  </div>
-
-  <!-- SCRIPT KHUSUS HALAMAN CETAK SAS -->
-  <script src="js/config.js"></script>
-  <script src="js/api.js"></script>
-  <script src="js/state.js"></script>
-  <script src="js/modules/leger-sas.js"></script>
-  <script src="js/modules/cetak-sas.js"></script>
-</body>
-</html>
+  document.getElementById("sas-ttd-tgl").innerText = meta.tglRapor || "Mukomuko, 18 Desember 2026";
+  document.getElementById("sas-ttd-kepsek").innerText = meta.kepsek || "Warto, S.Pd.I., M.Pd., Gr";
+  document.getElementById("sas-ttd-kepsek-nipy").innerText = meta.nipyKepsek
+    ? `NIPY. ${String(meta.nipyKepsek).replace(/^NIPY\.?\s*/i, "")}`
+    : "NIPY. 141981071801014";
+}
