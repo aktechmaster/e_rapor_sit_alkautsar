@@ -572,16 +572,17 @@
             </div>
           </div>
 
-          <!-- SUB-PANEL 8: RANKING & PIAGAM (KERANGKA AWAL) -->
+          <!-- SUB-PANEL 8: RANKING & PIAGAM -->
           <div id="sas-panel-ranking" class="hidden flex-1 flex flex-col min-h-0 space-y-3 overflow-y-auto">
             <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex flex-wrap items-center justify-between gap-3">
               <div>
                 <h3 class="font-bold text-base text-slate-800">Peringkat Kelas (Top 10) & Piagam Penghargaan</h3>
-                <p class="text-xs text-gray-500">Data peringkat dari tab <strong>RANGKING</strong>. Fitur cetak desain piagam sedang disiapkan pada tahap berikutnya.</p>
+                <p class="text-xs text-gray-500">Data peringkat dari tab <strong>RANGKING</strong>. Cetak piagam per siswa atau seluruh 10 besar sekaligus.</p>
               </div>
-              <span class="px-3 py-1.5 rounded-lg bg-amber-100 text-amber-800 text-xs font-bold border border-amber-200">
-                <i class="fa-solid fa-compass-drafting mr-1"></i> Slot Desain Piagam Menyusul
-              </span>
+              <button onclick="bukaCetakPiagamSAS(-1)" class="bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold shadow-sm transition flex items-center space-x-2">
+                <i class="fa-solid fa-award"></i>
+                <span>Cetak Semua Piagam (Top 10)</span>
+              </button>
             </div>
             <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
               <div class="table-container overflow-auto">
@@ -593,7 +594,7 @@
                       <th class="p-2.5 border-r w-28 text-center">NISN</th>
                       <th class="p-2.5 border-r w-24 text-center">KELAS</th>
                       <th class="p-2.5 border-r w-36 text-center bg-amber-50">PERINGKAT</th>
-                      <th class="p-2.5 w-40 text-center">STATUS PIAGAM</th>
+                      <th class="p-2.5 w-40 text-center">AKSI</th>
                     </tr>
                   </thead>
                   <tbody id="sas-ranking-tbody" class="divide-y divide-gray-200"></tbody>
@@ -601,7 +602,6 @@
               </div>
             </div>
           </div>
-        </div>
 
       </div>
     </main>
