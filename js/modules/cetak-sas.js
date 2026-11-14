@@ -168,21 +168,20 @@ function renderLembarRaporSAS(siswaIndex) {
 
     const tr = document.createElement("tr");
     tr.innerHTML = `
-      <td class="border border-black py-1 px-1.5 w-8 align-middle">
-        <div class="min-h-[42px] flex items-center justify-center">${noUrut}</div>
+      <td class="border border-black py-1.5 px-1.5 w-8 align-middle">
+        <div class="min-h-[62px] flex items-center justify-center">${noUrut}</div>
       </td>
-      <td class="border border-black py-1 px-1.5 w-48 align-middle">
-        <div class="min-h-[42px] flex items-center">${mp.nama}</div>
+      <td class="border border-black py-1.5 px-2 w-48 align-middle">
+        <div class="min-h-[62px] flex items-center">${mp.nama}</div>
       </td>
-      <td class="border border-black py-1 px-1.5 w-16 align-middle">
-        <div class="min-h-[42px] flex items-center justify-center font-bold">${val !== null ? val : "-"}</div>
+      <td class="border border-black py-1.5 px-1.5 w-16 align-middle">
+        <div class="min-h-[62px] flex items-center justify-center font-bold">${val !== null ? val : "-"}</div>
       </td>
-      <td class="border border-black py-1 px-1.5 align-middle">
-        <div class="min-h-[42px] flex items-center text-justify text-[10px] leading-snug">${deskText}</div>
+      <td class="border border-black py-1.5 px-2 align-middle">
+        <div class="min-h-[62px] flex items-center text-justify text-[10px] leading-snug">${deskText}</div>
       </td>
     `;
     tbodyP1.appendChild(tr);
-  });
 
   // Ukur tinggi aktual Halaman 1; pindahkan baris terbawah secara UTUH ke Halaman 2 jika melewati batas 282mm
   const rulerEl = document.getElementById("sas-mm-ruler");
