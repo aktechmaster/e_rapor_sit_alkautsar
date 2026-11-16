@@ -173,7 +173,10 @@ function renderLembarRaporSAS(siswaIndex) {
       : "-";
 
     const deskHtml = rawDesk !== "-"
-      ? rawDesk.replace(/\r?\n+/g, " ")
+      ? rawDesk
+          .split(/\r?\n+/)
+          .map(line => `<div class="mb-2 last:mb-0">${line.trim()}</div>`)
+          .join("")
       : "-";
     
     const rowHtml = `
