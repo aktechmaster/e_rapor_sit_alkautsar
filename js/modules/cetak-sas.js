@@ -173,12 +173,9 @@ function renderLembarRaporSAS(siswaIndex) {
       : "-";
 
     const deskHtml = rawDesk !== "-"
-      ? rawDesk
-          .split(/\r?\n+/)
-          .map(line => `<div class="mb-0.5 last:mb-0">${line.trim()}</div>`)
-          .join("")
+      ? rawDesk.replace(/\r?\n+/g, " ")
       : "-";
-
+    
     const rowHtml = `
       <tr class="sas-mapel-row">
         <td class="border border-black px-1 text-center align-middle w-9">${noUrut}</td>
