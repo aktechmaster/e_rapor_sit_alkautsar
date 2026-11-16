@@ -48,7 +48,7 @@ const CONFIG = {
       "9C2": ""
     },
     2: { // SAS 2 (Genap)
-      "7A":  "",
+      "7A":  "1O1v7vcH5fUIT1jUPSEci5QgE_8O3t9Be3H_yhCYCU1U",
       "7B":  "",
       "7C":  "",
       "8A":  "",
