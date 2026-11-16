@@ -53,7 +53,7 @@ async function loadLegerSAS(forceRefresh = false) {
   if (tbody) {
     tbody.innerHTML = `
       <tr>
-        <td colspan="24" class="p-8 text-center text-gray-500 font-medium italic">
+        <td colspan="25" class="p-8 text-center text-gray-500 font-medium italic">
           <i class="fa-solid fa-spinner fa-spin text-emerald-600 text-xl mb-2 block"></i>
           Sedang mengambil data Leger SAS ${semActive} Kelas ${kelasWalas}...
         </td>
@@ -80,7 +80,7 @@ async function loadLegerSAS(forceRefresh = false) {
     if (tbody) {
       tbody.innerHTML = `
         <tr>
-          <td colspan="24" class="p-6 text-center text-rose-600 font-semibold bg-rose-50 border border-rose-200 rounded-lg">
+          <td colspan="25" class="p-6 text-center text-rose-600 font-semibold bg-rose-50 border border-rose-200 rounded-lg">
             <i class="fa-solid fa-triangle-exclamation text-lg mb-1 block"></i>
             Gagal memuat data: ${res?.message || "Terjadi kesalahan koneksi ke server."}
           </td>
@@ -115,7 +115,7 @@ function renderLegerSASTable() {
   const tbody = document.getElementById("table-leger-sas-body");
   if (!theadRow || !tbody) return;
 
-  // Bangun Header Dinamis Sesuai Jenjang (15/14/13 Mapel)
+  // Bangun Header Dinamis + Kolom AKSI
   let headerHtml = `
     <th class="p-2 border-r w-10 text-center bg-slate-100 sticky left-0 z-20">NO</th>
     <th class="p-2 border-r w-28 text-center bg-slate-100 sticky left-10 z-20">NISN</th>
@@ -132,12 +132,13 @@ function renderLegerSASTable() {
     <th class="p-2 border-r w-10 text-center bg-rose-50">S</th>
     <th class="p-2 border-r w-10 text-center bg-rose-50">I</th>
     <th class="p-2 border-r w-10 text-center bg-rose-50">A</th>
+    <th class="p-2 text-center bg-slate-100 sticky right-0 z-20 shadow-[-2px_0_5px_rgba(0,0,0,0.05)] w-24">AKSI</th>
   `;
   theadRow.innerHTML = headerHtml;
 
   tbody.innerHTML = "";
   if (!data || !Array.isArray(data) || data.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="${activeMapels.length + 9}" class="p-4 text-center text-gray-400">Tidak ada data siswa ditemukan.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="${activeMapels.length + 10}" class="p-4 text-center text-gray-400">Tidak ada data siswa ditemukan.</td></tr>`;
     return;
   }
 
@@ -181,11 +182,104 @@ function renderLegerSASTable() {
       <td class="p-1.5 border-r text-center bg-rose-50/30">${student.sakit ?? 0}</td>
       <td class="p-1.5 border-r text-center bg-rose-50/30">${student.izin ?? 0}</td>
       <td class="p-1.5 border-r text-center bg-rose-50/30">${student.alpa ?? 0}</td>
+      <td class="p-1.5 text-center sticky right-0 bg-white shadow-[-2px_0_5px_rgba(0,0,0,0.05)]">
+        <button onclick="openEditModalSAS(${idx})" class="text-emerald-600 hover:text-emerald-800 bg-emerald-50 hover:bg-emerald-100 px-2 py-1 rounded transition">
+          <i class="fa-solid fa-pen-to-square"></i> Edit
+        </button>
+      </td>
     `;
 
     tr.innerHTML = rowHtml;
     tbody.appendChild(tr);
   });
+}
+
+// ==========================================
+// FUNGSI CRUD LEGER SAS (NON-AKADEMIK)
+// ==========================================
+function openEditModalSAS(dataIndex) {
+  const student = CURRENT_LEGER_SAS_DATA.data[dataIndex];
+  const namaSiswa = student.nama;
+
+  document.getElementById('modal-leger-title').innerText = `Edit Non-Akademik SAS: ${namaSiswa}`;
+  
+  // Render Form Input (Menyesuaikan dengan property object dari SAS API)
+  const body = document.getElementById('modal-leger-body');
+  body.innerHTML = `
+    <div class="space-y-4">
+      <!-- SIKAP -->
+      <div>
+        <label class="block text-xs font-bold text-gray-700 uppercase mb-2 border-b pb-1">Nilai Sikap / Karakter</label>
+        <div class="grid grid-cols-3 gap-3">
+          <div><label class="text-[10px] text-gray-500">Pramuka (PRA)</label><input type="text" id="sas-pra" value="${student.pra||''}" class="w-full border rounded px-2 py-1 text-sm text-center uppercase"></div>
+          <div><label class="text-[10px] text-gray-500">Ibadah (IBD)</label><input type="text" id="sas-ibd" value="${student.ibd||''}" class="w-full border rounded px-2 py-1 text-sm text-center uppercase"></div>
+          <div><label class="text-[10px] text-gray-500">Sosial (SOS)</label><input type="text" id="sas-sos" value="${student.sos||''}" class="w-full border rounded px-2 py-1 text-sm text-center uppercase"></div>
+          <div><label class="text-[10px] text-gray-500">Mandiri (MDR)</label><input type="text" id="sas-mdr" value="${student.mdr||''}" class="w-full border rounded px-2 py-1 text-sm text-center uppercase"></div>
+          <div><label class="text-[10px] text-gray-500">Akhlak (AKH)</label><input type="text" id="sas-akh" value="${student.akh||''}" class="w-full border rounded px-2 py-1 text-sm text-center uppercase"></div>
+          <div><label class="text-[10px] text-gray-500">KPB</label><input type="text" id="sas-kpb" value="${student.kpb||''}" class="w-full border rounded px-2 py-1 text-sm text-center uppercase"></div>
+        </div>
+      </div>
+      <!-- ABSENSI -->
+      <div>
+        <label class="block text-xs font-bold text-gray-700 uppercase mb-2 border-b pb-1 mt-2">Ketidakhadiran</label>
+        <div class="grid grid-cols-3 gap-3">
+          <div><label class="text-[10px] text-gray-500">Sakit (S)</label><input type="number" id="sas-s" value="${student.sakit||0}" class="w-full border rounded px-2 py-1 text-sm text-center"></div>
+          <div><label class="text-[10px] text-gray-500">Izin (I)</label><input type="number" id="sas-i" value="${student.izin||0}" class="w-full border rounded px-2 py-1 text-sm text-center"></div>
+          <div><label class="text-[10px] text-gray-500">Alpa (A)</label><input type="number" id="sas-a" value="${student.alpa||0}" class="w-full border rounded px-2 py-1 text-sm text-center"></div>
+        </div>
+      </div>
+      <!-- CATATAN -->
+      <div>
+        <label class="block text-xs font-bold text-gray-700 uppercase mb-2 border-b pb-1 mt-2">Catatan Wali Kelas</label>
+        <textarea id="sas-catatan" rows="2" class="w-full border rounded px-3 py-2 text-sm">${student.catatan||''}</textarea>
+      </div>
+    </div>
+  `;
+
+  // Attach event listener & ganti warna ke Emerald untuk identitas SAS
+  const btnSave = document.getElementById('btn-save-leger');
+  btnSave.className = "px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm font-medium shadow-sm transition";
+  btnSave.onclick = () => saveEditSAS(dataIndex);
+
+  document.getElementById('modal-edit-leger').classList.remove('hidden');
+}
+
+async function saveEditSAS(dataIndex) {
+  const student = CURRENT_LEGER_SAS_DATA.data[dataIndex];
+  
+  const payloadData = {
+    id: student.nisn || "", // Tergantung referensi primary key di GAS Anda, biasanya NISN atau Nama
+    nama: student.nama,
+    pra: document.getElementById('sas-pra').value.toUpperCase(),
+    ibd: document.getElementById('sas-ibd').value.toUpperCase(),
+    sos: document.getElementById('sas-sos').value.toUpperCase(),
+    mdr: document.getElementById('sas-mdr').value.toUpperCase(),
+    akh: document.getElementById('sas-akh').value.toUpperCase(),
+    kpb: document.getElementById('sas-kpb').value.toUpperCase(),
+    s: document.getElementById('sas-s').value,
+    i: document.getElementById('sas-i').value,
+    a: document.getElementById('sas-a').value,
+    catatan: document.getElementById('sas-catatan').value
+  };
+
+  closeModalLeger();
+
+  const kelasWalas = STATE.currentUser.walas_kelas;
+  const semActive = STATE.currentSasSemester || 1;
+  const spreadsheetId = CONFIG.RAPOR_SAS_DB[semActive][kelasWalas];
+
+  const res = await callGASAPI("updateLegerSAS", {
+    spreadsheetId: spreadsheetId,
+    sheetName: `LEGER ${kelasWalas}`,
+    data: [payloadData] 
+  });
+
+  if (res && res.status === "success") {
+    alert("Berhasil memperbarui data SAS.");
+    loadLegerSAS(true); // Refresh tabel paksa untuk melihat hasilnya
+  } else {
+    alert("Gagal menyimpan: " + (res?.message || "Kesalahan jaringan."));
+  }
 }
 
 // ====================================================
