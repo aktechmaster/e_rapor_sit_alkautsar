@@ -1,6 +1,6 @@
 // ====================================================
 // MODUL 6: LEGER SAS & CETAK LEGER LANDSCAPE F4/A4
-// (VERSI INLINE EDIT - TANPA MODAL)
+// (VERSI SEAMLESS INLINE EDIT & GRID NAVIGATION)
 // ====================================================
 const MASTER_MAPEL_SAS = [
   { key: "PAI",    short: "PAI",    nama: "Pendidikan Agama Islam",          tingkat: [7, 8, 9], inRapor: true },
@@ -116,7 +116,7 @@ function renderLegerSASTable() {
   const tbody = document.getElementById("table-leger-sas-body");
   if (!theadRow || !tbody) return;
 
-  // 1. INJECT TOMBOL SIMPAN GLOBAL KE DALAM DOM (DI ATAS TABEL)
+  // Tombol Simpan
   let btnContainer = document.getElementById("leger-sas-action-container");
   if (!btnContainer) {
     const table = tbody.closest("table");
@@ -133,7 +133,7 @@ function renderLegerSASTable() {
     }
   }
 
-  // 2. BANGUN HEADER (Ditambah Header untuk Input Inline)
+  // Header Tanpa Catatan
   let headerHtml = `
     <th class="p-2 border-r w-10 text-center bg-slate-100 sticky left-0 z-20">NO</th>
     <th class="p-2 border-r w-24 text-center bg-slate-100 sticky left-10 z-20">NISN</th>
@@ -148,27 +148,27 @@ function renderLegerSASTable() {
     <th class="p-2 border-r w-12 text-center bg-emerald-100 font-bold">JML</th>
     <th class="p-2 border-r w-12 text-center bg-emerald-100 font-bold">RATA</th>
     <th class="p-2 border-r w-12 text-center bg-amber-200 font-bold">RNK</th>
-    <th class="p-2 border-r w-12 text-center bg-rose-100">S</th>
-    <th class="p-2 border-r w-12 text-center bg-rose-100">I</th>
-    <th class="p-2 border-r w-12 text-center bg-rose-100">A</th>
+    <th class="p-2 border-r w-10 text-center bg-rose-100">S</th>
+    <th class="p-2 border-r w-10 text-center bg-rose-100">I</th>
+    <th class="p-2 border-r w-10 text-center bg-rose-100">A</th>
     <th class="p-2 border-r w-12 text-center bg-indigo-100">PRA</th>
     <th class="p-2 border-r w-12 text-center bg-indigo-100">IBD</th>
     <th class="p-2 border-r w-12 text-center bg-indigo-100">SOS</th>
     <th class="p-2 border-r w-12 text-center bg-indigo-100">MDR</th>
     <th class="p-2 border-r w-12 text-center bg-indigo-100">AKH</th>
     <th class="p-2 border-r w-12 text-center bg-indigo-100">KPB</th>
-    <th class="p-2 border-r w-40 text-center bg-amber-100">CATATAN WALI KELAS</th>
   `;
   theadRow.innerHTML = headerHtml;
 
-  // 3. BANGUN BODY TABEL (Dengan Input Teks)
+  // Body Tabel - Input Transparan (Seamless)
   tbody.innerHTML = "";
   if (!data || !Array.isArray(data) || data.length === 0) {
     tbody.innerHTML = `<tr><td colspan="30" class="p-4 text-center text-gray-400">Tidak ada data siswa ditemukan.</td></tr>`;
     return;
   }
 
-  const inputClass = "w-10 px-1 py-1 text-center border border-gray-300 rounded focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 text-xs";
+  // Menggunakan type="text" agar panah atas/bawah tidak merubah angka bawaan browser
+  const inputClass = "sas-nav-input w-full h-full min-h-[32px] px-1 bg-transparent text-center focus:outline-none focus:bg-blue-50 focus:ring-inset focus:ring-1 focus:ring-blue-400 text-xs";
 
   data.forEach((student, idx) => {
     const tr = document.createElement("tr");
@@ -198,28 +198,56 @@ function renderLegerSASTable() {
     const totalDisplay = countNilai > 0 ? sumNilai.toLocaleString("id-ID") : (student.jumlahSheet ?? "-");
     const avgDisplay = countNilai > 0 ? (sumNilai / countNilai).toFixed(2).replace(".", ",") : (student.rataSheet !== null ? Number(student.rataSheet).toFixed(2).replace(".", ",") : "-");
 
-    // Input Fields Inline
     rowHtml += `
       <td class="p-1.5 border-r text-center font-bold bg-emerald-50 text-emerald-900">${totalDisplay}</td>
       <td class="p-1.5 border-r text-center font-bold bg-emerald-50 text-emerald-900">${avgDisplay}</td>
       <td class="p-1.5 border-r text-center font-extrabold bg-amber-100 text-amber-900">${student.rank ?? "-"}</td>
       
-      <td class="p-1 border-r text-center bg-rose-50/30"><input type="number" id="sas-s-${idx}" value="${student.sakit||''}" class="${inputClass}"></td>
-      <td class="p-1 border-r text-center bg-rose-50/30"><input type="number" id="sas-i-${idx}" value="${student.izin||''}" class="${inputClass}"></td>
-      <td class="p-1 border-r text-center bg-rose-50/30"><input type="number" id="sas-a-${idx}" value="${student.alpa||''}" class="${inputClass}"></td>
+      <td class="p-0 border-r text-center align-middle"><input type="text" inputmode="numeric" id="sas-s-${idx}" value="${student.sakit||''}" class="${inputClass}"></td>
+      <td class="p-0 border-r text-center align-middle"><input type="text" inputmode="numeric" id="sas-i-${idx}" value="${student.izin||''}" class="${inputClass}"></td>
+      <td class="p-0 border-r text-center align-middle"><input type="text" inputmode="numeric" id="sas-a-${idx}" value="${student.alpa||''}" class="${inputClass}"></td>
       
-      <td class="p-1 border-r text-center bg-indigo-50/30"><input type="text" id="sas-pra-${idx}" value="${student.pra||''}" class="${inputClass} uppercase"></td>
-      <td class="p-1 border-r text-center bg-indigo-50/30"><input type="text" id="sas-ibd-${idx}" value="${student.ibd||''}" class="${inputClass} uppercase"></td>
-      <td class="p-1 border-r text-center bg-indigo-50/30"><input type="text" id="sas-sos-${idx}" value="${student.sos||''}" class="${inputClass} uppercase"></td>
-      <td class="p-1 border-r text-center bg-indigo-50/30"><input type="text" id="sas-mdr-${idx}" value="${student.mdr||''}" class="${inputClass} uppercase"></td>
-      <td class="p-1 border-r text-center bg-indigo-50/30"><input type="text" id="sas-akh-${idx}" value="${student.akh||''}" class="${inputClass} uppercase"></td>
-      <td class="p-1 border-r text-center bg-indigo-50/30"><input type="text" id="sas-kpb-${idx}" value="${student.kpb||''}" class="${inputClass} uppercase"></td>
-      
-      <td class="p-1 border-r text-center bg-amber-50/30"><input type="text" id="sas-catatan-${idx}" value="${student.catatan||''}" class="w-full min-w-[150px] px-2 py-1 border border-gray-300 rounded focus:outline-none focus:border-emerald-500 text-xs"></td>
+      <td class="p-0 border-r text-center align-middle"><input type="text" id="sas-pra-${idx}" value="${student.pra||''}" class="${inputClass} uppercase"></td>
+      <td class="p-0 border-r text-center align-middle"><input type="text" id="sas-ibd-${idx}" value="${student.ibd||''}" class="${inputClass} uppercase"></td>
+      <td class="p-0 border-r text-center align-middle"><input type="text" id="sas-sos-${idx}" value="${student.sos||''}" class="${inputClass} uppercase"></td>
+      <td class="p-0 border-r text-center align-middle"><input type="text" id="sas-mdr-${idx}" value="${student.mdr||''}" class="${inputClass} uppercase"></td>
+      <td class="p-0 border-r text-center align-middle"><input type="text" id="sas-akh-${idx}" value="${student.akh||''}" class="${inputClass} uppercase"></td>
+      <td class="p-0 border-r text-center align-middle"><input type="text" id="sas-kpb-${idx}" value="${student.kpb||''}" class="${inputClass} uppercase"></td>
     `;
 
     tr.innerHTML = rowHtml;
     tbody.appendChild(tr);
+  });
+
+  attachGridNavigation();
+}
+
+// Fungsi Navigasi Keyboard (Atas, Bawah, Kiri, Kanan)
+function attachGridNavigation() {
+  const inputs = Array.from(document.querySelectorAll('.sas-nav-input'));
+  const colsPerRow = 9; // Jumlah kolom input (S, I, A, PRA, IBD, SOS, MDR, AKH, KPB)
+
+  inputs.forEach((input, index) => {
+    input.addEventListener('keydown', function(e) {
+      let nextIndex = null;
+      
+      if (e.key === 'ArrowUp') {
+        nextIndex = index - colsPerRow;
+        e.preventDefault(); // Mencegah kursor lari ke awal teks
+      } else if (e.key === 'ArrowDown') {
+        nextIndex = index + colsPerRow;
+        e.preventDefault();
+      } else if (e.key === 'ArrowLeft') {
+        nextIndex = index - 1;
+      } else if (e.key === 'ArrowRight') {
+        nextIndex = index + 1;
+      }
+
+      if (nextIndex !== null && nextIndex >= 0 && nextIndex < inputs.length) {
+        inputs[nextIndex].focus();
+        inputs[nextIndex].select(); // Memblok teks otomatis agar cepat diedit
+      }
+    });
   });
 }
 
@@ -239,10 +267,9 @@ async function saveAllLegerSAS() {
   const semActive = STATE.currentSasSemester || 1;
   const spreadsheetId = CONFIG.RAPOR_SAS_DB[semActive][kelasWalas];
 
-  // Kumpulkan data dari seluruh baris input
   const payload = CURRENT_LEGER_SAS_DATA.data.map((student, idx) => {
     return {
-      id: student.nisn || "", // Primary Key Google Apps Script
+      id: student.nisn || "",
       nama: student.nama,
       s: document.getElementById(`sas-s-${idx}`).value,
       i: document.getElementById(`sas-i-${idx}`).value,
@@ -252,8 +279,7 @@ async function saveAllLegerSAS() {
       sos: document.getElementById(`sas-sos-${idx}`).value.toUpperCase(),
       mdr: document.getElementById(`sas-mdr-${idx}`).value.toUpperCase(),
       akh: document.getElementById(`sas-akh-${idx}`).value.toUpperCase(),
-      kpb: document.getElementById(`sas-kpb-${idx}`).value.toUpperCase(),
-      catatan: document.getElementById(`sas-catatan-${idx}`).value
+      kpb: document.getElementById(`sas-kpb-${idx}`).value.toUpperCase()
     };
   });
 
@@ -270,7 +296,7 @@ async function saveAllLegerSAS() {
 
   if (res && res.status === "success") {
     alert("Berhasil menyimpan seluruh data non-akademik SAS.");
-    loadLegerSAS(true); // Refresh data dari server
+    loadLegerSAS(true);
   } else {
     alert("Gagal menyimpan: " + (res?.message || "Kesalahan jaringan."));
   }
