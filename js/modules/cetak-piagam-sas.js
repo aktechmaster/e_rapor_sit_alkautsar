@@ -158,10 +158,11 @@ async function initCetakPiagamSAS(forceFetch = false, initialIdxParam = null) {
   const students = CURRENT_LEGER_SAS_DATA.data || [];
   const rawRankList = meta.rangkingList || [];
 
-  // FILTER UTAMA: Singkirkan baris yang kosong atau bernama "PERINGKAT" sebelum diloop
+  // FILTER UTAMA: Singkirkan baris yang kosong atau bernama "PERINGKAT". 
+  // Penambahan .trim() wajib agar spasi tersembunyi dari file Excel/Sheets hancur.
   if (rawRankList.length > 0) {
     const validRankList = rawRankList.filter(r => 
-      r.nama && String(r.nama).toUpperCase() !== "PERINGKAT"
+      r.nama && String(r.nama).trim().toUpperCase() !== "PERINGKAT"
     );
 
     PIAGAM_WINNERS_LIST = validRankList.slice(0, 10).map((r, i) => {
@@ -189,7 +190,7 @@ async function initCetakPiagamSAS(forceFetch = false, initialIdxParam = null) {
     });
   } else {
     PIAGAM_WINNERS_LIST = [...students]
-      .filter(s => s.nama && String(s.nama).toUpperCase() !== "PERINGKAT" && !isNaN(Number(s.rank)))
+      .filter(s => s.nama && String(s.nama).trim().toUpperCase() !== "PERINGKAT" && !isNaN(Number(s.rank)))
       .sort((a, b) => Number(a.rank) - Number(b.rank))
       .slice(0, 10)
       .map((st, i) => ({
