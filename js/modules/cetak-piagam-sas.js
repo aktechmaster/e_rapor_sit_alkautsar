@@ -240,8 +240,14 @@ function renderPiagamList() {
   const meta = CURRENT_LEGER_SAS_DATA?.meta || {};
   const selectedMode = document.getElementById("select-mode-piagam")?.value || "ALL";
   const paperType = document.getElementById("select-paper-piagam")?.value || "F4";
-  const nomorPiagam = document.getElementById("input-nomor-piagam")?.value.trim() || ".../..../D.6/SMPIT-AK/XII/2026";
+  
+  // Ambil jenis evaluasi dari layar
   const jenisEvaluasi = document.getElementById("input-jenis-evaluasi")?.value.trim() || "Sumatif Akhir Semester (SAS)";
+  
+  // LOGIKA BARU: Tentukan semester otomatis berdasarkan input jenis evaluasi
+  const otomatisSemester = jenisEvaluasi.toUpperCase().includes("SAT") || jenisEvaluasi.toUpperCase().includes("TAHUN") ? "II" : "I";
+  
+  const nomorPiagam = document.getElementById("input-nomor-piagam")?.value.trim() || ".../..../D.6/SMPIT-AK/XII/2026";
   const topOffsetMm = Number(document.getElementById("input-top-offset")?.value) || 64;
 
   const kepsekNama = meta.kepsek || "Warto, S.Pd.I., M.Pd., Gr";
@@ -306,7 +312,7 @@ function renderPiagamList() {
           <!-- PERINGKAT & RATA-RATA -->
           <div class="px-3 text-center">
             <p class="text-[13.5pt] leading-relaxed">
-              Berdasarkan hasil ${jenisEvaluasi}, Semester ${item.semester} Tahun Pelajaran ${item.tahun}, siswa tersebut dinyatakan sebagai:
+              Berdasarkan hasil ${jenisEvaluasi}, Semester ${otomatisSemester} Tahun Pelajaran ${item.tahun}, siswa tersebut dinyatakan sebagai:
             </p>
 
             <div class="my-4">
