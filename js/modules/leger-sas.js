@@ -151,12 +151,6 @@ function renderLegerSASTable() {
     <th class="p-2 border-r w-10 text-center bg-rose-100">S</th>
     <th class="p-2 border-r w-10 text-center bg-rose-100">I</th>
     <th class="p-2 border-r w-10 text-center bg-rose-100">A</th>
-    <th class="p-2 border-r w-12 text-center bg-indigo-100">PRA</th>
-    <th class="p-2 border-r w-12 text-center bg-indigo-100">IBD</th>
-    <th class="p-2 border-r w-12 text-center bg-indigo-100">SOS</th>
-    <th class="p-2 border-r w-12 text-center bg-indigo-100">MDR</th>
-    <th class="p-2 border-r w-12 text-center bg-indigo-100">AKH</th>
-    <th class="p-2 border-r w-12 text-center bg-indigo-100">KPB</th>
   `;
   theadRow.innerHTML = headerHtml;
 
@@ -207,12 +201,6 @@ function renderLegerSASTable() {
       <td class="p-0 border-r text-center align-middle"><input type="text" inputmode="numeric" id="sas-i-${idx}" value="${student.izin||''}" class="${inputClass}"></td>
       <td class="p-0 border-r text-center align-middle"><input type="text" inputmode="numeric" id="sas-a-${idx}" value="${student.alpa||''}" class="${inputClass}"></td>
       
-      <td class="p-0 border-r text-center align-middle"><input type="text" id="sas-pra-${idx}" value="${student.pra||''}" class="${inputClass} uppercase"></td>
-      <td class="p-0 border-r text-center align-middle"><input type="text" id="sas-ibd-${idx}" value="${student.ibd||''}" class="${inputClass} uppercase"></td>
-      <td class="p-0 border-r text-center align-middle"><input type="text" id="sas-sos-${idx}" value="${student.sos||''}" class="${inputClass} uppercase"></td>
-      <td class="p-0 border-r text-center align-middle"><input type="text" id="sas-mdr-${idx}" value="${student.mdr||''}" class="${inputClass} uppercase"></td>
-      <td class="p-0 border-r text-center align-middle"><input type="text" id="sas-akh-${idx}" value="${student.akh||''}" class="${inputClass} uppercase"></td>
-      <td class="p-0 border-r text-center align-middle"><input type="text" id="sas-kpb-${idx}" value="${student.kpb||''}" class="${inputClass} uppercase"></td>
     `;
 
     tr.innerHTML = rowHtml;
@@ -267,35 +255,30 @@ async function saveAllLegerSAS() {
   const semActive = STATE.currentSasSemester || 1;
   const spreadsheetId = CONFIG.RAPOR_SAS_DB[semActive][kelasWalas];
 
+  // Hanya memetakan S, I, dan A
   const payload = CURRENT_LEGER_SAS_DATA.data.map((student, idx) => {
     return {
       id: student.nisn || "",
       nama: student.nama,
       s: document.getElementById(`sas-s-${idx}`).value,
       i: document.getElementById(`sas-i-${idx}`).value,
-      a: document.getElementById(`sas-a-${idx}`).value,
-      pra: document.getElementById(`sas-pra-${idx}`).value.toUpperCase(),
-      ibd: document.getElementById(`sas-ibd-${idx}`).value.toUpperCase(),
-      sos: document.getElementById(`sas-sos-${idx}`).value.toUpperCase(),
-      mdr: document.getElementById(`sas-mdr-${idx}`).value.toUpperCase(),
-      akh: document.getElementById(`sas-akh-${idx}`).value.toUpperCase(),
-      kpb: document.getElementById(`sas-kpb-${idx}`).value.toUpperCase()
+      a: document.getElementById(`sas-a-${idx}`).value
     };
   });
 
   const res = await callGASAPI("updateLegerSAS", {
     spreadsheetId: spreadsheetId,
-    sheetName: "LEGER", // <--- PERBAIKAN DI SINI (sebelumnya `LEGER ${kelasWalas}`)
+    sheetName: "LEGER", 
     data: payload 
   });
 
   if (btn) {
-    btn.innerHTML = `<i class="fa-solid fa-save"></i> Simpan Data Non-Akademik`;
+    btn.innerHTML = `<i class="fa-solid fa-save"></i> Simpan Data Kehadiran`;
     btn.disabled = false;
   }
 
   if (res && res.status === "success") {
-    alert("Berhasil menyimpan seluruh data non-akademik SAS.");
+    alert("Berhasil menyimpan data kehadiran SAS.");
     loadLegerSAS(true);
   } else {
     alert("Gagal menyimpan: " + (res?.message || "Kesalahan jaringan."));
