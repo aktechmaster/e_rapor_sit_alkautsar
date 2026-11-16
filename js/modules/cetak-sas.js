@@ -161,14 +161,16 @@ function renderLembarRaporSAS(siswaIndex) {
 
   const splitAt = 9;
 
-  raporMapels.forEach((mp, idx) => {
-    const noUrut = idx + 1;
-    const rawScore = student.scores ? student.scores[mp.key] : null;
-    const val = (rawScore !== null && rawScore !== undefined && !isNaN(Number(rawScore)))
-      ? Math.round(Number(rawScore))
-      : null;
+  const rawDesk = (student.deskripsi && student.deskripsi[mp.key])
+      ? String(student.deskripsi[mp.key]).trim()
+      : "-";
 
-    const deskText = (student.deskripsi && student.deskripsi[mp.key]) ? student.deskripsi[mp.key] : "-";
+    const deskHtml = rawDesk !== "-"
+      ? rawDesk
+          .split(/\r?\n+/)
+          .map(line => `<div class="mb-0.5 last:mb-0">${line.trim()}</div>`)
+          .join("")
+      : "-";
 
     const rowHtml = `
       <tr class="sas-mapel-row">
@@ -176,7 +178,7 @@ function renderLembarRaporSAS(siswaIndex) {
         <td class="border border-black px-2 text-left align-middle w-44 leading-snug">${mp.nama}</td>
         <td class="border border-black px-1 text-center align-middle w-14">${val !== null ? val : "-"}</td>
         <td class="border border-black py-1 px-2 align-top text-left">
-          <div class="sas-desc-box">${deskText}</div>
+          <div class="sas-desc-box">${deskHtml}</div>
         </td>
       </tr>
     `;
