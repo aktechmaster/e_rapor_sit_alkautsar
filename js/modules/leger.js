@@ -23,7 +23,7 @@ async function loadLegerSTS(forceRefresh = false) {
   if (tbody) {
     tbody.innerHTML = `
       <tr>
-        <td colspan="32" class="p-8 text-center text-gray-500 font-medium italic">
+        <td colspan="33" class="p-8 text-center text-gray-500 font-medium italic">
           <i class="fa-solid fa-spinner fa-spin text-indigo-600 text-xl mb-2 block"></i>
           Sedang mengambil data Leger STS ${semActive} Kelas ${kelasWalas}...
         </td>
@@ -52,7 +52,7 @@ async function loadLegerSTS(forceRefresh = false) {
     if (tbody) {
       tbody.innerHTML = `
         <tr>
-          <td colspan="32" class="p-6 text-center text-rose-600 font-semibold bg-rose-50 border border-rose-200 rounded-lg">
+          <td colspan="33" class="p-6 text-center text-rose-600 font-semibold bg-rose-50 border border-rose-200 rounded-lg">
             <i class="fa-solid fa-triangle-exclamation text-lg mb-1 block"></i>
             Gagal memuat data: ${res?.message || "Terjadi kesalahan koneksi ke server."}
           </td>
@@ -80,11 +80,12 @@ function renderLegerTable() {
   tbody.innerHTML = '';
   
   if (!data || !Array.isArray(data) || data.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="32" class="p-4 text-center text-gray-400">Tidak ada data siswa ditemukan.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="33" class="p-4 text-center text-gray-400">Tidak ada data siswa ditemukan.</td></tr>`;
     return;
   }
 
-  data.forEach((row) => {
+  // Tambahkan parameter "idx" di sini
+  data.forEach((row, idx) => {
     const no = row[0];
     const kelasStr = row[1];
     const namaSiswa = row[2];
@@ -129,8 +130,100 @@ function renderLegerTable() {
       <td class="p-1.5 border-r text-center font-bold bg-emerald-50 text-emerald-900">${avg}</td>
       <td class="p-1.5 border-r text-center font-extrabold bg-amber-100 text-amber-900">${rank}</td>
       <td class="p-1.5 border-r text-gray-700 truncate max-w-xs" title="${surat}">${surat}</td>
+      <td class="p-1.5 text-center sticky right-0 bg-white shadow-[-2px_0_5px_rgba(0,0,0,0.05)]">
+        <button onclick="openEditModalSTS(${idx})" class="text-indigo-600 hover:text-indigo-800 bg-indigo-50 hover:bg-indigo-100 px-2 py-1 rounded transition">
+          <i class="fa-solid fa-pen-to-square"></i> Edit
+        </button>
+      </td>
     `;
     tr.innerHTML = html;
     tbody.appendChild(tr);
   });
+}
+
+// ==========================================
+// FUNGSI CRUD LEGER STS
+// ==========================================
+function openEditModalSTS(dataIndex) {
+  const row = CURRENT_LEGER_DATA.data[dataIndex];
+  const idSiswa = row[0]; // Kolom A
+  const namaSiswa = row[2]; // Kolom C
+
+  document.getElementById('modal-leger-title').innerText = `Edit Non-Akademik: ${namaSiswa}`;
+  
+  // Render Form Input
+  const body = document.getElementById('modal-leger-body');
+  body.innerHTML = `
+    <div class="space-y-4">
+      <!-- SIKAP -->
+      <div>
+        <label class="block text-xs font-bold text-gray-700 uppercase mb-2 border-b pb-1">Nilai Sikap / Karakter</label>
+        <div class="grid grid-cols-3 gap-3">
+          <div><label class="text-[10px] text-gray-500">Pramuka (PRA)</label><input type="text" id="sts-pra" value="${row[18]||''}" class="w-full border rounded px-2 py-1 text-sm text-center uppercase"></div>
+          <div><label class="text-[10px] text-gray-500">Ibadah (IBD)</label><input type="text" id="sts-ibd" value="${row[19]||''}" class="w-full border rounded px-2 py-1 text-sm text-center uppercase"></div>
+          <div><label class="text-[10px] text-gray-500">Sosial (SOS)</label><input type="text" id="sts-sos" value="${row[20]||''}" class="w-full border rounded px-2 py-1 text-sm text-center uppercase"></div>
+          <div><label class="text-[10px] text-gray-500">Mandiri (MDR)</label><input type="text" id="sts-mdr" value="${row[21]||''}" class="w-full border rounded px-2 py-1 text-sm text-center uppercase"></div>
+          <div><label class="text-[10px] text-gray-500">Akhlak (AKH)</label><input type="text" id="sts-akh" value="${row[22]||''}" class="w-full border rounded px-2 py-1 text-sm text-center uppercase"></div>
+          <div><label class="text-[10px] text-gray-500">KPB</label><input type="text" id="sts-kpb" value="${row[23]||''}" class="w-full border rounded px-2 py-1 text-sm text-center uppercase"></div>
+        </div>
+      </div>
+      <!-- ABSENSI -->
+      <div>
+        <label class="block text-xs font-bold text-gray-700 uppercase mb-2 border-b pb-1 mt-2">Ketidakhadiran</label>
+        <div class="grid grid-cols-3 gap-3">
+          <div><label class="text-[10px] text-gray-500">Sakit (S)</label><input type="number" id="sts-s" value="${row[24]||0}" class="w-full border rounded px-2 py-1 text-sm text-center"></div>
+          <div><label class="text-[10px] text-gray-500">Izin (I)</label><input type="number" id="sts-i" value="${row[25]||0}" class="w-full border rounded px-2 py-1 text-sm text-center"></div>
+          <div><label class="text-[10px] text-gray-500">Alpa (A)</label><input type="number" id="sts-a" value="${row[26]||0}" class="w-full border rounded px-2 py-1 text-sm text-center"></div>
+        </div>
+      </div>
+      <!-- CATATAN -->
+      <div>
+        <label class="block text-xs font-bold text-gray-700 uppercase mb-2 border-b pb-1 mt-2">Catatan / Surat Hafalan</label>
+        <textarea id="sts-catatan" rows="2" class="w-full border rounded px-3 py-2 text-sm">${row[31]||''}</textarea>
+      </div>
+    </div>
+  `;
+
+  // Attach event listener ke tombol simpan (Pastikan warnanya Indigo untuk STS)
+  const btnSave = document.getElementById('btn-save-leger');
+  btnSave.className = "px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-medium shadow-sm transition";
+  btnSave.onclick = () => saveEditSTS(idSiswa, namaSiswa);
+
+  document.getElementById('modal-edit-leger').classList.remove('hidden');
+}
+
+async function saveEditSTS(idSiswa, namaSiswa) {
+  const payloadData = {
+    id: idSiswa,
+    nama: namaSiswa,
+    pra: document.getElementById('sts-pra').value.toUpperCase(),
+    ibd: document.getElementById('sts-ibd').value.toUpperCase(),
+    sos: document.getElementById('sts-sos').value.toUpperCase(),
+    mdr: document.getElementById('sts-mdr').value.toUpperCase(),
+    akh: document.getElementById('sts-akh').value.toUpperCase(),
+    kpb: document.getElementById('sts-kpb').value.toUpperCase(),
+    s: document.getElementById('sts-s').value,
+    i: document.getElementById('sts-i').value,
+    a: document.getElementById('sts-a').value,
+    catatan: document.getElementById('sts-catatan').value
+  };
+
+  closeModalLeger();
+
+  const kelasWalas = STATE.currentUser.walas_kelas;
+  const semActive = STATE.currentStsSemester || 1;
+  const spreadsheetId = CONFIG.RAPOR_STS_DB[semActive][kelasWalas];
+
+  const res = await callGASAPI("updateLegerSTS", {
+    spreadsheetId: spreadsheetId,
+    sheetName: `LEGER ${kelasWalas}`,
+    data: [payloadData] 
+  });
+
+  if (res && res.status === "success") {
+    alert("Berhasil memperbarui data.");
+    loadLegerSTS(true); // Refresh tabel paksa untuk melihat hasilnya
+  } else {
+    alert("Gagal menyimpan: " + (res?.message || "Kesalahan jaringan."));
+  }
 }
