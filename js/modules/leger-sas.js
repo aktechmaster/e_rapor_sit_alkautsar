@@ -213,7 +213,7 @@ function renderLegerSASTable() {
 // Fungsi Navigasi Keyboard (Atas, Bawah, Kiri, Kanan)
 function attachGridNavigation() {
   const inputs = Array.from(document.querySelectorAll('.sas-nav-input'));
-  const colsPerRow = 9; // Jumlah kolom input (S, I, A, PRA, IBD, SOS, MDR, AKH, KPB)
+  const colsPerRow = 3; // SEKARANG HANYA 3 KOLOM INPUT (S, I, A)
 
   inputs.forEach((input, index) => {
     input.addEventListener('keydown', function(e) {
