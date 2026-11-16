@@ -161,7 +161,14 @@ function renderLembarRaporSAS(siswaIndex) {
 
   const splitAt = 9;
 
-  const rawDesk = (student.deskripsi && student.deskripsi[mp.key])
+  raporMapels.forEach((mp, idx) => {
+    const noUrut = idx + 1;
+    const rawScore = student.scores ? student.scores[mp.key] : null;
+    const val = (rawScore !== null && rawScore !== undefined && !isNaN(Number(rawScore)))
+      ? Math.round(Number(rawScore))
+      : null;
+
+    const rawDesk = (student.deskripsi && student.deskripsi[mp.key])
       ? String(student.deskripsi[mp.key]).trim()
       : "-";
 
