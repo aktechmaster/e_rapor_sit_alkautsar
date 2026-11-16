@@ -285,7 +285,7 @@ async function saveAllLegerSAS() {
 
   const res = await callGASAPI("updateLegerSAS", {
     spreadsheetId: spreadsheetId,
-    sheetName: `LEGER ${kelasWalas}`,
+    sheetName: "LEGER", // <--- PERBAIKAN DI SINI (sebelumnya `LEGER ${kelasWalas}`)
     data: payload 
   });
 
