@@ -1,7 +1,10 @@
 // ====================================================
 // MODUL 6: LEGER SAS & CETAK LEGER LANDSCAPE F4/A4
-// (VERSI SEAMLESS INLINE EDIT & GRID NAVIGATION)
+// (VERSI SEAMLESS INLINE EDIT & GRID SELECTION/PASTE)
 // ====================================================
+let LEGER_SAS_ORIGINAL_SNAPSHOT = {};
+let LEGER_SAS_DIRTY_ROWS = new Set();
+
 const MASTER_MAPEL_SAS = [
   { key: "PAI",    short: "PAI",    nama: "Pendidikan Agama Islam",          tingkat: [7, 8, 9], inRapor: true },
   { key: "PKN",    short: "PKN",    nama: "Pendidikan Pancasila",            tingkat: [7, 8, 9], inRapor: true },
@@ -20,6 +23,12 @@ const MASTER_MAPEL_SAS = [
   { key: "CODING", short: "CODING", nama: "Coding",                          tingkat: [7, 8],    inRapor: true }
 ];
 
+const SAS_EDITABLE_COLS = [
+  { key: "s", prop: "sakit", type: "num" },
+  { key: "i", prop: "izin",  type: "num" },
+  { key: "a", prop: "alpa",  type: "num" }
+];
+
 function getTingkatNumberSAS(kelasStr) {
   const match = String(kelasStr || "").match(/\d+/);
   return match ? Number(match[0]) : 9;
@@ -32,6 +41,23 @@ function getSASMapelByKelas(kelasStr, mode = "leger") {
     if (!matchTingkat) return false;
     return mode === "rapor" ? m.inRapor : true;
   });
+}
+
+function updateSaveBadgeSAS() {
+  const lbl = document.getElementById("lbl-btn-save-sas");
+  const btn = document.getElementById("btn-save-leger-sas");
+  if (!lbl || !btn) return;
+
+  const count = LEGER_SAS_DIRTY_ROWS.size;
+  if (count > 0) {
+    lbl.innerText = `Simpan Kehadiran (${count} Siswa)`;
+    btn.classList.remove("bg-indigo-600", "hover:bg-indigo-700");
+    btn.classList.add("bg-amber-600", "hover:bg-amber-700", "ring-2", "ring-amber-300");
+  } else {
+    lbl.innerText = "Simpan Data Kehadiran";
+    btn.classList.remove("bg-amber-600", "hover:bg-amber-700", "ring-2", "ring-amber-300");
+    btn.classList.add("bg-indigo-600", "hover:bg-indigo-700");
+  }
 }
 
 async function loadLegerSAS(forceRefresh = false) {
@@ -95,6 +121,10 @@ function renderLegerSASTable() {
   if (!CURRENT_LEGER_SAS_DATA || CURRENT_LEGER_SAS_DATA.status !== "success") return;
   const { meta, data } = CURRENT_LEGER_SAS_DATA;
 
+  LEGER_SAS_ORIGINAL_SNAPSHOT = {};
+  LEGER_SAS_DIRTY_ROWS.clear();
+  updateSaveBadgeSAS();
+
   const semActive = STATE.currentSasSemester || 1;
   const kelasWalas = STATE.currentUser?.walas_kelas || meta?.kelas || "";
   const namaWalasResmi = (STATE.currentUser && STATE.currentUser.nama_lengkap)
@@ -116,24 +146,7 @@ function renderLegerSASTable() {
   const tbody = document.getElementById("table-leger-sas-body");
   if (!theadRow || !tbody) return;
 
-  // Tombol Simpan
-  let btnContainer = document.getElementById("leger-sas-action-container");
-  if (!btnContainer) {
-    const table = tbody.closest("table");
-    if (table && table.parentNode) {
-      btnContainer = document.createElement("div");
-      btnContainer.id = "leger-sas-action-container";
-      btnContainer.className = "flex justify-end mb-3";
-      btnContainer.innerHTML = `
-        <button id="btn-save-leger-sas" onclick="saveAllLegerSAS()" class="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm font-semibold shadow-md flex items-center gap-2 transition-all">
-          <i class="fa-solid fa-save"></i> Simpan Data Non-Akademik
-        </button>
-      `;
-      table.parentNode.insertBefore(btnContainer, table);
-    }
-  }
-
-  // Header Tanpa Catatan
+  // Header
   let headerHtml = `
     <th class="p-2 border-r w-10 text-center bg-slate-100 sticky left-0 z-20">NO</th>
     <th class="p-2 border-r w-24 text-center bg-slate-100 sticky left-10 z-20">NISN</th>
@@ -143,28 +156,33 @@ function renderLegerSASTable() {
     const badgeBg = mp.inRapor ? "bg-blue-50 text-blue-900" : "bg-purple-50 text-purple-900";
     headerHtml += `<th class="p-2 border-r w-12 text-center ${badgeBg}" title="${mp.nama}">${mp.short}</th>`;
   });
-  
+
   headerHtml += `
     <th class="p-2 border-r w-12 text-center bg-emerald-100 font-bold">JML</th>
     <th class="p-2 border-r w-12 text-center bg-emerald-100 font-bold">RATA</th>
     <th class="p-2 border-r w-12 text-center bg-amber-200 font-bold">RNK</th>
-    <th class="p-2 border-r w-10 text-center bg-rose-100">S</th>
-    <th class="p-2 border-r w-10 text-center bg-rose-100">I</th>
-    <th class="p-2 border-r w-10 text-center bg-rose-100">A</th>
+    <th class="p-2 border-r w-11 text-center bg-rose-100 text-rose-900">S</th>
+    <th class="p-2 border-r w-11 text-center bg-rose-100 text-rose-900">I</th>
+    <th class="p-2 border-r w-11 text-center bg-rose-100 text-rose-900">A</th>
   `;
   theadRow.innerHTML = headerHtml;
 
-  // Body Tabel - Input Transparan (Seamless)
+  // Body Tabel
   tbody.innerHTML = "";
   if (!data || !Array.isArray(data) || data.length === 0) {
     tbody.innerHTML = `<tr><td colspan="30" class="p-4 text-center text-gray-400">Tidak ada data siswa ditemukan.</td></tr>`;
     return;
   }
 
-  // Menggunakan type="text" agar panah atas/bawah tidak merubah angka bawaan browser
-  const inputClass = "sas-nav-input w-full h-full min-h-[32px] px-1 bg-transparent text-center focus:outline-none focus:bg-blue-50 focus:ring-inset focus:ring-1 focus:ring-blue-400 text-xs";
+  const inputClass = "w-full h-8 px-1 bg-transparent text-center font-medium text-rose-900 focus:outline-none focus:bg-white focus:ring-inset focus:ring-2 focus:ring-indigo-500 text-xs transition-colors";
 
   data.forEach((student, idx) => {
+    const sVal = student.sakit !== undefined && student.sakit !== null && student.sakit !== "" ? String(student.sakit) : "0";
+    const iVal = student.izin  !== undefined && student.izin  !== null && student.izin  !== "" ? String(student.izin)  : "0";
+    const aVal = student.alpa  !== undefined && student.alpa  !== null && student.alpa  !== "" ? String(student.alpa)  : "0";
+
+    LEGER_SAS_ORIGINAL_SNAPSHOT[idx] = { s: sVal, i: iVal, a: aVal };
+
     const tr = document.createElement("tr");
     tr.className = "hover:bg-slate-50 border-b border-gray-200 h-8 text-xs";
 
@@ -196,46 +214,62 @@ function renderLegerSASTable() {
       <td class="p-1.5 border-r text-center font-bold bg-emerald-50 text-emerald-900">${totalDisplay}</td>
       <td class="p-1.5 border-r text-center font-bold bg-emerald-50 text-emerald-900">${avgDisplay}</td>
       <td class="p-1.5 border-r text-center font-extrabold bg-amber-100 text-amber-900">${student.rank ?? "-"}</td>
-      
-      <td class="p-0 border-r text-center align-middle"><input type="text" inputmode="numeric" id="sas-s-${idx}" value="${student.sakit||''}" class="${inputClass}"></td>
-      <td class="p-0 border-r text-center align-middle"><input type="text" inputmode="numeric" id="sas-i-${idx}" value="${student.izin||''}" class="${inputClass}"></td>
-      <td class="p-0 border-r text-center align-middle"><input type="text" inputmode="numeric" id="sas-a-${idx}" value="${student.alpa||''}" class="${inputClass}"></td>
-      
+      <td class="p-0 border-r bg-rose-50/40 text-center align-middle">
+        <input type="text" inputmode="numeric" maxlength="3" id="sas-s-${idx}" value="${sVal}"
+          data-grid-cell="1" data-vrow="${idx}" data-gcol="0" data-didx="${idx}" data-key="s" data-prop="sakit" data-ctype="num"
+          class="${inputClass}">
+      </td>
+      <td class="p-0 border-r bg-rose-50/40 text-center align-middle">
+        <input type="text" inputmode="numeric" maxlength="3" id="sas-i-${idx}" value="${iVal}"
+          data-grid-cell="1" data-vrow="${idx}" data-gcol="1" data-didx="${idx}" data-key="i" data-prop="izin" data-ctype="num"
+          class="${inputClass}">
+      </td>
+      <td class="p-0 border-r bg-rose-50/40 text-center align-middle">
+        <input type="text" inputmode="numeric" maxlength="3" id="sas-a-${idx}" value="${aVal}"
+          data-grid-cell="1" data-vrow="${idx}" data-gcol="2" data-didx="${idx}" data-key="a" data-prop="alpa" data-ctype="num"
+          class="${inputClass}">
+      </td>
     `;
 
     tr.innerHTML = rowHtml;
     tbody.appendChild(tr);
   });
 
-  attachGridNavigation();
-}
+  // Aktifkan Mesin Grid Spreadsheet (Blok multi-sel, Delete massal -> 0, Paste Excel, Navigasi Panah)
+  attachSpreadsheetGrid({
+    tbody: tbody,
+    totalRows: data.length,
+    totalCols: SAS_EDITABLE_COLS.length,
+    onCellChange: (input, newVal) => {
+      const idx = Number(input.dataset.didx);
+      const key = input.dataset.key;
+      const prop = input.dataset.prop;
 
-// Fungsi Navigasi Keyboard (Atas, Bawah, Kiri, Kanan)
-function attachGridNavigation() {
-  const inputs = Array.from(document.querySelectorAll('.sas-nav-input'));
-  const colsPerRow = 3; // SEKARANG HANYA 3 KOLOM INPUT (S, I, A)
+      CURRENT_LEGER_SAS_DATA.data[idx][prop] = newVal !== "" ? Number(newVal) : 0;
 
-  inputs.forEach((input, index) => {
-    input.addEventListener('keydown', function(e) {
-      let nextIndex = null;
-      
-      if (e.key === 'ArrowUp') {
-        nextIndex = index - colsPerRow;
-        e.preventDefault(); // Mencegah kursor lari ke awal teks
-      } else if (e.key === 'ArrowDown') {
-        nextIndex = index + colsPerRow;
-        e.preventDefault();
-      } else if (e.key === 'ArrowLeft') {
-        nextIndex = index - 1;
-      } else if (e.key === 'ArrowRight') {
-        nextIndex = index + 1;
+      const origVal = LEGER_SAS_ORIGINAL_SNAPSHOT[idx]?.[key] ?? "0";
+      if (newVal !== origVal) {
+        input.classList.add("bg-yellow-100");
+      } else {
+        input.classList.remove("bg-yellow-100");
       }
 
-      if (nextIndex !== null && nextIndex >= 0 && nextIndex < inputs.length) {
-        inputs[nextIndex].focus();
-        inputs[nextIndex].select(); // Memblok teks otomatis agar cepat diedit
+      const rowInputs = tbody.querySelectorAll(`input[data-didx="${idx}"]`);
+      let rowModified = false;
+      rowInputs.forEach(inp => {
+        const k = inp.dataset.key;
+        if (inp.value !== (LEGER_SAS_ORIGINAL_SNAPSHOT[idx]?.[k] ?? "0")) {
+          rowModified = true;
+        }
+      });
+
+      if (rowModified) {
+        LEGER_SAS_DIRTY_ROWS.add(idx);
+      } else {
+        LEGER_SAS_DIRTY_ROWS.delete(idx);
       }
-    });
+      updateSaveBadgeSAS();
+    }
   });
 }
 
@@ -246,41 +280,43 @@ async function saveAllLegerSAS() {
   if (!CURRENT_LEGER_SAS_DATA || !CURRENT_LEGER_SAS_DATA.data) return;
 
   const btn = document.getElementById("btn-save-leger-sas");
-  if (btn) {
-    btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Menyimpan...`;
-    btn.disabled = true;
-  }
+  const lbl = document.getElementById("lbl-btn-save-sas");
+  const oldText = lbl ? lbl.innerText : "Simpan Data Kehadiran";
+  if (btn) btn.disabled = true;
+  if (lbl) lbl.innerText = "Menyimpan...";
 
   const kelasWalas = STATE.currentUser.walas_kelas;
   const semActive = STATE.currentSasSemester || 1;
   const spreadsheetId = CONFIG.RAPOR_SAS_DB[semActive][kelasWalas];
 
-  // Hanya memetakan S, I, dan A
   const payload = CURRENT_LEGER_SAS_DATA.data.map((student, idx) => {
+    const sEl = document.getElementById(`sas-s-${idx}`);
+    const iEl = document.getElementById(`sas-i-${idx}`);
+    const aEl = document.getElementById(`sas-a-${idx}`);
     return {
       id: student.nisn || "",
       nama: student.nama,
-      s: document.getElementById(`sas-s-${idx}`).value,
-      i: document.getElementById(`sas-i-${idx}`).value,
-      a: document.getElementById(`sas-a-${idx}`).value
+      s: sEl && sEl.value !== "" ? Number(sEl.value) : 0,
+      i: iEl && iEl.value !== "" ? Number(iEl.value) : 0,
+      a: aEl && aEl.value !== "" ? Number(aEl.value) : 0
     };
   });
 
   const res = await callGASAPI("updateLegerSAS", {
     spreadsheetId: spreadsheetId,
-    sheetName: "LEGER", 
-    data: payload 
+    sheetName: "LEGER",
+    data: payload
   });
 
-  if (btn) {
-    btn.innerHTML = `<i class="fa-solid fa-save"></i> Simpan Data Kehadiran`;
-    btn.disabled = false;
-  }
+  if (btn) btn.disabled = false;
 
   if (res && res.status === "success") {
+    const cacheKey = `${semActive}_${kelasWalas}`;
+    LEGER_SAS_CACHE[cacheKey] = CURRENT_LEGER_SAS_DATA;
+    renderLegerSASTable();
     alert("Berhasil menyimpan data kehadiran SAS.");
-    loadLegerSAS(true);
   } else {
+    if (lbl) lbl.innerText = oldText;
     alert("Gagal menyimpan: " + (res?.message || "Kesalahan jaringan."));
   }
 }
