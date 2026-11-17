@@ -303,10 +303,20 @@
               <h3 class="font-bold text-lg text-slate-800">Leger Rekap Nilai STS</h3>
               <p class="text-xs text-gray-500" id="leger-meta-info">Kelas: - | Wali Kelas: -</p>
             </div>
-            <button onclick="loadLegerSTS(true)" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-medium shadow-sm transition flex items-center space-x-2">
-              <i class="fa-solid fa-rotate"></i>
-              <span>Refresh Leger</span>
-            </button>
+            <div class="flex flex-wrap items-center gap-2">
+              <span class="hidden md:inline-flex items-center text-[11px] text-slate-500 bg-slate-100 px-2.5 py-1.5 rounded-lg">
+                <i class="fa-solid fa-arrows-up-down-left-right mr-1.5 text-indigo-500"></i>
+                Gunakan tombol panah keyboard untuk pindah sel
+              </span>
+              <button id="btn-save-all-leger-sts" onclick="saveAllLegerSTS()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-medium shadow-sm transition flex items-center space-x-2">
+                <i class="fa-solid fa-floppy-disk"></i>
+                <span id="lbl-btn-save-sts">Simpan Perubahan</span>
+              </button>
+              <button onclick="loadLegerSTS(true)" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-medium shadow-sm transition flex items-center space-x-2">
+                <i class="fa-solid fa-rotate"></i>
+                <span>Refresh Leger</span>
+              </button>
+            </div>
           </div>
           <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden flex-1 flex flex-col min-h-0">
             <div class="table-container overflow-auto flex-1 min-h-0">
@@ -332,22 +342,23 @@
                     <th class="p-2 border-r w-14 text-center bg-blue-50 text-blue-900">BPI</th>
                     <th class="p-2 border-r w-14 text-center bg-blue-50 text-blue-900">TARJIM</th>
                     <th class="p-2 border-r w-14 text-center bg-blue-50 text-blue-900">COD</th>
-                    <!-- SIKAP -->
-                    <th class="p-2 border-r w-12 text-center bg-amber-50">PRA</th>
-                    <th class="p-2 border-r w-12 text-center bg-amber-50">IBD</th>
-                    <th class="p-2 border-r w-12 text-center bg-amber-50">SOS</th>
-                    <th class="p-2 border-r w-12 text-center bg-amber-50">MDR</th>
-                    <th class="p-2 border-r w-12 text-center bg-amber-50">AKH</th>
-                    <th class="p-2 border-r w-12 text-center bg-amber-50">KPB</th>
-                    <!-- ABSENSI -->
-                    <th class="p-2 border-r w-10 text-center bg-rose-50">S</th>
-                    <th class="p-2 border-r w-10 text-center bg-rose-50">I</th>
-                    <th class="p-2 border-r w-10 text-center bg-rose-50">A</th>
+                    <!-- SIKAP (EDITABLE) -->
+                    <th class="p-2 border-r w-12 text-center bg-amber-100 text-amber-900">PRA</th>
+                    <th class="p-2 border-r w-12 text-center bg-amber-100 text-amber-900">IBD</th>
+                    <th class="p-2 border-r w-12 text-center bg-amber-100 text-amber-900">SOS</th>
+                    <th class="p-2 border-r w-12 text-center bg-amber-100 text-amber-900">MDR</th>
+                    <th class="p-2 border-r w-12 text-center bg-amber-100 text-amber-900">AKH</th>
+                    <th class="p-2 border-r w-12 text-center bg-amber-100 text-amber-900">KPB</th>
+                    <!-- ABSENSI (EDITABLE) -->
+                    <th class="p-2 border-r w-11 text-center bg-rose-100 text-rose-900">S</th>
+                    <th class="p-2 border-r w-11 text-center bg-rose-100 text-rose-900">I</th>
+                    <th class="p-2 border-r w-11 text-center bg-rose-100 text-rose-900">A</th>
                     <!-- REKAP -->
                     <th class="p-2 border-r w-16 text-center bg-emerald-100 font-bold">TOTAL</th>
                     <th class="p-2 border-r w-16 text-center bg-emerald-100 font-bold">RATA</th>
                     <th class="p-2 border-r w-14 text-center bg-amber-200 font-bold">RANK</th>
-                    <th class="p-2 border-r w-64 bg-slate-100">CATATAN / SURAT HAFALAN T2Q</th>
+                    <!-- CATATAN (EDITABLE) -->
+                    <th class="p-2 border-r w-72 bg-indigo-50 text-indigo-900">CATATAN / SURAT HAFALAN T2Q</th>
                   </tr>
                 </thead>
                 <tbody id="table-leger-body" class="divide-y divide-gray-200"></tbody>
