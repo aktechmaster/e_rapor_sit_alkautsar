@@ -137,7 +137,6 @@ function renderLegerTable() {
 
     const currentVisualRow = visualRowIdx++;
 
-    // Simpan snapshot awal untuk deteksi perubahan
     const snap = {};
     STS_EDITABLE_COLS.forEach(col => {
       const rawVal = row[col.sheetIdx];
@@ -171,7 +170,7 @@ function renderLegerTable() {
           <input type="text"
             value="${val}"
             maxlength="3"
-            data-sts-grid="1"
+            data-grid-cell="1"
             data-vrow="${currentVisualRow}"
             data-gcol="${gCol}"
             data-didx="${dataIdx}"
@@ -184,7 +183,7 @@ function renderLegerTable() {
       `;
     }
 
-    // Absensi S, I, A (Kolom Y - AA / indeks 24 - 26 -> gridCol 6 - 8) -> Editable (type="text" agar panah atas/bawah tidak ubah angka)
+    // Absensi S, I, A (Kolom Y - AA / indeks 24 - 26 -> gridCol 6 - 8) -> Editable
     for (let gCol = 6; gCol <= 8; gCol++) {
       const colCfg = STS_EDITABLE_COLS[gCol];
       const rawAbs = row[colCfg.sheetIdx];
@@ -195,7 +194,7 @@ function renderLegerTable() {
             inputmode="numeric"
             value="${val}"
             maxlength="3"
-            data-sts-grid="1"
+            data-grid-cell="1"
             data-vrow="${currentVisualRow}"
             data-gcol="${gCol}"
             data-didx="${dataIdx}"
@@ -225,7 +224,7 @@ function renderLegerTable() {
         <input type="text"
           value="${suratVal}"
           placeholder="Isi catatan / surat hafalan..."
-          data-sts-grid="1"
+          data-grid-cell="1"
           data-vrow="${currentVisualRow}"
           data-gcol="9"
           data-didx="${dataIdx}"
@@ -241,125 +240,40 @@ function renderLegerTable() {
     tbody.appendChild(tr);
   });
 
-  bindLegerGridEvents(tbody, visualRowIdx);
-}
+  // Aktifkan Mesin Grid Spreadsheet (Blok multi-sel, Delete massal, Paste Excel, Navigasi Panah)
+  attachSpreadsheetGrid({
+    tbody: tbody,
+    totalRows: visualRowIdx,
+    totalCols: STS_EDITABLE_COLS.length,
+    onCellChange: (input, newVal) => {
+      const dataIdx = Number(input.dataset.didx);
+      const sheetIdx = Number(input.dataset.sidx);
+      const key = input.dataset.key;
 
-function bindLegerGridEvents(tbody, totalVisualRows) {
-  const maxGridCol = STS_EDITABLE_COLS.length - 1; // 9
+      CURRENT_LEGER_DATA.data[dataIdx][sheetIdx] = newVal;
 
-  // 1. Sinkronisasi ketikan & deteksi sel berubah
-  tbody.addEventListener("input", (e) => {
-    const input = e.target;
-    if (!input.matches('input[data-sts-grid="1"]')) return;
-
-    const ctype = input.dataset.ctype;
-    if (ctype === "grade") {
-      input.value = input.value.toUpperCase();
-    } else if (ctype === "num") {
-      input.value = input.value.replace(/[^0-9]/g, "");
-    }
-
-    const dataIdx = Number(input.dataset.didx);
-    const sheetIdx = Number(input.dataset.sidx);
-    const key = input.dataset.key;
-
-    CURRENT_LEGER_DATA.data[dataIdx][sheetIdx] = input.value;
-
-    const origVal = LEGER_STS_ORIGINAL_SNAPSHOT[dataIdx]?.[key] ?? "";
-    if (input.value !== origVal) {
-      input.classList.add("bg-yellow-100");
-    } else {
-      input.classList.remove("bg-yellow-100");
-    }
-
-    // Cek apakah baris ini masih punya perubahan dibanding snapshot awal
-    const rowInputs = tbody.querySelectorAll(`input[data-didx="${dataIdx}"]`);
-    let rowModified = false;
-    rowInputs.forEach(inp => {
-      const k = inp.dataset.key;
-      if (inp.value !== (LEGER_STS_ORIGINAL_SNAPSHOT[dataIdx]?.[k] ?? "")) {
-        rowModified = true;
+      const origVal = LEGER_STS_ORIGINAL_SNAPSHOT[dataIdx]?.[key] ?? "";
+      if (newVal !== origVal) {
+        input.classList.add("bg-yellow-100");
+      } else {
+        input.classList.remove("bg-yellow-100");
       }
-    });
 
-    if (rowModified) {
-      LEGER_STS_DIRTY_ROWS.add(dataIdx);
-    } else {
-      LEGER_STS_DIRTY_ROWS.delete(dataIdx);
-    }
-    updateSaveBadgeSTS();
-  });
-
-  // 2. Navigasi Keyboard ArrowUp, ArrowDown, ArrowLeft, ArrowRight, Enter
-  tbody.addEventListener("keydown", (e) => {
-    const input = e.target;
-    if (!input.matches('input[data-sts-grid="1"]')) return;
-
-    const vRow = Number(input.dataset.vrow);
-    const gCol = Number(input.dataset.gcol);
-    const ctype = input.dataset.ctype;
-
-    let targetRow = vRow;
-    let targetCol = gCol;
-    let shouldMove = false;
-
-    if (e.key === "ArrowUp") {
-      e.preventDefault();
-      if (vRow > 0) {
-        targetRow = vRow - 1;
-        shouldMove = true;
-      }
-    } else if (e.key === "ArrowDown" || e.key === "Enter") {
-      e.preventDefault();
-      if (vRow < totalVisualRows - 1) {
-        targetRow = vRow + 1;
-        shouldMove = true;
-      }
-    } else if (e.key === "ArrowLeft") {
-      const atStartOrAllSelected =
-        ctype !== "text" ||
-        (input.selectionStart === 0 && input.selectionEnd === 0) ||
-        (input.selectionStart === 0 && input.selectionEnd === input.value.length);
-
-      if (atStartOrAllSelected) {
-        e.preventDefault();
-        if (gCol > 0) {
-          targetCol = gCol - 1;
-          shouldMove = true;
-        } else if (vRow > 0) {
-          targetRow = vRow - 1;
-          targetCol = maxGridCol;
-          shouldMove = true;
+      const rowInputs = tbody.querySelectorAll(`input[data-didx="${dataIdx}"]`);
+      let rowModified = false;
+      rowInputs.forEach(inp => {
+        const k = inp.dataset.key;
+        if (inp.value !== (LEGER_STS_ORIGINAL_SNAPSHOT[dataIdx]?.[k] ?? "")) {
+          rowModified = true;
         }
-      }
-    } else if (e.key === "ArrowRight") {
-      const len = input.value.length;
-      const atEndOrAllSelected =
-        ctype !== "text" ||
-        (input.selectionStart === len && input.selectionEnd === len) ||
-        (input.selectionStart === 0 && input.selectionEnd === len);
+      });
 
-      if (atEndOrAllSelected) {
-        e.preventDefault();
-        if (gCol < maxGridCol) {
-          targetCol = gCol + 1;
-          shouldMove = true;
-        } else if (vRow < totalVisualRows - 1) {
-          targetRow = vRow + 1;
-          targetCol = 0;
-          shouldMove = true;
-        }
+      if (rowModified) {
+        LEGER_STS_DIRTY_ROWS.add(dataIdx);
+      } else {
+        LEGER_STS_DIRTY_ROWS.delete(dataIdx);
       }
-    }
-
-    if (shouldMove) {
-      const nextInput = tbody.querySelector(
-        `input[data-vrow="${targetRow}"][data-gcol="${targetCol}"]`
-      );
-      if (nextInput) {
-        nextInput.focus();
-        nextInput.select();
-      }
+      updateSaveBadgeSTS();
     }
   });
 }
@@ -376,7 +290,6 @@ async function saveAllLegerSTS() {
     return;
   }
 
-  // Susun payload seluruh baris siswa (atau baris yang diedit)
   const indicesToSave = LEGER_STS_DIRTY_ROWS.size > 0
     ? Array.from(LEGER_STS_DIRTY_ROWS)
     : CURRENT_LEGER_DATA.data
