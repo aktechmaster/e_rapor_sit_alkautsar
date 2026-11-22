@@ -490,7 +490,7 @@ function prosesArsipRaporAsli(siswaIndex, namaSiswa) {
             img.onerror = r;
           });
         }));
-        await new Promise(r => setTimeout(r, 250));
+        await new Promise(r => setTimeout(r, 300));
 
         // Sembunyikan toolbar navigasi cetak
         doc.querySelectorAll('.no-print, #sas-mm-ruler').forEach(el => {
@@ -501,33 +501,29 @@ function prosesArsipRaporAsli(siswaIndex, namaSiswa) {
         doc.body.style.padding = '0';
         doc.body.style.margin = '0';
 
+        // Atur ukuran penuh kertas F4 (215.9mm x 329mm) dengan padding margin cetak (12mm atas/bawah, 13mm kiri/kanan)
         [page1, page2].forEach(pg => {
           pg.style.border = 'none';
           pg.style.boxShadow = 'none';
-          pg.style.padding = '0';
+          pg.style.boxSizing = 'border-box';
+          pg.style.width = '215.9mm';
+          pg.style.height = '329mm';
+          pg.style.minHeight = '329mm';
+          pg.style.maxHeight = '329mm';
+          pg.style.padding = '12mm 13mm';
           pg.style.margin = '0';
-          pg.style.width = '189.9mm';
-          pg.style.minHeight = '290mm';
-          pg.style.maxHeight = '302mm';
+          pg.style.backgroundColor = '#ffffff';
+          pg.style.overflow = 'hidden';
         });
 
-        // Bungkus halaman 1 dan halaman 2 dengan pemisah halaman F4 (total 2 halaman)
+        // Bungkus halaman 1 dan halaman 2 menjadi 2 halaman F4
         const exportWrapper = doc.createElement('div');
-        exportWrapper.style.width = '189.9mm';
-        exportWrapper.style.background = '#ffffff';
+        exportWrapper.style.width = '215.9mm';
+        exportWrapper.style.backgroundColor = '#ffffff';
         exportWrapper.style.margin = '0';
         exportWrapper.style.padding = '0';
 
-        const pageBreak = doc.createElement('div');
-        pageBreak.className = 'html2pdf__page-break';
-        pageBreak.style.pageBreakBefore = 'always';
-        pageBreak.style.breakBefore = 'page';
-        pageBreak.style.height = '0';
-        pageBreak.style.margin = '0';
-        pageBreak.style.padding = '0';
-
         exportWrapper.appendChild(page1);
-        exportWrapper.appendChild(pageBreak);
         exportWrapper.appendChild(page2);
         doc.body.appendChild(exportWrapper);
 
@@ -535,14 +531,14 @@ function prosesArsipRaporAsli(siswaIndex, namaSiswa) {
           statusCell.innerHTML = `<span class="px-2.5 py-1 bg-indigo-100 text-indigo-700 text-[10px] rounded-md font-bold"><i class="fa-solid fa-spinner animate-spin"></i> Generate PDF...</span>`;
         }
 
-        // html2pdf hanya menerima 2 elemen array untuk margin: [atasBawah, kiriKanan]
+        // Gunakan margin: 0 (angka tunggal) agar tidak terkena pengecekan instanceof Array lintas-window
         const opt = {
-          margin:      [12, 13],
+          margin:      0,
           filename:    `Rapor_SAS_${sem}_${kelasWalas}_${String(namaSiswa).replace(/ /g, "_")}.pdf`,
           image:       { type: 'jpeg', quality: 0.98 },
-          html2canvas: { scale: 2, useCORS: true, scrollX: 0, scrollY: 0 },
+          html2canvas: { scale: 2, useCORS: true, scrollX: 0, scrollY: 0, backgroundColor: '#ffffff' },
           jsPDF:       { unit: 'mm', format: [215.9, 330.2], orientation: 'portrait' },
-          pagebreak:   { mode: ['css', 'legacy'] }
+          pagebreak:   { after: '#sas-page-1' }
         };
 
         const pdfDataUri = await win.html2pdf().set(opt).from(exportWrapper).outputPdf('datauristring');
