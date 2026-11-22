@@ -384,21 +384,46 @@
         <!-- VIEW: ARSIP RAPOR PDF (KHUSUS WALAS) -->
             <div id="view-arsip" class="hidden space-y-4 flex-1 flex flex-col min-h-0">
               
-              <!-- Header & Tombol Aksi -->
+              <!-- Header, Filter Jenis/Semester & Tombol Aksi -->
               <div class="flex flex-wrap items-center justify-between bg-white p-4 rounded-xl border border-gray-200 shadow-sm gap-4 shrink-0">
                 <div>
-                  <h3 class="font-bold text-lg text-slate-800">Arsip Rapor & Leger Kelas</h3>
-                  <p class="text-xs text-gray-500" id="arsip-meta-info">Kelas: - | Semester: -</p>
+                  <div class="flex flex-wrap items-center gap-2">
+                    <h3 class="font-bold text-lg text-slate-800">Arsip Rapor & Leger Kelas</h3>
+                    <span id="arsip-leger-badge" class="hidden px-2 py-0.5 bg-emerald-100 text-emerald-700 text-[10px] rounded-md font-bold"></span>
+                  </div>
+                  <p class="text-xs text-gray-500 mt-0.5" id="arsip-meta-info">Kelas: - | Jenis: SAS | Semester: 1</p>
                   <p class="text-[11px] text-amber-600 mt-1.5 font-medium flex items-center">
                     <i class="fa-solid fa-triangle-exclamation mr-1.5"></i>
                     Pastikan seluruh nilai sudah final. Data akan disimpan permanen ke Google Drive Tata Usaha.
                   </p>
                 </div>
+
                 <div class="flex flex-wrap items-center gap-2">
+                  <!-- Dropdown Jenis Rapor -->
+                  <select id="select-arsip-jenis" onchange="onChangeArsipFilter()" class="bg-slate-50 border border-slate-300 text-slate-700 text-xs sm:text-sm rounded-lg px-3 py-2 font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    <option value="SAS" selected>Rapor SAS</option>
+                    <option value="STS">Rapor STS</option>
+                  </select>
+
+                  <!-- Dropdown Semester -->
+                  <select id="select-arsip-semester" onchange="onChangeArsipFilter()" class="bg-slate-50 border border-slate-300 text-slate-700 text-xs sm:text-sm rounded-lg px-3 py-2 font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    <option value="1" selected>Semester 1 (Ganjil)</option>
+                    <option value="2">Semester 2 (Genap)</option>
+                  </select>
+
+                  <!-- Tombol Buka Folder Drive -->
+                  <a id="link-arsip-folder-drive" href="https://drive.google.com/drive/folders/1YjuyK0MB8_6B0e396JkEjCaMbR-l0-Vn" target="_blank" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-2 rounded-lg text-xs sm:text-sm font-medium border border-slate-300 transition flex items-center space-x-1.5" title="Buka Folder Arsip di Google Drive">
+                    <i class="fa-brands fa-google-drive text-emerald-600"></i>
+                    <span>Buka Drive</span>
+                  </a>
+
+                  <!-- Tombol Arsip Leger -->
                   <button onclick="arsipLegerKelas()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-xs sm:text-sm font-medium shadow-sm transition flex items-center space-x-2">
                     <i class="fa-solid fa-file-excel"></i>
                     <span>1. Arsip Leger Kelas</span>
                   </button>
+
+                  <!-- Tombol Generate Rapor PDF Massal -->
                   <button onclick="arsipRaporSekelas()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-xs sm:text-sm font-medium shadow-sm transition flex items-center space-x-2">
                     <i class="fa-solid fa-file-pdf"></i>
                     <span>2. Generate Rapor PDF</span>
@@ -428,7 +453,7 @@
                         <th class="p-3 border-r w-12 text-center font-bold text-slate-700">NO</th>
                         <th class="p-3 border-r w-32 text-center font-bold text-slate-700">NISN</th>
                         <th class="p-3 border-r w-64 font-bold text-slate-700">NAMA SISWA</th>
-                        <th class="p-3 border-r w-40 text-center font-bold text-slate-700">STATUS PDF</th>
+                        <th class="p-3 border-r w-44 text-center font-bold text-slate-700">STATUS PDF</th>
                         <th class="p-3 w-32 text-center font-bold text-slate-700">AKSI</th>
                       </tr>
                     </thead>
