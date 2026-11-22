@@ -309,8 +309,8 @@ function getTingkatKelas() {
 // FUNGSI ARSIP RAPOR PDF & LEGER EXCEL (DATA ASLI)
 // ====================================================
 
-// PENTING: Ganti dengan ID Folder Google Drive tujuan penyimpanan arsip PDF
-const ARSIP_DRIVE_FOLDER_ID = "1YjuyK0MB8_6B0e396JkEjCaMbR-l0-Vn";
+// ID Folder Google Drive tujuan penyimpanan arsip PDF
+const ARSIP_DRIVE_FOLDER_ID = "1YjuyK0MB8_6B0e396JkEjCaMbR-I0-Vn";
 
 async function loadDataArsip(forceRefresh = false) {
   const tbody = document.getElementById('table-arsip-body');
@@ -417,12 +417,16 @@ function prosesArsipRaporAsli(siswaIndex, namaSiswa) {
       sessionStorage.setItem(`ERAPOR_LEGER_SAS_${cacheKey}`, JSON.stringify(LEGER_SAS_CACHE[cacheKey]));
     }
 
+    // Tempatkan iframe di dalam viewport di belakang layer utama agar browser me-render CSS & gambar secara penuh
     const iframe = document.createElement('iframe');
     iframe.style.position = 'fixed';
-    iframe.style.width = '215.9mm';
-    iframe.style.height = '330.2mm';
-    iframe.style.left = '-9999px';
+    iframe.style.left = '0';
     iframe.style.top = '0';
+    iframe.style.width = '820px';
+    iframe.style.height = '1260px';
+    iframe.style.zIndex = '-9999';
+    iframe.style.border = 'none';
+    iframe.style.pointerEvents = 'none';
     iframe.src = `cetak-sas.html?sem=${sem}`;
     document.body.appendChild(iframe);
 
@@ -466,6 +470,17 @@ function prosesArsipRaporAsli(siswaIndex, namaSiswa) {
         // Render rapor khusus untuk siswaIndex yang dipilih
         win.renderLembarRaporSAS(siswaIndex);
 
+        // Muat html2pdf langsung di dalam context iframe agar seluruh CSS cetak-sas.html ikut ter-render
+        if (typeof win.html2pdf !== 'function') {
+          await new Promise((resScript, rejScript) => {
+            const sc = doc.createElement('script');
+            sc.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js';
+            sc.onload = resScript;
+            sc.onerror = rejScript;
+            doc.head.appendChild(sc);
+          });
+        }
+
         // Tunggu seluruh gambar (kop & watermark) selesai dimuat
         const imgs = Array.from(doc.querySelectorAll('img'));
         await Promise.all(imgs.map(img => {
@@ -475,9 +490,13 @@ function prosesArsipRaporAsli(siswaIndex, namaSiswa) {
             img.onerror = r;
           });
         }));
-        await new Promise(r => setTimeout(r, 200));
+        await new Promise(r => setTimeout(r, 250));
 
-        // Rapikan tampilan cetak agar persis @media print (tanpa border/shadow/margin luar)
+        // Sembunyikan toolbar navigasi cetak
+        doc.querySelectorAll('.no-print, #sas-mm-ruler').forEach(el => {
+          el.style.display = 'none';
+        });
+
         doc.body.style.background = '#ffffff';
         doc.body.style.padding = '0';
         doc.body.style.margin = '0';
@@ -488,18 +507,23 @@ function prosesArsipRaporAsli(siswaIndex, namaSiswa) {
           pg.style.padding = '0';
           pg.style.margin = '0';
           pg.style.width = '189.9mm';
-          pg.style.minHeight = '296mm';
+          pg.style.minHeight = '290mm';
+          pg.style.maxHeight = '302mm';
         });
 
-        // Bungkus halaman 1 dan halaman 2 dengan pemisah halaman F4
+        // Bungkus halaman 1 dan halaman 2 dengan pemisah halaman F4 (total 2 halaman)
         const exportWrapper = doc.createElement('div');
         exportWrapper.style.width = '189.9mm';
         exportWrapper.style.background = '#ffffff';
+        exportWrapper.style.margin = '0';
+        exportWrapper.style.padding = '0';
 
         const pageBreak = doc.createElement('div');
         pageBreak.style.pageBreakBefore = 'always';
         pageBreak.style.breakBefore = 'page';
         pageBreak.style.height = '0';
+        pageBreak.style.margin = '0';
+        pageBreak.style.padding = '0';
 
         exportWrapper.appendChild(page1);
         exportWrapper.appendChild(pageBreak);
@@ -510,17 +534,17 @@ function prosesArsipRaporAsli(siswaIndex, namaSiswa) {
           statusCell.innerHTML = `<span class="px-2.5 py-1 bg-indigo-100 text-indigo-700 text-[10px] rounded-md font-bold"><i class="fa-solid fa-spinner animate-spin"></i> Generate PDF...</span>`;
         }
 
-        // Ukuran F4 (215.9mm x 330.2mm) dengan margin cetak (12mm atas/bawah, 13mm kiri/kanan -> area cetak 189.9mm)
+        // Ukuran F4 (215.9mm x 330.2mm) dengan margin cetak (12mm atas/bawah, 13mm kiri/kanan -> area cetak 189.9mm x 306.2mm)
         const opt = {
           margin:      [12, 13, 12, 13],
           filename:    `Rapor_SAS_${sem}_${kelasWalas}_${String(namaSiswa).replace(/ /g, "_")}.pdf`,
           image:       { type: 'jpeg', quality: 0.98 },
-          html2canvas: { scale: 2, useCORS: true, windowWidth: 816 },
+          html2canvas: { scale: 2, useCORS: true, scrollX: 0, scrollY: 0 },
           jsPDF:       { unit: 'mm', format: [215.9, 330.2], orientation: 'portrait' },
           pagebreak:   { mode: ['css', 'legacy'] }
         };
 
-        const pdfDataUri = await html2pdf().set(opt).from(exportWrapper).outputPdf('datauristring');
+        const pdfDataUri = await win.html2pdf().set(opt).from(exportWrapper).outputPdf('datauristring');
         const base64DataClean = pdfDataUri.split(',')[1];
 
         if (iframe.parentNode) document.body.removeChild(iframe);
