@@ -62,6 +62,9 @@
           <a href="#" id="nav-katrol" onclick="switchMenu('katrol')" class="menu-item">
             <i class="fa-solid fa-sliders w-5 text-center"></i> <span>Pengolahan Katrol</span>
           </a>
+          <a href="#" id="nav-arsip" onclick="switchMenu('arsip')" class="menu-item">
+            <i class="fa-solid fa-box-archive w-5 text-center"></i> <span>Data Arsip</span>
+          </a>
 
           <!-- MENU KHUSUS WALI KELAS: DROPDOWN STS -->
           <div id="nav-sts-group" class="hidden">
@@ -387,6 +390,21 @@
                 <i class="fa-solid fa-rotate"></i>
                 <span>Muat Ulang Data Sheet</span>
               </button>
+            </div>
+
+            <!-- VIEW: PENGARSIPAN -->
+            <div id="view-arsip" class="hidden space-y-4 flex-1 overflow-y-auto min-h-0">
+              <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex justify-between items-center">
+                <div>
+                  <h3 class="font-bold text-lg text-slate-800">Arsip E-Rapor</h3>
+                  <p class="text-xs text-gray-500">Akses, unduh, atau kelola data rapor dari tahun pelajaran sebelumnya.</p>
+                </div>
+              </div>
+              
+              <!-- Nanti kita desain isi tabel arsip / filter tahun ajaran di sini -->
+              <div id="arsip-container" class="bg-white rounded-xl border border-gray-200 shadow-sm p-4">
+                <!-- Konten Arsip -->
+              </div>
             </div>
 
             <!-- 8 SUB-TAB NAVIGASI SEJAJAR TAB SPREADSHEET -->
