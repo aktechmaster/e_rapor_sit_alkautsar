@@ -249,6 +249,7 @@ function populateDropdowns(user) {
     updateKelasDropdown(selectMapel.value);
   }
 
+  // KONTROL MENU KHUSUS WALI KELAS
   const navStsGroup = document.getElementById('nav-sts-group');
   if (navStsGroup) {
     if (user && user.walas_kelas) {
@@ -264,6 +265,16 @@ function populateDropdowns(user) {
       navSasGroup.classList.remove('hidden');
     } else {
       navSasGroup.classList.add('hidden');
+    }
+  }
+
+  // TAMBAHAN: KONTROL MENU ARSIP
+  const navArsipGroup = document.getElementById('nav-arsip-group');
+  if (navArsipGroup) {
+    if (user && user.walas_kelas) {
+      navArsipGroup.classList.remove('hidden');
+    } else {
+      navArsipGroup.classList.add('hidden');
     }
   }
 }
