@@ -34,7 +34,7 @@ function switchMenu(viewName, semester = null) {
   // Kompatibilitas jika ada pemanggilan lama 'leger-sas'
   const resolvedView = viewName === 'leger-sas' ? 'sas-workspace' : viewName;
 
-  const views = ['dashboard', 'tp', 'sumatif', 'formatif', 'katrol', 'leger', 'sas-workspace'];
+  const views = ['dashboard', 'tp', 'sumatif', 'formatif', 'katrol', 'leger', 'sas-workspace', 'arsip'];
   views.forEach(v => {
     const el = document.getElementById(`view-${v}`);
     if (el) el.classList.add('hidden');
