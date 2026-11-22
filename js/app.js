@@ -215,6 +215,11 @@ function loadActiveMenuData(targetViewName = null) {
     } else if (typeof loadLegerSAS === 'function') {
       loadLegerSAS();
     }
+  } else if (viewId === 'view-arsip') {
+    // TAMBAHKAN BARIS INI
+    if (typeof loadDataArsip === 'function') {
+      loadDataArsip();
+    }
   }
 }
 
@@ -299,4 +304,63 @@ function getTingkatKelas() {
   if (!selectKelas || !selectKelas.value) return null;
   const match = selectKelas.value.match(/\d+/);
   return match ? match[0] : null;
+}
+
+async function loadDataArsip() {
+  const tbody = document.getElementById('table-arsip-body');
+  const metaInfo = document.getElementById('arsip-meta-info');
+
+  // Pastikan yang login adalah Wali Kelas
+  if (!STATE.currentUser || !STATE.currentUser.walas_kelas) {
+    tbody.innerHTML = '<tr><td colspan="5" class="text-center p-4 text-red-500 font-medium">Akses Ditolak: Anda bukan Wali Kelas.</td></tr>';
+    return;
+  }
+
+  const kelasWalas = STATE.currentUser.walas_kelas;
+  // Gunakan semester SAS yang aktif, atau default 1
+  const semester = STATE.currentSasSemester || 1; 
+  
+  metaInfo.textContent = `Kelas: ${kelasWalas} | Semester: ${semester}`;
+  tbody.innerHTML = '<tr><td colspan="5" class="text-center p-6"><i class="fa-solid fa-circle-notch animate-spin text-indigo-500 mr-2 text-lg"></i> Memuat data siswa...</td></tr>';
+
+  try {
+    // CATATAN: Ganti bagian ini dengan fungsi pemanggilan API Anda untuk mengambil data siswa berdasarkan 'kelasWalas'
+    // Contoh jika menggunakan Api.get:
+    // const dataSiswa = await Api.get('getSiswaByKelas', { kelas: kelasWalas });
+    
+    // Ini adalah data dummy sementara agar tabel Anda langsung terisi (Hapus dan ganti dengan API asli nanti)
+    const dataSiswa = [
+      { nisn: "0012345678", nama: "Ahmad Fulan" },
+      { nisn: "0012345679", nama: "Siti Fulanah" }
+    ];
+
+    if (!dataSiswa || dataSiswa.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="5" class="text-center p-4 text-gray-500">Belum ada data siswa di kelas ini.</td></tr>';
+      return;
+    }
+
+    let html = '';
+    dataSiswa.forEach((siswa, index) => {
+      html += `
+        <tr class="hover:bg-slate-50 transition">
+          <td class="p-3 border-r text-center">${index + 1}</td>
+          <td class="p-3 border-r text-center">${siswa.nisn || '-'}</td>
+          <td class="p-3 border-r font-medium">${siswa.nama}</td>
+          <td class="p-3 border-r text-center">
+            <span class="px-2.5 py-1 bg-slate-100 text-slate-500 text-[10px] rounded-md font-bold border border-slate-200">Belum Dibuat</span>
+          </td>
+          <td class="p-3 text-center">
+            <button onclick="generateRaporPDF('${siswa.nisn}')" class="bg-blue-50 hover:bg-blue-100 text-blue-600 px-3 py-1.5 rounded text-xs font-semibold border border-blue-200 transition">
+              <i class="fa-solid fa-file-pdf mr-1"></i> Buat PDF
+            </button>
+          </td>
+        </tr>
+      `;
+    });
+    
+    tbody.innerHTML = html;
+  } catch (error) {
+    console.error("Error memuat data arsip:", error);
+    tbody.innerHTML = '<tr><td colspan="5" class="text-center p-4 text-red-500">Terjadi kesalahan saat memuat data siswa.</td></tr>';
+  }
 }
