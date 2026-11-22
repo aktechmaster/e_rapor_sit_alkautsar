@@ -1,9 +1,26 @@
 // ====================================================
+// KONFIGURASI & STATE GLOBAL
+// ====================================================
+const CONFIG = {
+  // PENTING: Ganti tulisan di bawah dengan URL Web App Google Apps Script Anda
+  API_URL: "https://script.google.com/macros/s/AKfycbxB-2-_I2lhQz6hMPdMl3OEKpXXjpnmHJK6pg0N2kX9kC0PRh5_N9_ga4vkxnnrCU6hTw/exec", 
+  MAPEL_DB: {} 
+};
+
+let STATE = {
+  currentUser: JSON.parse(sessionStorage.getItem('USER_SESSION')) || null,
+  currentSasSemester: 1,
+  currentStsSemester: 1
+};
+
+let MAPEL_KELAS_MAPPING = {};
+
+// ====================================================
 // MAIN ENTRY POINT & CONTROLLER ROUTING
 // ====================================================
 document.addEventListener("DOMContentLoaded", () => {
-  checkAuthSession();
-  renderFormatifHeaders();
+  if (typeof checkAuthSession === 'function') checkAuthSession();
+  if (typeof renderFormatifHeaders === 'function') renderFormatifHeaders();
 
   const selectMapel = document.getElementById('select-mapel');
   if (selectMapel) {
@@ -18,8 +35,10 @@ document.addEventListener("DOMContentLoaded", () => {
     selectKelas.addEventListener('change', () => loadActiveMenuData());
   }
 
-  attachTableKeyboardNav('table-formatif-body');
-  attachTableKeyboardNav('table-sumatif-body');
+  if (typeof attachTableKeyboardNav === 'function') {
+    attachTableKeyboardNav('table-formatif-body');
+    attachTableKeyboardNav('table-sumatif-body');
+  }
 });
 
 function switchMenu(viewName, semester = null) {
@@ -74,7 +93,7 @@ function switchMenu(viewName, semester = null) {
   // KONTROL VISIBILITAS DROPDOWN HEADER MAPEL & KELAS
   const headerSelectMapel = document.getElementById('select-mapel')?.parentElement;
   const headerSelectKelas = document.getElementById('select-kelas')?.parentElement;
-  if (resolvedView === 'leger' || resolvedView === 'sas-workspace') {
+  if (resolvedView === 'leger' || resolvedView === 'sas-workspace' || resolvedView === 'arsip') {
     if (headerSelectMapel) headerSelectMapel.classList.add('hidden');
     if (headerSelectKelas) headerSelectKelas.classList.add('hidden');
   } else {
@@ -198,17 +217,15 @@ function loadActiveMenuData(targetViewName = null) {
   if (!viewId) return;
 
   if (viewId === 'view-tp') {
-    loadSettingTP();
+    if (typeof loadSettingTP === 'function') loadSettingTP();
   } else if (viewId === 'view-sumatif') {
-    loadNilaiSumatif();
+    if (typeof loadNilaiSumatif === 'function') loadNilaiSumatif();
   } else if (viewId === 'view-formatif') {
-    loadDataKelas();
+    if (typeof loadDataKelas === 'function') loadDataKelas();
   } else if (viewId === 'view-katrol') {
-    loadKatrol();
+    if (typeof loadKatrol === 'function') loadKatrol();
   } else if (viewId === 'view-leger') {
-    if (typeof loadLegerSTS === 'function') {
-      loadLegerSTS();
-    }
+    if (typeof loadLegerSTS === 'function') loadLegerSTS();
   } else if (viewId === 'view-sas-workspace') {
     if (typeof initSasWorkspace === 'function') {
       initSasWorkspace();
@@ -306,7 +323,7 @@ function getTingkatKelas() {
 }
 
 // ====================================================
-// FUNGSI ARSIP & GENERATE PDF
+// FUNGSI ARSIP & GENERATE PDF (TANPA JSPDF/DUMMY)
 // ====================================================
 
 async function loadDataArsip() {
@@ -318,15 +335,15 @@ async function loadDataArsip() {
   const kelasWalas = STATE.currentUser.walas_kelas;
   const semester = STATE.currentSasSemester || 1; 
   
-  metaInfo.textContent = `Kelas: ${kelasWalas} | Semester: ${semester}`;
-  tbody.innerHTML = '<tr><td colspan="5" class="text-center p-6"><i class="fa-solid fa-circle-notch animate-spin text-indigo-500 mr-2"></i> Mengambil data siswa asli dari server...</td></tr>';
+  if (metaInfo) metaInfo.textContent = `Kelas: ${kelasWalas} | Semester: ${semester}`;
+  if (tbody) tbody.innerHTML = '<tr><td colspan="5" class="text-center p-6"><i class="fa-solid fa-circle-notch animate-spin text-indigo-500 mr-2"></i> Mengambil data siswa asli dari server...</td></tr>';
 
   try {
     const response = await fetch(`${CONFIG.API_URL}?action=getSiswaByKelas&kelas=${kelasWalas}`);
     const dataSiswa = await response.json();
 
     if (!dataSiswa || dataSiswa.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="5" class="text-center p-4 text-gray-500">Belum ada data siswa di kelas ini.</td></tr>';
+      if (tbody) tbody.innerHTML = '<tr><td colspan="5" class="text-center p-4 text-gray-500">Belum ada data siswa di kelas ini.</td></tr>';
       return;
     }
 
@@ -349,16 +366,16 @@ async function loadDataArsip() {
       `;
     });
     
-    tbody.innerHTML = html;
+    if (tbody) tbody.innerHTML = html;
   } catch (error) {
     console.error("Error API:", error);
-    tbody.innerHTML = '<tr><td colspan="5" class="text-center p-4 text-red-500">Gagal terhubung ke database.</td></tr>';
+    if (tbody) tbody.innerHTML = '<tr><td colspan="5" class="text-center p-4 text-red-500">Gagal terhubung ke database. Cek konfigurasi API_URL.</td></tr>';
   }
 }
 
 async function prosesArsipRaporAsli(nisn, namaSiswa) {
   const statusCell = document.getElementById(`status-arsip-${nisn}`);
-  statusCell.innerHTML = `<span class="px-2.5 py-1 bg-amber-100 text-amber-700 text-[10px] rounded-md font-bold"><i class="fa-solid fa-spinner animate-spin"></i> Merender HTML...</span>`;
+  if (statusCell) statusCell.innerHTML = `<span class="px-2.5 py-1 bg-amber-100 text-amber-700 text-[10px] rounded-md font-bold"><i class="fa-solid fa-spinner animate-spin"></i> Merender HTML...</span>`;
 
   try {
     const iframe = document.createElement('iframe');
@@ -374,12 +391,12 @@ async function prosesArsipRaporAsli(nisn, namaSiswa) {
       const raporElement = iframe.contentDocument.getElementById('rapor-container');
       
       if (!raporElement) {
-        statusCell.innerHTML = `<span class="text-red-500 text-[10px]">Error: Container rapor tidak ditemukan. Pastikan ada &lt;div id="rapor-container"&gt; di cetak-sas.html</span>`;
+        if (statusCell) statusCell.innerHTML = `<span class="text-red-500 text-[10px]">Error: Container rapor tidak ditemukan. Pastikan ada &lt;div id="rapor-container"&gt; di cetak-sas.html</span>`;
         document.body.removeChild(iframe);
         return;
       }
 
-      statusCell.innerHTML = `<span class="px-2.5 py-1 bg-indigo-100 text-indigo-700 text-[10px] rounded-md font-bold"><i class="fa-solid fa-spinner animate-spin"></i> Generate PDF...</span>`;
+      if (statusCell) statusCell.innerHTML = `<span class="px-2.5 py-1 bg-indigo-100 text-indigo-700 text-[10px] rounded-md font-bold"><i class="fa-solid fa-spinner animate-spin"></i> Generate PDF...</span>`;
 
       const opt = {
         margin:       0,
@@ -397,13 +414,14 @@ async function prosesArsipRaporAsli(nisn, namaSiswa) {
       
       document.body.removeChild(iframe);
 
-      statusCell.innerHTML = `<span class="px-2.5 py-1 bg-blue-100 text-blue-700 text-[10px] rounded-md font-bold"><i class="fa-solid fa-cloud-arrow-up animate-pulse"></i> Mengirim ke Drive...</span>`;
+      if (statusCell) statusCell.innerHTML = `<span class="px-2.5 py-1 bg-blue-100 text-blue-700 text-[10px] rounded-md font-bold"><i class="fa-solid fa-cloud-arrow-up animate-pulse"></i> Mengirim ke Drive...</span>`;
 
       const response = await fetch(CONFIG.API_URL, {
         method: 'POST',
         body: JSON.stringify({
           action: "uploadPDF",
-          folderId: "ID_FOLDER_GOOGLE_DRIVE_ANDA_DISINI", // <-- PENTING: Ganti dengan ID Folder Drive Anda
+          // PENTING: Ganti dengan ID Folder Drive Anda
+          folderId: "ID_FOLDER_GOOGLE_DRIVE_ANDA_DISINI", 
           fileName: `Rapor_SAS_${STATE.currentUser.walas_kelas}_${namaSiswa.replace(/ /g, "_")}.pdf`,
           base64Data: base64DataClean
         })
@@ -412,18 +430,18 @@ async function prosesArsipRaporAsli(nisn, namaSiswa) {
       const result = await response.json();
 
       if (result.status === "success") {
-        statusCell.innerHTML = `<span class="px-2.5 py-1 bg-emerald-100 text-emerald-700 text-[10px] rounded-md font-bold"><i class="fa-solid fa-check"></i> Tersimpan di <a href="${result.fileUrl}" target="_blank" class="underline">Drive</a></span>`;
+        if (statusCell) statusCell.innerHTML = `<span class="px-2.5 py-1 bg-emerald-100 text-emerald-700 text-[10px] rounded-md font-bold"><i class="fa-solid fa-check"></i> Tersimpan di <a href="${result.fileUrl}" target="_blank" class="underline">Drive</a></span>`;
       } else {
         throw new Error(result.message);
       }
     };
   } catch (error) {
     console.error("Error Arsip:", error);
-    statusCell.innerHTML = `<span class="px-2.5 py-1 bg-red-100 text-red-700 text-[10px] rounded-md font-bold">Gagal Menyimpan</span>`;
+    if (statusCell) statusCell.innerHTML = `<span class="px-2.5 py-1 bg-red-100 text-red-700 text-[10px] rounded-md font-bold">Gagal Menyimpan</span>`;
   }
 }
 
-// 1. FUNGSI PEMBUATAN EXCEL (LEGER KELAS)
+// FUNGSI PEMBUATAN EXCEL (LEGER KELAS)
 function arsipLegerKelas() {
   console.log("Memproses Leger Excel...");
   
@@ -432,10 +450,14 @@ function arsipLegerKelas() {
     { NO: 2, NISN: "0012345679", NAMA: "Siti Fulanah", PAI: 92, B_INDO: 88, MTK: 95, TOTAL: 275, RATA_RATA: 91.67 }
   ];
 
-  const worksheet = XLSX.utils.json_to_sheet(dataLeger);
-  const workbook = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(workbook, worksheet, "Leger Kelas");
+  if (typeof XLSX !== 'undefined') {
+    const worksheet = XLSX.utils.json_to_sheet(dataLeger);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Leger Kelas");
 
-  const kelas = STATE.currentUser?.walas_kelas || "Unknown";
-  XLSX.writeFile(workbook, `Leger_Kelas_${kelas}.xlsx`);
+    const kelas = STATE.currentUser?.walas_kelas || "Unknown";
+    XLSX.writeFile(workbook, `Leger_Kelas_${kelas}.xlsx`);
+  } else {
+    alert("Library XLSX belum dimuat. Tidak bisa mencetak leger.");
+  }
 }
