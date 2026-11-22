@@ -519,6 +519,7 @@ function prosesArsipRaporAsli(siswaIndex, namaSiswa) {
         exportWrapper.style.padding = '0';
 
         const pageBreak = doc.createElement('div');
+        pageBreak.className = 'html2pdf__page-break';
         pageBreak.style.pageBreakBefore = 'always';
         pageBreak.style.breakBefore = 'page';
         pageBreak.style.height = '0';
@@ -534,9 +535,9 @@ function prosesArsipRaporAsli(siswaIndex, namaSiswa) {
           statusCell.innerHTML = `<span class="px-2.5 py-1 bg-indigo-100 text-indigo-700 text-[10px] rounded-md font-bold"><i class="fa-solid fa-spinner animate-spin"></i> Generate PDF...</span>`;
         }
 
-        // Ukuran F4 (215.9mm x 330.2mm) dengan margin cetak (12mm atas/bawah, 13mm kiri/kanan -> area cetak 189.9mm x 306.2mm)
+        // html2pdf hanya menerima 2 elemen array untuk margin: [atasBawah, kiriKanan]
         const opt = {
-          margin:      [12, 13, 12, 13],
+          margin:      [12, 13],
           filename:    `Rapor_SAS_${sem}_${kelasWalas}_${String(namaSiswa).replace(/ /g, "_")}.pdf`,
           image:       { type: 'jpeg', quality: 0.98 },
           html2canvas: { scale: 2, useCORS: true, scrollX: 0, scrollY: 0 },
@@ -650,7 +651,7 @@ async function arsipRaporSekelas() {
     return;
   }
 
-  if (!ARSIP_DRIVE_FOLDER_ID || ARSIP_DRIVE_FOLDER_ID === "1YjuyK0MB8_6B0e396JkEjCaMbR-l0-Vn") {
+  if (!ARSIP_DRIVE_FOLDER_ID || ARSIP_DRIVE_FOLDER_ID === "ID_FOLDER_GOOGLE_DRIVE_ANDA_DISINI") {
     alert("Silakan isi terlebih dahulu ARSIP_DRIVE_FOLDER_ID di file js/app.js dengan ID Folder Google Drive tujuan Anda.");
     return;
   }
