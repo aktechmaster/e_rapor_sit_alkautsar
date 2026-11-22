@@ -394,7 +394,7 @@ function prosesArsipRaporAsli(siswaIndex, namaSiswa) {
     siswaIndex = Number(siswaIndex);
     const statusCell = document.getElementById(`status-arsip-${siswaIndex}`);
 
-    if (!ARSIP_DRIVE_FOLDER_ID || ARSIP_DRIVE_FOLDER_ID === "ID_FOLDER_GOOGLE_DRIVE_ANDA_DISINI") {
+    if (!ARSIP_DRIVE_FOLDER_ID || ARSIP_DRIVE_FOLDER_ID === "1YjuyK0MB8_6B0e396JkEjCaMbR-l0-Vn") {
       if (statusCell) {
         statusCell.innerHTML = `<span class="px-2.5 py-1 bg-red-100 text-red-700 text-[10px] rounded-md font-bold">Isi ARSIP_DRIVE_FOLDER_ID di app.js dulu</span>`;
       }
