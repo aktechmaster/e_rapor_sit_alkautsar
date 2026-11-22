@@ -1,9 +1,4 @@
 // ====================================================
-// Variabel Global (CONFIG & STATE sudah ada di file lain)
-// ====================================================
-var MAPEL_KELAS_MAPPING = {};
-
-// ====================================================
 // MAIN ENTRY POINT & CONTROLLER ROUTING
 // ====================================================
 document.addEventListener("DOMContentLoaded", () => {
