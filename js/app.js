@@ -365,20 +365,85 @@ async function loadDataArsip() {
   }
 }
 
-// Fungsi untuk tombol 1. Arsip Leger Kelas
+// 1. FUNGSI PEMBUATAN EXCEL (LEGER KELAS)
 function arsipLegerKelas() {
-  console.log("Menyiapkan arsip leger kelas...");
-  alert("Fitur Arsip Leger Kelas sedang dikembangkan. Nantinya tombol ini akan memproses file Excel.");
+  console.log("Memproses Leger Excel...");
+  
+  // Contoh data siswa (Nantinya diganti dengan variabel data dari database Anda)
+  const dataLeger = [
+    { NO: 1, NISN: "0012345678", NAMA: "Ahmad Fulan", PAI: 85, B_INDO: 90, MTK: 88, TOTAL: 263, RATA_RATA: 87.67 },
+    { NO: 2, NISN: "0012345679", NAMA: "Siti Fulanah", PAI: 92, B_INDO: 88, MTK: 95, TOTAL: 275, RATA_RATA: 91.67 }
+  ];
+
+  // Membuat Worksheet dan Workbook baru
+  const worksheet = XLSX.utils.json_to_sheet(dataLeger);
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, "Leger Kelas");
+
+  // Menyimpan file Excel
+  const kelas = STATE.currentUser?.walas_kelas || "Unknown";
+  XLSX.writeFile(workbook, `Leger_Kelas_${kelas}.xlsx`);
 }
 
-// Fungsi untuk tombol 2. Generate Rapor PDF (Semua Siswa)
-function arsipRaporSekelas() {
-  console.log("Memulai proses generate rapor PDF untuk seluruh kelas...");
-  alert("Fitur Generate Rapor Sekelas sedang dikembangkan. Nantinya tombol ini akan memproses PDF massal.");
-}
-
-// Fungsi untuk tombol Buat PDF di tabel (Per Siswa)
+// 2. FUNGSI PEMBUATAN PDF (PER SISWA)
 function generateRaporPDF(nisn) {
-  console.log("Memproses PDF untuk NISN: " + nisn);
-  alert("Fitur Buat PDF untuk siswa dengan NISN " + nisn + " sedang dikembangkan.");
+  console.log("Memproses Rapor PDF untuk NISN: " + nisn);
+  
+  // Inisialisasi jsPDF
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF('p', 'mm', 'a4'); // Kertas A4, orientasi Portrait
+
+  // Mengambil nama siswa dari tabel (mencari baris yang sesuai dengan NISN)
+  // Dalam praktiknya, Anda mengambil ini dari database
+  let namaSiswa = "Siswa";
+  if (nisn === "0012345678") namaSiswa = "Ahmad Fulan";
+  if (nisn === "0012345679") namaSiswa = "Siti Fulanah";
+
+  // Desain Template Rapor Dasar PDF
+  doc.setFontSize(16);
+  doc.setFont("helvetica", "bold");
+  doc.text("LAPORAN HASIL BELAJAR (RAPOR)", 105, 20, { align: "center" });
+
+  doc.setFontSize(11);
+  doc.setFont("helvetica", "normal");
+  doc.text(`Nama Siswa  : ${namaSiswa}`, 20, 40);
+  doc.text(`NISN        : ${nisn}`, 20, 47);
+  doc.text(`Kelas       : ${STATE.currentUser?.walas_kelas || "-"}`, 130, 40);
+  doc.text(`Semester    : ${STATE.currentSasSemester || "1"}`, 130, 47);
+
+  // Tabel Nilai di dalam PDF
+  doc.autoTable({
+    startY: 55,
+    head: [['No', 'Mata Pelajaran', 'Nilai Akhir', 'Capaian Kompetensi']],
+    body: [
+      ['1', 'Pendidikan Agama Islam', '85', 'Sangat Baik dalam memahami materi.'],
+      ['2', 'Bahasa Indonesia', '90', 'Baik dalam komunikasi lisan dan tulisan.'],
+      ['3', 'Matematika', '88', 'Memiliki kemampuan logika yang baik.']
+    ],
+    theme: 'grid',
+    headStyles: { fillColor: [44, 62, 80] }
+  });
+
+  // Tanda Tangan
+  const finalY = doc.lastAutoTable.finalY + 30;
+  doc.text("Mengetahui,", 140, finalY);
+  doc.text("Wali Kelas,", 140, finalY + 5);
+  doc.text(STATE.currentUser?.nama || "Guru", 140, finalY + 30);
+
+  // Unduh File PDF
+  doc.save(`Rapor_${nisn}_${namaSiswa.replace(/ /g, "_")}.pdf`);
+}
+
+// 3. FUNGSI PEMBUATAN PDF (MASSAL / SEMUA SISWA)
+function arsipRaporSekelas() {
+  alert("Proses ini akan mengunduh PDF seluruh siswa secara berurutan. (Fungsi loop sedang diaktifkan)");
+  // Contoh loop berdasarkan data dummy
+  const daftarNISN = ["0012345678", "0012345679"];
+  
+  daftarNISN.forEach((nisn, index) => {
+    // Menambahkan jeda waktu agar browser tidak crash saat generate banyak PDF
+    setTimeout(() => {
+      generateRaporPDF(nisn);
+    }, index * 1000); // Jeda 1 detik antar siswa
+  });
 }
