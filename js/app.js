@@ -309,8 +309,8 @@ function getTingkatKelas() {
 // FUNGSI ARSIP RAPOR PDF & LEGER EXCEL (DATA ASLI)
 // ====================================================
 
-// ID Folder Google Drive tujuan penyimpanan arsip PDF
-const ARSIP_DRIVE_FOLDER_ID = "1YjuyK0MB8_6B0e396JkEjCaMbR-I0-Vn";
+// ID Folder Google Drive tujuan penyimpanan arsip PDF (menggunakan huruf l kecil: -l0-Vn)
+const ARSIP_DRIVE_FOLDER_ID = "1YjuyK0MB8_6B0e396JkEjCaMbR-l0-Vn";
 
 async function loadDataArsip(forceRefresh = false) {
   const tbody = document.getElementById('table-arsip-body');
@@ -394,9 +394,9 @@ function prosesArsipRaporAsli(siswaIndex, namaSiswa) {
     siswaIndex = Number(siswaIndex);
     const statusCell = document.getElementById(`status-arsip-${siswaIndex}`);
 
-    if (!ARSIP_DRIVE_FOLDER_ID || ARSIP_DRIVE_FOLDER_ID === "1YjuyK0MB8_6B0e396JkEjCaMbR-l0-Vn") {
+    if (!ARSIP_DRIVE_FOLDER_ID) {
       if (statusCell) {
-        statusCell.innerHTML = `<span class="px-2.5 py-1 bg-red-100 text-red-700 text-[10px] rounded-md font-bold">Isi ARSIP_DRIVE_FOLDER_ID di app.js dulu</span>`;
+        statusCell.innerHTML = `<span class="px-2.5 py-1 bg-red-100 text-red-700 text-[10px] rounded-md font-bold">ID Folder Drive kosong</span>`;
       }
       resolve(false);
       return;
@@ -647,8 +647,8 @@ async function arsipRaporSekelas() {
     return;
   }
 
-  if (!ARSIP_DRIVE_FOLDER_ID || ARSIP_DRIVE_FOLDER_ID === "ID_FOLDER_GOOGLE_DRIVE_ANDA_DISINI") {
-    alert("Silakan isi terlebih dahulu ARSIP_DRIVE_FOLDER_ID di file js/app.js dengan ID Folder Google Drive tujuan Anda.");
+  if (!ARSIP_DRIVE_FOLDER_ID) {
+    alert("ID Folder Google Drive belum diisi di file js/app.js.");
     return;
   }
 
