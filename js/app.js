@@ -306,141 +306,280 @@ function getTingkatKelas() {
 }
 
 // ====================================================
-// FUNGSI ARSIP & GENERATE PDF (TANPA JSPDF/DUMMY)
+// FUNGSI ARSIP RAPOR PDF & LEGER EXCEL (DATA ASLI)
 // ====================================================
 
-async function loadDataArsip() {
+async function loadDataArsip(forceRefresh = false) {
   const tbody = document.getElementById('table-arsip-body');
   const metaInfo = document.getElementById('arsip-meta-info');
 
   if (!STATE.currentUser || !STATE.currentUser.walas_kelas) return;
 
   const kelasWalas = STATE.currentUser.walas_kelas;
-  const semester = STATE.currentSasSemester || 1; 
-  
+  const semester = STATE.currentSasSemester || 1;
+  const spreadsheetId = CONFIG.RAPOR_SAS_DB?.[semester]?.[kelasWalas];
+
   if (metaInfo) metaInfo.textContent = `Kelas: ${kelasWalas} | Semester: ${semester}`;
-  if (tbody) tbody.innerHTML = '<tr><td colspan="5" class="text-center p-6"><i class="fa-solid fa-circle-notch animate-spin text-indigo-500 mr-2"></i> Mengambil data siswa asli dari server...</td></tr>';
+
+  if (!spreadsheetId) {
+    if (tbody) {
+      tbody.innerHTML = `<tr><td colspan="5" class="text-center p-4 text-amber-600 font-medium">ID Spreadsheet SAS ${semester} untuk Kelas ${kelasWalas} belum diisi di config.js.</td></tr>`;
+    }
+    return;
+  }
+
+  if (tbody) {
+    tbody.innerHTML = '<tr><td colspan="5" class="text-center p-6"><i class="fa-solid fa-circle-notch animate-spin text-indigo-500 mr-2"></i> Mengambil data siswa asli dari server...</td></tr>';
+  }
 
   try {
-    const response = await fetch(`${CONFIG.API_URL}?action=getSiswaByKelas&kelas=${kelasWalas}`);
-    const dataSiswa = await response.json();
+    const cacheKey = `${semester}_${kelasWalas}`;
+    let res = (!forceRefresh && typeof LEGER_SAS_CACHE !== 'undefined') ? LEGER_SAS_CACHE[cacheKey] : null;
 
-    if (!dataSiswa || dataSiswa.length === 0) {
+    if (!res || res.status !== 'success') {
+      res = await callGASAPI("getLegerSAS", {
+        spreadsheetId: spreadsheetId,
+        kelas: kelasWalas
+      });
+      if (res && res.status === 'success' && typeof LEGER_SAS_CACHE !== 'undefined') {
+        LEGER_SAS_CACHE[cacheKey] = res;
+      }
+    }
+
+    if (!res || res.status !== 'success') {
+      throw new Error(res?.message || "Gagal mengambil data siswa dari Google Apps Script.");
+    }
+
+    const dataSiswa = res.data || [];
+
+    if (dataSiswa.length === 0) {
       if (tbody) tbody.innerHTML = '<tr><td colspan="5" class="text-center p-4 text-gray-500">Belum ada data siswa di kelas ini.</td></tr>';
       return;
     }
 
     let html = '';
     dataSiswa.forEach((siswa, index) => {
+      const nisnSafe = siswa.nisn || `ROW_${index + 1}`;
+      const namaEscaped = String(siswa.nama || '').replace(/'/g, "\\'");
       html += `
-        <tr class="hover:bg-slate-50 transition" id="row-arsip-${siswa.nisn}">
+        <tr class="hover:bg-slate-50 transition" id="row-arsip-${nisnSafe}">
           <td class="p-3 border-r text-center">${index + 1}</td>
-          <td class="p-3 border-r text-center">${siswa.nisn}</td>
+          <td class="p-3 border-r text-center">${siswa.nisn || '-'}</td>
           <td class="p-3 border-r font-medium">${siswa.nama}</td>
-          <td class="p-3 border-r text-center" id="status-arsip-${siswa.nisn}">
+          <td class="p-3 border-r text-center" id="status-arsip-${nisnSafe}">
             <span class="px-2.5 py-1 bg-slate-100 text-slate-500 text-[10px] rounded-md font-bold">Belum Diarsipkan</span>
           </td>
           <td class="p-3 text-center">
-            <button onclick="prosesArsipRaporAsli('${siswa.nisn}', '${siswa.nama}')" class="bg-blue-50 hover:bg-blue-100 text-blue-600 px-3 py-1.5 rounded text-xs font-semibold border border-blue-200 transition">
+            <button onclick="prosesArsipRaporAsli('${nisnSafe}', '${namaEscaped}')" class="bg-blue-50 hover:bg-blue-100 text-blue-600 px-3 py-1.5 rounded text-xs font-semibold border border-blue-200 transition">
               <i class="fa-solid fa-cloud-arrow-up mr-1"></i> Arsipkan
             </button>
           </td>
         </tr>
       `;
     });
-    
+
     if (tbody) tbody.innerHTML = html;
   } catch (error) {
-    console.error("Error API:", error);
-    if (tbody) tbody.innerHTML = '<tr><td colspan="5" class="text-center p-4 text-red-500">Gagal terhubung ke database. Cek konfigurasi API_URL.</td></tr>';
+    console.error("Error API Arsip:", error);
+    if (tbody) {
+      tbody.innerHTML = `<tr><td colspan="5" class="text-center p-4 text-red-500">Gagal terhubung ke database: ${error.message}</td></tr>`;
+    }
   }
 }
 
-async function prosesArsipRaporAsli(nisn, namaSiswa) {
-  const statusCell = document.getElementById(`status-arsip-${nisn}`);
-  if (statusCell) statusCell.innerHTML = `<span class="px-2.5 py-1 bg-amber-100 text-amber-700 text-[10px] rounded-md font-bold"><i class="fa-solid fa-spinner animate-spin"></i> Merender HTML...</span>`;
+function prosesArsipRaporAsli(nisn, namaSiswa) {
+  return new Promise((resolve) => {
+    const statusCell = document.getElementById(`status-arsip-${nisn}`);
+    if (statusCell) {
+      statusCell.innerHTML = `<span class="px-2.5 py-1 bg-amber-100 text-amber-700 text-[10px] rounded-md font-bold"><i class="fa-solid fa-spinner animate-spin"></i> Merender HTML...</span>`;
+    }
 
-  try {
+    const kelasWalas = STATE.currentUser?.walas_kelas || "";
+    const sem = STATE.currentSasSemester || 1;
+    const cacheKey = `${sem}_${kelasWalas}`;
+
+    // Siapkan sessionStorage agar cetak-sas.html dapat membaca data user & leger
+    sessionStorage.setItem("ERAPOR_PRINT_USER", JSON.stringify(STATE.currentUser));
+    sessionStorage.setItem("ERAPOR_PRINT_SAS_SEM", String(sem));
+    if (typeof LEGER_SAS_CACHE !== "undefined" && LEGER_SAS_CACHE[cacheKey]) {
+      sessionStorage.setItem(`ERAPOR_LEGER_SAS_${cacheKey}`, JSON.stringify(LEGER_SAS_CACHE[cacheKey]));
+    }
+
     const iframe = document.createElement('iframe');
     iframe.style.position = 'absolute';
-    iframe.style.width = '210mm'; 
+    iframe.style.width = '210mm';
     iframe.style.height = '297mm';
-    iframe.style.left = '-9999px'; 
-    
-    iframe.src = `cetak-sas.html?nisn=${nisn}`; 
+    iframe.style.left = '-9999px';
+    iframe.src = `cetak-sas.html?sem=${sem}&nisn=${encodeURIComponent(nisn)}`;
     document.body.appendChild(iframe);
 
-    iframe.onload = async function() {
-      const raporElement = iframe.contentDocument.getElementById('rapor-container');
-      
-      if (!raporElement) {
-        if (statusCell) statusCell.innerHTML = `<span class="text-red-500 text-[10px]">Error: Container rapor tidak ditemukan. Pastikan ada &lt;div id="rapor-container"&gt; di cetak-sas.html</span>`;
-        document.body.removeChild(iframe);
-        return;
+    iframe.onerror = () => {
+      if (statusCell) {
+        statusCell.innerHTML = `<span class="px-2.5 py-1 bg-red-100 text-red-700 text-[10px] rounded-md font-bold">Gagal memuat cetak-sas.html</span>`;
       }
-
-      if (statusCell) statusCell.innerHTML = `<span class="px-2.5 py-1 bg-indigo-100 text-indigo-700 text-[10px] rounded-md font-bold"><i class="fa-solid fa-spinner animate-spin"></i> Generate PDF...</span>`;
-
-      const opt = {
-        margin:       0,
-        filename:     `Rapor_${nisn}.pdf`,
-        image:        { type: 'jpeg', quality: 0.98 },
-        html2canvas:  { scale: 2, useCORS: true }, 
-        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
-      };
-
-      // Generate Data URI dari PDF
-      const pdfDataUri = await html2pdf().set(opt).from(raporElement).outputPdf('datauristring');
-      
-      // Potong header "data:application/pdf;base64," agar menjadi Base64 murni
-      const base64DataClean = pdfDataUri.split(',')[1];
-      
       document.body.removeChild(iframe);
+      resolve(false);
+    };
 
-      if (statusCell) statusCell.innerHTML = `<span class="px-2.5 py-1 bg-blue-100 text-blue-700 text-[10px] rounded-md font-bold"><i class="fa-solid fa-cloud-arrow-up animate-pulse"></i> Mengirim ke Drive...</span>`;
+    iframe.onload = async function() {
+      try {
+        // Beri jeda singkat 500ms agar script render di dalam cetak-sas.html selesai mengisi DOM
+        await new Promise(r => setTimeout(r, 500));
 
-      const response = await fetch(CONFIG.API_URL, {
-        method: 'POST',
-        body: JSON.stringify({
-          action: "uploadPDF",
-          // PENTING: Ganti dengan ID Folder Drive Anda
-          folderId: "ID_FOLDER_GOOGLE_DRIVE_ANDA_DISINI", 
-          fileName: `Rapor_SAS_${STATE.currentUser.walas_kelas}_${namaSiswa.replace(/ /g, "_")}.pdf`,
+        const raporElement = iframe.contentDocument.getElementById('rapor-container');
+
+        if (!raporElement) {
+          if (statusCell) {
+            statusCell.innerHTML = `<span class="text-red-500 text-[10px]">Error: Elemen #rapor-container tidak ditemukan di cetak-sas.html</span>`;
+          }
+          document.body.removeChild(iframe);
+          resolve(false);
+          return;
+        }
+
+        if (statusCell) {
+          statusCell.innerHTML = `<span class="px-2.5 py-1 bg-indigo-100 text-indigo-700 text-[10px] rounded-md font-bold"><i class="fa-solid fa-spinner animate-spin"></i> Generate PDF...</span>`;
+        }
+
+        const opt = {
+          margin:      0,
+          filename:    `Rapor_${nisn}.pdf`,
+          image:       { type: 'jpeg', quality: 0.98 },
+          html2canvas: { scale: 2, useCORS: true },
+          jsPDF:       { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        };
+
+        const pdfDataUri = await html2pdf().set(opt).from(raporElement).outputPdf('datauristring');
+        const base64DataClean = pdfDataUri.split(',')[1];
+
+        document.body.removeChild(iframe);
+
+        if (statusCell) {
+          statusCell.innerHTML = `<span class="px-2.5 py-1 bg-blue-100 text-blue-700 text-[10px] rounded-md font-bold"><i class="fa-solid fa-cloud-arrow-up animate-pulse"></i> Mengirim ke Drive...</span>`;
+        }
+
+        const result = await callGASAPI("uploadPDF", {
+          // PENTING: Ganti dengan ID Folder Google Drive tujuan arsip Anda
+          folderId: "1YjuyK0MB8_6B0e396JkEjCaMbR-l0-Vn",
+          fileName: `Rapor_SAS_${sem}_${kelasWalas}_${String(namaSiswa).replace(/ /g, "_")}.pdf`,
           base64Data: base64DataClean
-        })
-      });
+        });
 
-      const result = await response.json();
-
-      if (result.status === "success") {
-        if (statusCell) statusCell.innerHTML = `<span class="px-2.5 py-1 bg-emerald-100 text-emerald-700 text-[10px] rounded-md font-bold"><i class="fa-solid fa-check"></i> Tersimpan di <a href="${result.fileUrl}" target="_blank" class="underline">Drive</a></span>`;
-      } else {
-        throw new Error(result.message);
+        if (result && result.status === "success") {
+          if (statusCell) {
+            statusCell.innerHTML = `<span class="px-2.5 py-1 bg-emerald-100 text-emerald-700 text-[10px] rounded-md font-bold"><i class="fa-solid fa-check"></i> Tersimpan di <a href="${result.fileUrl}" target="_blank" class="underline">Drive</a></span>`;
+          }
+          resolve(true);
+        } else {
+          throw new Error(result?.message || "Gagal upload ke Google Drive.");
+        }
+      } catch (error) {
+        console.error("Error Arsip:", error);
+        if (iframe.parentNode) document.body.removeChild(iframe);
+        if (statusCell) {
+          statusCell.innerHTML = `<span class="px-2.5 py-1 bg-red-100 text-red-700 text-[10px] rounded-md font-bold" title="${error.message}">Gagal Menyimpan</span>`;
+        }
+        resolve(false);
       }
     };
-  } catch (error) {
-    console.error("Error Arsip:", error);
-    if (statusCell) statusCell.innerHTML = `<span class="px-2.5 py-1 bg-red-100 text-red-700 text-[10px] rounded-md font-bold">Gagal Menyimpan</span>`;
-  }
+  });
 }
 
-// FUNGSI PEMBUATAN EXCEL (LEGER KELAS)
+// 1. FUNGSI PEMBUATAN EXCEL (LEGER KELAS DARI DATA ASLI)
 function arsipLegerKelas() {
-  console.log("Memproses Leger Excel...");
-  
-  const dataLeger = [
-    { NO: 1, NISN: "0012345678", NAMA: "Ahmad Fulan", PAI: 85, B_INDO: 90, MTK: 88, TOTAL: 263, RATA_RATA: 87.67 },
-    { NO: 2, NISN: "0012345679", NAMA: "Siti Fulanah", PAI: 92, B_INDO: 88, MTK: 95, TOTAL: 275, RATA_RATA: 91.67 }
-  ];
+  const kelasWalas = STATE.currentUser?.walas_kelas;
+  const sem = STATE.currentSasSemester || 1;
+  const cacheKey = `${sem}_${kelasWalas}`;
+  const legerObj = (typeof LEGER_SAS_CACHE !== 'undefined') ? LEGER_SAS_CACHE[cacheKey] : null;
 
-  if (typeof XLSX !== 'undefined') {
-    const worksheet = XLSX.utils.json_to_sheet(dataLeger);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Leger Kelas");
-
-    const kelas = STATE.currentUser?.walas_kelas || "Unknown";
-    XLSX.writeFile(workbook, `Leger_Kelas_${kelas}.xlsx`);
-  } else {
-    alert("Library XLSX belum dimuat. Tidak bisa mencetak leger.");
+  if (!legerObj || legerObj.status !== 'success' || !Array.isArray(legerObj.data)) {
+    alert("Data siswa belum dimuat. Silakan tunggu hingga daftar siswa muncul terlebih dahulu.");
+    return;
   }
+
+  if (typeof XLSX === 'undefined') {
+    alert("Library XLSX belum dimuat. Tidak bisa mencetak leger.");
+    return;
+  }
+
+  const activeMapels = (typeof getSASMapelByKelas === 'function')
+    ? getSASMapelByKelas(kelasWalas, "leger")
+    : [];
+
+  const rowsExcel = legerObj.data.map((student, idx) => {
+    const row = {
+      NO: idx + 1,
+      NISN: student.nisn || "-",
+      NAMA: student.nama
+    };
+
+    let sumNilai = 0;
+    let countNilai = 0;
+
+    activeMapels.forEach(mp => {
+      const rawScore = student.scores ? student.scores[mp.key] : null;
+      const val = (rawScore !== null && rawScore !== undefined && !isNaN(Number(rawScore)))
+        ? Math.round(Number(rawScore))
+        : "";
+      row[mp.short] = val;
+      if (val !== "") {
+        sumNilai += val;
+        countNilai++;
+      }
+    });
+
+    row.TOTAL = countNilai > 0 ? sumNilai : (student.jumlahSheet ?? "");
+    row.RATA_RATA = countNilai > 0 ? Number((sumNilai / countNilai).toFixed(2)) : (student.rataSheet ?? "");
+    row.RANK = student.rank ?? "";
+    row.SAKIT = student.sakit ?? 0;
+    row.IZIN = student.izin ?? 0;
+    row.ALPA = student.alpa ?? 0;
+
+    return row;
+  });
+
+  const worksheet = XLSX.utils.json_to_sheet(rowsExcel);
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, `Leger_SAS_${sem}_${kelasWalas}`);
+  XLSX.writeFile(workbook, `Leger_SAS_${sem}_Kelas_${kelasWalas}.xlsx`);
+}
+
+// 2. FUNGSI GENERATE & ARSIP RAPOR PDF MASSAL (1 KELAS BERURUTAN)
+async function arsipRaporSekelas() {
+  const kelasWalas = STATE.currentUser?.walas_kelas;
+  const sem = STATE.currentSasSemester || 1;
+  const cacheKey = `${sem}_${kelasWalas}`;
+  const legerObj = (typeof LEGER_SAS_CACHE !== 'undefined') ? LEGER_SAS_CACHE[cacheKey] : null;
+
+  if (!legerObj || legerObj.status !== 'success' || !Array.isArray(legerObj.data) || legerObj.data.length === 0) {
+    alert("Data siswa belum dimuat. Silakan tunggu hingga daftar siswa muncul terlebih dahulu.");
+    return;
+  }
+
+  const daftarSiswa = legerObj.data;
+  if (!confirm(`Proses ini akan membuat dan mengarsipkan ${daftarSiswa.length} file PDF Rapor SAS ${sem} Kelas ${kelasWalas} ke Google Drive secara berurutan. Lanjutkan?`)) {
+    return;
+  }
+
+  const progressContainer = document.getElementById('arsip-progress-container');
+  const progressText = document.getElementById('arsip-progress-text');
+  const progressPercent = document.getElementById('arsip-progress-percent');
+  const progressBar = document.getElementById('arsip-progress-bar');
+
+  if (progressContainer) progressContainer.classList.remove('hidden');
+
+  const total = daftarSiswa.length;
+  for (let i = 0; i < total; i++) {
+    const siswa = daftarSiswa[i];
+    const nisnSafe = siswa.nisn || `ROW_${i + 1}`;
+
+    if (progressText) progressText.textContent = `Memproses Rapor: ${i + 1} / ${total} Siswa (${siswa.nama})`;
+    await prosesArsipRaporAsli(nisnSafe, siswa.nama);
+
+    const pct = Math.round(((i + 1) / total) * 100);
+    if (progressPercent) progressPercent.textContent = `${pct}%`;
+    if (progressBar) progressBar.style.width = `${pct}%`;
+  }
+
+  if (progressText) progressText.textContent = `Selesai memproses ${total} / ${total} Siswa.`;
 }
