@@ -364,3 +364,21 @@ async function loadDataArsip() {
     tbody.innerHTML = '<tr><td colspan="5" class="text-center p-4 text-red-500">Terjadi kesalahan saat memuat data siswa.</td></tr>';
   }
 }
+
+// Fungsi untuk tombol 1. Arsip Leger Kelas
+function arsipLegerKelas() {
+  console.log("Menyiapkan arsip leger kelas...");
+  alert("Fitur Arsip Leger Kelas sedang dikembangkan. Nantinya tombol ini akan memproses file Excel.");
+}
+
+// Fungsi untuk tombol 2. Generate Rapor PDF (Semua Siswa)
+function arsipRaporSekelas() {
+  console.log("Memulai proses generate rapor PDF untuk seluruh kelas...");
+  alert("Fitur Generate Rapor Sekelas sedang dikembangkan. Nantinya tombol ini akan memproses PDF massal.");
+}
+
+// Fungsi untuk tombol Buat PDF di tabel (Per Siswa)
+function generateRaporPDF(nisn) {
+  console.log("Memproses PDF untuk NISN: " + nisn);
+  alert("Fitur Buat PDF untuk siswa dengan NISN " + nisn + " sedang dikembangkan.");
+}
