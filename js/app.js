@@ -438,3 +438,74 @@ function arsipRaporSekelas() {
     }, index * 1000); // Jeda 1 detik antar siswa
   });
 }
+
+async function prosesArsipRaporAsli(nisn, namaSiswa) {
+  const statusCell = document.getElementById(`status-arsip-${nisn}`);
+  statusCell.innerHTML = `<span class="px-2.5 py-1 bg-amber-100 text-amber-700 text-[10px] rounded-md font-bold"><i class="fa-solid fa-spinner animate-spin"></i> Merender HTML...</span>`;
+
+  try {
+    // 1. BUAT IFRAME TERSEMBUNYI UNTUK MEMUAT TEMPLATE CETAK-SAS.HTML
+    const iframe = document.createElement('iframe');
+    iframe.style.position = 'absolute';
+    iframe.style.width = '210mm'; // Lebar kertas A4
+    iframe.style.height = '297mm';
+    iframe.style.left = '-9999px'; // Sembunyikan dari layar
+    
+    // Asumsi URL cetak Anda bisa menerima parameter NISN, misal: cetak-sas.html?nisn=12345
+    iframe.src = `cetak-sas.html?nisn=${nisn}`; 
+    document.body.appendChild(iframe);
+
+    // 2. TUNGGU IFRAME SELESAI DIMUAT
+    iframe.onload = async function() {
+      // Ambil elemen HTML asli dari dalam cetak-sas.html (asumsi ID bungkus utamanya adalah 'rapor-container')
+      // Pastikan di cetak-sas.html Anda ada elemen <div id="rapor-container"> yang membungkus seluruh desain rapor
+      const raporElement = iframe.contentDocument.getElementById('rapor-container');
+      
+      if (!raporElement) {
+        statusCell.innerHTML = `<span class="text-red-500 text-[10px]">Error: Container rapor tidak ditemukan</span>`;
+        document.body.removeChild(iframe);
+        return;
+      }
+
+      statusCell.innerHTML = `<span class="px-2.5 py-1 bg-indigo-100 text-indigo-700 text-[10px] rounded-md font-bold"><i class="fa-solid fa-spinner animate-spin"></i> Generate PDF...</span>`;
+
+      // 3. UBAH HTML MENJADI PDF (BASE64) MENGGUNAKAN HTML2PDF
+      const opt = {
+        margin:       0,
+        filename:     `Rapor_${nisn}.pdf`,
+        image:        { type: 'jpeg', quality: 0.98 },
+        html2canvas:  { scale: 2, useCORS: true }, // scale 2 agar teks tajam
+        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+      };
+
+      // Generate base64 alih-alih mengunduh langsung
+      const pdfBase64 = await html2pdf().set(opt).from(raporElement).outputPdf('datauristring');
+      
+      // Hapus iframe karena sudah tidak dipakai
+      document.body.removeChild(iframe);
+
+      statusCell.innerHTML = `<span class="px-2.5 py-1 bg-blue-100 text-blue-700 text-[10px] rounded-md font-bold"><i class="fa-solid fa-cloud-arrow-up animate-pulse"></i> Mengirim ke Drive...</span>`;
+
+      // 4. KIRIM PDF (BASE64) KE GOOGLE APPS SCRIPT
+      const response = await fetch(CONFIG.API_URL, {
+        method: 'POST',
+        body: JSON.stringify({
+          action: "uploadPDFArsip",
+          fileName: `Rapor_SAS_${STATE.currentUser.walas_kelas}_${namaSiswa.replace(/ /g, "_")}.pdf`,
+          base64: pdfBase64
+        })
+      });
+
+      const result = await response.json();
+
+      if (result.status === "success") {
+        statusCell.innerHTML = `<span class="px-2.5 py-1 bg-emerald-100 text-emerald-700 text-[10px] rounded-md font-bold"><i class="fa-solid fa-check"></i> Tersimpan di Drive</span>`;
+      } else {
+        throw new Error(result.message);
+      }
+    };
+  } catch (error) {
+    console.error("Error Arsip:", error);
+    statusCell.innerHTML = `<span class="px-2.5 py-1 bg-red-100 text-red-700 text-[10px] rounded-md font-bold">Gagal Menyimpan</span>`;
+  }
+}
