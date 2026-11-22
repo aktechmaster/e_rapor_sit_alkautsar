@@ -309,8 +309,12 @@ function getTingkatKelas() {
 // FUNGSI ARSIP RAPOR PDF & LEGER EXCEL (DATA ASLI)
 // ====================================================
 
-// ID Folder Google Drive tujuan penyimpanan arsip PDF (menggunakan huruf l kecil: -l0-Vn)
+// ID Folder Google Drive tujuan penyimpanan arsip PDF
 const ARSIP_DRIVE_FOLDER_ID = "1YjuyK0MB8_6B0e396JkEjCaMbR-l0-Vn";
+
+function getNamaFileRaporSAS(sem, kelasWalas, namaSiswa) {
+  return `Rapor_SAS_${sem}_${kelasWalas}_${String(namaSiswa || '').replace(/ /g, "_")}.pdf`;
+}
 
 async function loadDataArsip(forceRefresh = false) {
   const tbody = document.getElementById('table-arsip-body');
@@ -332,28 +336,35 @@ async function loadDataArsip(forceRefresh = false) {
   }
 
   if (tbody) {
-    tbody.innerHTML = '<tr><td colspan="5" class="text-center p-6"><i class="fa-solid fa-circle-notch animate-spin text-indigo-500 mr-2"></i> Mengambil data siswa asli dari server...</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="5" class="text-center p-6"><i class="fa-solid fa-circle-notch animate-spin text-indigo-500 mr-2"></i> Memeriksa data siswa & status arsip di Google Drive...</td></tr>';
   }
 
   try {
     const cacheKey = `${semester}_${kelasWalas}`;
+    const filePrefix = `Rapor_SAS_${semester}_${kelasWalas}_`;
     let res = (!forceRefresh && typeof LEGER_SAS_CACHE !== 'undefined') ? LEGER_SAS_CACHE[cacheKey] : null;
 
-    if (!res || res.status !== 'success') {
-      res = await callGASAPI("getLegerSAS", {
-        spreadsheetId: spreadsheetId,
-        kelas: kelasWalas
-      });
-      if (res && res.status === 'success' && typeof LEGER_SAS_CACHE !== 'undefined') {
-        LEGER_SAS_CACHE[cacheKey] = res;
-      }
+    const legerPromise = (!res || res.status !== 'success')
+      ? callGASAPI("getLegerSAS", { spreadsheetId: spreadsheetId, kelas: kelasWalas })
+      : Promise.resolve(res);
+
+    const drivePromise = callGASAPI("getArsipFiles", {
+      folderId: ARSIP_DRIVE_FOLDER_ID,
+      prefix: filePrefix
+    });
+
+    const [legerRes, driveRes] = await Promise.all([legerPromise, drivePromise]);
+
+    if (legerRes && legerRes.status === 'success' && typeof LEGER_SAS_CACHE !== 'undefined') {
+      LEGER_SAS_CACHE[cacheKey] = legerRes;
     }
 
-    if (!res || res.status !== 'success') {
-      throw new Error(res?.message || "Gagal mengambil data siswa dari Google Apps Script.");
+    if (!legerRes || legerRes.status !== 'success') {
+      throw new Error(legerRes?.message || "Gagal mengambil data siswa dari Google Apps Script.");
     }
 
-    const dataSiswa = res.data || [];
+    const dataSiswa = legerRes.data || [];
+    const archivedFiles = (driveRes && driveRes.status === 'success' && driveRes.files) ? driveRes.files : {};
 
     if (dataSiswa.length === 0) {
       if (tbody) tbody.innerHTML = '<tr><td colspan="5" class="text-center p-4 text-gray-500">Belum ada data siswa di kelas ini.</td></tr>';
@@ -363,18 +374,32 @@ async function loadDataArsip(forceRefresh = false) {
     let html = '';
     dataSiswa.forEach((siswa, index) => {
       const namaEscaped = String(siswa.nama || '').replace(/'/g, "\\'");
+      const expectedFileName = getNamaFileRaporSAS(semester, kelasWalas, siswa.nama);
+      const existingFile = archivedFiles[expectedFileName];
+      const isArchived = Boolean(existingFile);
+
+      const statusBadge = isArchived
+        ? `<span class="px-2.5 py-1 bg-emerald-100 text-emerald-700 text-[10px] rounded-md font-bold"><i class="fa-solid fa-check"></i> Tersimpan di <a href="${existingFile.fileUrl}" target="_blank" class="underline">Drive</a></span>`
+        : `<span class="px-2.5 py-1 bg-slate-100 text-slate-500 text-[10px] rounded-md font-bold">Belum Diarsipkan</span>`;
+
+      const actionBtn = isArchived
+        ? `<button id="btn-arsip-${index}" onclick="prosesArsipRaporAsli(${index}, '${namaEscaped}')" class="bg-amber-50 hover:bg-amber-100 text-amber-700 px-3 py-1.5 rounded text-xs font-semibold border border-amber-200 transition" title="Timpa file lama dengan PDF terbaru">
+            <i class="fa-solid fa-arrows-rotate mr-1"></i> Perbarui
+          </button>`
+        : `<button id="btn-arsip-${index}" onclick="prosesArsipRaporAsli(${index}, '${namaEscaped}')" class="bg-blue-50 hover:bg-blue-100 text-blue-600 px-3 py-1.5 rounded text-xs font-semibold border border-blue-200 transition">
+            <i class="fa-solid fa-cloud-arrow-up mr-1"></i> Arsipkan
+          </button>`;
+
       html += `
-        <tr class="hover:bg-slate-50 transition" id="row-arsip-${index}">
+        <tr class="hover:bg-slate-50 transition" id="row-arsip-${index}" data-archived="${isArchived ? '1' : '0'}">
           <td class="p-3 border-r text-center">${index + 1}</td>
           <td class="p-3 border-r text-center">${siswa.nisn || '-'}</td>
           <td class="p-3 border-r font-medium">${siswa.nama}</td>
           <td class="p-3 border-r text-center" id="status-arsip-${index}">
-            <span class="px-2.5 py-1 bg-slate-100 text-slate-500 text-[10px] rounded-md font-bold">Belum Diarsipkan</span>
+            ${statusBadge}
           </td>
           <td class="p-3 text-center">
-            <button onclick="prosesArsipRaporAsli(${index}, '${namaEscaped}')" class="bg-blue-50 hover:bg-blue-100 text-blue-600 px-3 py-1.5 rounded text-xs font-semibold border border-blue-200 transition">
-              <i class="fa-solid fa-cloud-arrow-up mr-1"></i> Arsipkan
-            </button>
+            ${actionBtn}
           </td>
         </tr>
       `;
@@ -393,6 +418,8 @@ function prosesArsipRaporAsli(siswaIndex, namaSiswa) {
   return new Promise((resolve) => {
     siswaIndex = Number(siswaIndex);
     const statusCell = document.getElementById(`status-arsip-${siswaIndex}`);
+    const rowEl = document.getElementById(`row-arsip-${siswaIndex}`);
+    const btnEl = document.getElementById(`btn-arsip-${siswaIndex}`);
 
     if (!ARSIP_DRIVE_FOLDER_ID) {
       if (statusCell) {
@@ -409,6 +436,7 @@ function prosesArsipRaporAsli(siswaIndex, namaSiswa) {
     const kelasWalas = STATE.currentUser?.walas_kelas || "";
     const sem = STATE.currentSasSemester || 1;
     const cacheKey = `${sem}_${kelasWalas}`;
+    const targetFileName = getNamaFileRaporSAS(sem, kelasWalas, namaSiswa);
 
     // Siapkan sessionStorage agar cetak-sas.html langsung memakai data kelas tanpa fetch ulang
     sessionStorage.setItem("ERAPOR_PRINT_USER", JSON.stringify(STATE.currentUser));
@@ -417,7 +445,6 @@ function prosesArsipRaporAsli(siswaIndex, namaSiswa) {
       sessionStorage.setItem(`ERAPOR_LEGER_SAS_${cacheKey}`, JSON.stringify(LEGER_SAS_CACHE[cacheKey]));
     }
 
-    // Tempatkan iframe di dalam viewport di belakang layer utama agar browser me-render CSS & gambar secara penuh
     const iframe = document.createElement('iframe');
     iframe.style.position = 'fixed';
     iframe.style.left = '0';
@@ -443,7 +470,6 @@ function prosesArsipRaporAsli(siswaIndex, namaSiswa) {
         const win = iframe.contentWindow;
         const doc = iframe.contentDocument;
 
-        // Tunggu sampai cetak-sas.js selesai inisialisasi daftar siswa
         let retries = 0;
         while (
           (typeof win.renderLembarRaporSAS !== 'function' ||
@@ -467,10 +493,8 @@ function prosesArsipRaporAsli(siswaIndex, namaSiswa) {
           return;
         }
 
-        // Render rapor khusus untuk siswaIndex yang dipilih
         win.renderLembarRaporSAS(siswaIndex);
 
-        // Muat html2pdf langsung di dalam context iframe agar seluruh CSS cetak-sas.html ikut ter-render
         if (typeof win.html2pdf !== 'function') {
           await new Promise((resScript, rejScript) => {
             const sc = doc.createElement('script');
@@ -481,7 +505,6 @@ function prosesArsipRaporAsli(siswaIndex, namaSiswa) {
           });
         }
 
-        // Tunggu seluruh gambar (kop & watermark) selesai dimuat
         const imgs = Array.from(doc.querySelectorAll('img'));
         await Promise.all(imgs.map(img => {
           if (img.complete) return Promise.resolve();
@@ -492,7 +515,6 @@ function prosesArsipRaporAsli(siswaIndex, namaSiswa) {
         }));
         await new Promise(r => setTimeout(r, 300));
 
-        // Sembunyikan toolbar navigasi cetak
         doc.querySelectorAll('.no-print, #sas-mm-ruler').forEach(el => {
           el.style.display = 'none';
         });
@@ -501,7 +523,6 @@ function prosesArsipRaporAsli(siswaIndex, namaSiswa) {
         doc.body.style.padding = '0';
         doc.body.style.margin = '0';
 
-        // Atur ukuran penuh kertas F4 (215.9mm x 329mm) dengan padding margin cetak (12mm atas/bawah, 13mm kiri/kanan)
         [page1, page2].forEach(pg => {
           pg.style.border = 'none';
           pg.style.boxShadow = 'none';
@@ -516,7 +537,6 @@ function prosesArsipRaporAsli(siswaIndex, namaSiswa) {
           pg.style.overflow = 'hidden';
         });
 
-        // Bungkus halaman 1 dan halaman 2 menjadi 2 halaman F4
         const exportWrapper = doc.createElement('div');
         exportWrapper.style.width = '215.9mm';
         exportWrapper.style.backgroundColor = '#ffffff';
@@ -531,10 +551,9 @@ function prosesArsipRaporAsli(siswaIndex, namaSiswa) {
           statusCell.innerHTML = `<span class="px-2.5 py-1 bg-indigo-100 text-indigo-700 text-[10px] rounded-md font-bold"><i class="fa-solid fa-spinner animate-spin"></i> Generate PDF...</span>`;
         }
 
-        // Gunakan margin: 0 (angka tunggal) agar tidak terkena pengecekan instanceof Array lintas-window
         const opt = {
           margin:      0,
-          filename:    `Rapor_SAS_${sem}_${kelasWalas}_${String(namaSiswa).replace(/ /g, "_")}.pdf`,
+          filename:    targetFileName,
           image:       { type: 'jpeg', quality: 0.98 },
           html2canvas: { scale: 2, useCORS: true, scrollX: 0, scrollY: 0, backgroundColor: '#ffffff' },
           jsPDF:       { unit: 'mm', format: [215.9, 330.2], orientation: 'portrait' },
@@ -552,13 +571,19 @@ function prosesArsipRaporAsli(siswaIndex, namaSiswa) {
 
         const result = await callGASAPI("uploadPDF", {
           folderId: ARSIP_DRIVE_FOLDER_ID,
-          fileName: `Rapor_SAS_${sem}_${kelasWalas}_${String(namaSiswa).replace(/ /g, "_")}.pdf`,
+          fileName: targetFileName,
           base64Data: base64DataClean
         });
 
         if (result && result.status === "success") {
+          if (rowEl) rowEl.dataset.archived = "1";
           if (statusCell) {
             statusCell.innerHTML = `<span class="px-2.5 py-1 bg-emerald-100 text-emerald-700 text-[10px] rounded-md font-bold"><i class="fa-solid fa-check"></i> Tersimpan di <a href="${result.fileUrl}" target="_blank" class="underline">Drive</a></span>`;
+          }
+          if (btnEl) {
+            btnEl.className = "bg-amber-50 hover:bg-amber-100 text-amber-700 px-3 py-1.5 rounded text-xs font-semibold border border-amber-200 transition";
+            btnEl.title = "Timpa file lama dengan PDF terbaru";
+            btnEl.innerHTML = `<i class="fa-solid fa-arrows-rotate mr-1"></i> Perbarui`;
           }
           resolve(true);
         } else {
@@ -635,7 +660,7 @@ function arsipLegerKelas() {
   XLSX.writeFile(workbook, `Leger_SAS_${sem}_Kelas_${kelasWalas}.xlsx`);
 }
 
-// 2. FUNGSI GENERATE & ARSIP RAPOR PDF MASSAL (1 KELAS BERURUTAN)
+// 2. FUNGSI GENERATE & ARSIP RAPOR PDF MASSAL (OTOMATIS LEWATI YANG SUDAH TERSIMPAN)
 async function arsipRaporSekelas() {
   const kelasWalas = STATE.currentUser?.walas_kelas;
   const sem = STATE.currentSasSemester || 1;
@@ -653,7 +678,21 @@ async function arsipRaporSekelas() {
   }
 
   const daftarSiswa = legerObj.data;
-  if (!confirm(`Proses ini akan membuat dan mengarsipkan ${daftarSiswa.length} file PDF Rapor SAS ${sem} Kelas ${kelasWalas} ke Google Drive secara berurutan. Lanjutkan?`)) {
+  const antrianBelumArsip = [];
+
+  daftarSiswa.forEach((siswa, idx) => {
+    const rowEl = document.getElementById(`row-arsip-${idx}`);
+    if (!rowEl || rowEl.dataset.archived !== '1') {
+      antrianBelumArsip.push({ index: idx, siswa: siswa });
+    }
+  });
+
+  if (antrianBelumArsip.length === 0) {
+    alert(`Seluruh rapor siswa kelas ${kelasWalas} sudah tersimpan di Google Drive. Jika ada perbaikan nilai pada siswa tertentu, klik tombol "Perbarui" pada baris siswa tersebut.`);
+    return;
+  }
+
+  if (!confirm(`Ditemukan ${antrianBelumArsip.length} siswa yang belum diarsipkan (siswa yang sudah tersimpan akan dilewati). Lanjutkan proses arsip ke Google Drive?`)) {
     return;
   }
 
@@ -664,12 +703,12 @@ async function arsipRaporSekelas() {
 
   if (progressContainer) progressContainer.classList.remove('hidden');
 
-  const total = daftarSiswa.length;
+  const total = antrianBelumArsip.length;
   for (let i = 0; i < total; i++) {
-    const siswa = daftarSiswa[i];
+    const item = antrianBelumArsip[i];
 
-    if (progressText) progressText.textContent = `Memproses Rapor: ${i + 1} / ${total} Siswa (${siswa.nama})`;
-    await prosesArsipRaporAsli(i, siswa.nama);
+    if (progressText) progressText.textContent = `Memproses Rapor: ${i + 1} / ${total} Siswa (${item.siswa.nama})`;
+    await prosesArsipRaporAsli(item.index, item.siswa.nama);
 
     const pct = Math.round(((i + 1) / total) * 100);
     if (progressPercent) progressPercent.textContent = `${pct}%`;
