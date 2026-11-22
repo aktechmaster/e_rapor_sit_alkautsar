@@ -309,6 +309,9 @@ function getTingkatKelas() {
 // FUNGSI ARSIP RAPOR PDF & LEGER EXCEL (DATA ASLI)
 // ====================================================
 
+// PENTING: Ganti dengan ID Folder Google Drive tujuan penyimpanan arsip PDF
+const ARSIP_DRIVE_FOLDER_ID = "ID_FOLDER_GOOGLE_DRIVE_ANDA_DISINI";
+
 async function loadDataArsip(forceRefresh = false) {
   const tbody = document.getElementById('table-arsip-body');
   const metaInfo = document.getElementById('arsip-meta-info');
@@ -359,18 +362,17 @@ async function loadDataArsip(forceRefresh = false) {
 
     let html = '';
     dataSiswa.forEach((siswa, index) => {
-      const nisnSafe = siswa.nisn || `ROW_${index + 1}`;
       const namaEscaped = String(siswa.nama || '').replace(/'/g, "\\'");
       html += `
-        <tr class="hover:bg-slate-50 transition" id="row-arsip-${nisnSafe}">
+        <tr class="hover:bg-slate-50 transition" id="row-arsip-${index}">
           <td class="p-3 border-r text-center">${index + 1}</td>
           <td class="p-3 border-r text-center">${siswa.nisn || '-'}</td>
           <td class="p-3 border-r font-medium">${siswa.nama}</td>
-          <td class="p-3 border-r text-center" id="status-arsip-${nisnSafe}">
+          <td class="p-3 border-r text-center" id="status-arsip-${index}">
             <span class="px-2.5 py-1 bg-slate-100 text-slate-500 text-[10px] rounded-md font-bold">Belum Diarsipkan</span>
           </td>
           <td class="p-3 text-center">
-            <button onclick="prosesArsipRaporAsli('${nisnSafe}', '${namaEscaped}')" class="bg-blue-50 hover:bg-blue-100 text-blue-600 px-3 py-1.5 rounded text-xs font-semibold border border-blue-200 transition">
+            <button onclick="prosesArsipRaporAsli(${index}, '${namaEscaped}')" class="bg-blue-50 hover:bg-blue-100 text-blue-600 px-3 py-1.5 rounded text-xs font-semibold border border-blue-200 transition">
               <i class="fa-solid fa-cloud-arrow-up mr-1"></i> Arsipkan
             </button>
           </td>
@@ -387,9 +389,19 @@ async function loadDataArsip(forceRefresh = false) {
   }
 }
 
-function prosesArsipRaporAsli(nisn, namaSiswa) {
+function prosesArsipRaporAsli(siswaIndex, namaSiswa) {
   return new Promise((resolve) => {
-    const statusCell = document.getElementById(`status-arsip-${nisn}`);
+    siswaIndex = Number(siswaIndex);
+    const statusCell = document.getElementById(`status-arsip-${siswaIndex}`);
+
+    if (!ARSIP_DRIVE_FOLDER_ID || ARSIP_DRIVE_FOLDER_ID === "ID_FOLDER_GOOGLE_DRIVE_ANDA_DISINI") {
+      if (statusCell) {
+        statusCell.innerHTML = `<span class="px-2.5 py-1 bg-red-100 text-red-700 text-[10px] rounded-md font-bold">Isi ARSIP_DRIVE_FOLDER_ID di app.js dulu</span>`;
+      }
+      resolve(false);
+      return;
+    }
+
     if (statusCell) {
       statusCell.innerHTML = `<span class="px-2.5 py-1 bg-amber-100 text-amber-700 text-[10px] rounded-md font-bold"><i class="fa-solid fa-spinner animate-spin"></i> Merender HTML...</span>`;
     }
@@ -398,7 +410,7 @@ function prosesArsipRaporAsli(nisn, namaSiswa) {
     const sem = STATE.currentSasSemester || 1;
     const cacheKey = `${sem}_${kelasWalas}`;
 
-    // Siapkan sessionStorage agar cetak-sas.html dapat membaca data user & leger
+    // Siapkan sessionStorage agar cetak-sas.html langsung memakai data kelas tanpa fetch ulang
     sessionStorage.setItem("ERAPOR_PRINT_USER", JSON.stringify(STATE.currentUser));
     sessionStorage.setItem("ERAPOR_PRINT_SAS_SEM", String(sem));
     if (typeof LEGER_SAS_CACHE !== "undefined" && LEGER_SAS_CACHE[cacheKey]) {
@@ -406,61 +418,119 @@ function prosesArsipRaporAsli(nisn, namaSiswa) {
     }
 
     const iframe = document.createElement('iframe');
-    iframe.style.position = 'absolute';
-    iframe.style.width = '210mm';
-    iframe.style.height = '297mm';
+    iframe.style.position = 'fixed';
+    iframe.style.width = '215.9mm';
+    iframe.style.height = '330.2mm';
     iframe.style.left = '-9999px';
-    iframe.src = `cetak-sas.html?sem=${sem}&nisn=${encodeURIComponent(nisn)}`;
+    iframe.style.top = '0';
+    iframe.src = `cetak-sas.html?sem=${sem}`;
     document.body.appendChild(iframe);
 
     iframe.onerror = () => {
       if (statusCell) {
         statusCell.innerHTML = `<span class="px-2.5 py-1 bg-red-100 text-red-700 text-[10px] rounded-md font-bold">Gagal memuat cetak-sas.html</span>`;
       }
-      document.body.removeChild(iframe);
+      if (iframe.parentNode) document.body.removeChild(iframe);
       resolve(false);
     };
 
     iframe.onload = async function() {
       try {
-        // Beri jeda singkat 500ms agar script render di dalam cetak-sas.html selesai mengisi DOM
-        await new Promise(r => setTimeout(r, 500));
+        const win = iframe.contentWindow;
+        const doc = iframe.contentDocument;
 
-        const raporElement = iframe.contentDocument.getElementById('rapor-container');
+        // Tunggu sampai cetak-sas.js selesai inisialisasi daftar siswa
+        let retries = 0;
+        while (
+          (typeof win.renderLembarRaporSAS !== 'function' ||
+           !doc.getElementById('select-siswa-sas') ||
+           doc.getElementById('select-siswa-sas').options.length === 0) &&
+          retries < 50
+        ) {
+          await new Promise(r => setTimeout(r, 100));
+          retries++;
+        }
 
-        if (!raporElement) {
+        const page1 = doc.getElementById('sas-page-1');
+        const page2 = doc.getElementById('sas-page-2');
+
+        if (!page1 || !page2 || typeof win.renderLembarRaporSAS !== 'function') {
           if (statusCell) {
-            statusCell.innerHTML = `<span class="text-red-500 text-[10px]">Error: Elemen #rapor-container tidak ditemukan di cetak-sas.html</span>`;
+            statusCell.innerHTML = `<span class="text-red-500 text-[10px]">Error: Halaman cetak-sas.html gagal diinisialisasi</span>`;
           }
-          document.body.removeChild(iframe);
+          if (iframe.parentNode) document.body.removeChild(iframe);
           resolve(false);
           return;
         }
+
+        // Render rapor khusus untuk siswaIndex yang dipilih
+        win.renderLembarRaporSAS(siswaIndex);
+
+        // Tunggu seluruh gambar (kop & watermark) selesai dimuat
+        const imgs = Array.from(doc.querySelectorAll('img'));
+        await Promise.all(imgs.map(img => {
+          if (img.complete) return Promise.resolve();
+          return new Promise(r => {
+            img.onload = r;
+            img.onerror = r;
+          });
+        }));
+        await new Promise(r => setTimeout(r, 200));
+
+        // Rapikan tampilan cetak agar persis @media print (tanpa border/shadow/margin luar)
+        doc.body.style.background = '#ffffff';
+        doc.body.style.padding = '0';
+        doc.body.style.margin = '0';
+
+        [page1, page2].forEach(pg => {
+          pg.style.border = 'none';
+          pg.style.boxShadow = 'none';
+          pg.style.padding = '0';
+          pg.style.margin = '0';
+          pg.style.width = '189.9mm';
+          pg.style.minHeight = '296mm';
+        });
+
+        // Bungkus halaman 1 dan halaman 2 dengan pemisah halaman F4
+        const exportWrapper = doc.createElement('div');
+        exportWrapper.style.width = '189.9mm';
+        exportWrapper.style.background = '#ffffff';
+
+        const pageBreak = doc.createElement('div');
+        pageBreak.style.pageBreakBefore = 'always';
+        pageBreak.style.breakBefore = 'page';
+        pageBreak.style.height = '0';
+
+        exportWrapper.appendChild(page1);
+        exportWrapper.appendChild(pageBreak);
+        exportWrapper.appendChild(page2);
+        doc.body.appendChild(exportWrapper);
 
         if (statusCell) {
           statusCell.innerHTML = `<span class="px-2.5 py-1 bg-indigo-100 text-indigo-700 text-[10px] rounded-md font-bold"><i class="fa-solid fa-spinner animate-spin"></i> Generate PDF...</span>`;
         }
 
+        // Ukuran F4 (215.9mm x 330.2mm) dengan margin cetak (12mm atas/bawah, 13mm kiri/kanan -> area cetak 189.9mm)
         const opt = {
-          margin:      0,
-          filename:    `Rapor_${nisn}.pdf`,
+          margin:      [12, 13, 12, 13],
+          filename:    `Rapor_SAS_${sem}_${kelasWalas}_${String(namaSiswa).replace(/ /g, "_")}.pdf`,
           image:       { type: 'jpeg', quality: 0.98 },
-          html2canvas: { scale: 2, useCORS: true },
-          jsPDF:       { unit: 'mm', format: 'a4', orientation: 'portrait' }
+          html2canvas: { scale: 2, useCORS: true, windowWidth: 816 },
+          jsPDF:       { unit: 'mm', format: [215.9, 330.2], orientation: 'portrait' },
+          pagebreak:   { mode: ['css', 'legacy'] }
         };
 
-        const pdfDataUri = await html2pdf().set(opt).from(raporElement).outputPdf('datauristring');
+        const pdfDataUri = await html2pdf().set(opt).from(exportWrapper).outputPdf('datauristring');
         const base64DataClean = pdfDataUri.split(',')[1];
 
-        document.body.removeChild(iframe);
+        if (iframe.parentNode) document.body.removeChild(iframe);
 
         if (statusCell) {
           statusCell.innerHTML = `<span class="px-2.5 py-1 bg-blue-100 text-blue-700 text-[10px] rounded-md font-bold"><i class="fa-solid fa-cloud-arrow-up animate-pulse"></i> Mengirim ke Drive...</span>`;
         }
 
         const result = await callGASAPI("uploadPDF", {
-          // PENTING: Ganti dengan ID Folder Google Drive tujuan arsip Anda
-          folderId: "1YjuyK0MB8_6B0e396JkEjCaMbR-l0-Vn",
+          folderId: ARSIP_DRIVE_FOLDER_ID,
           fileName: `Rapor_SAS_${sem}_${kelasWalas}_${String(namaSiswa).replace(/ /g, "_")}.pdf`,
           base64Data: base64DataClean
         });
@@ -556,6 +626,11 @@ async function arsipRaporSekelas() {
     return;
   }
 
+  if (!ARSIP_DRIVE_FOLDER_ID || ARSIP_DRIVE_FOLDER_ID === "ID_FOLDER_GOOGLE_DRIVE_ANDA_DISINI") {
+    alert("Silakan isi terlebih dahulu ARSIP_DRIVE_FOLDER_ID di file js/app.js dengan ID Folder Google Drive tujuan Anda.");
+    return;
+  }
+
   const daftarSiswa = legerObj.data;
   if (!confirm(`Proses ini akan membuat dan mengarsipkan ${daftarSiswa.length} file PDF Rapor SAS ${sem} Kelas ${kelasWalas} ke Google Drive secara berurutan. Lanjutkan?`)) {
     return;
@@ -571,10 +646,9 @@ async function arsipRaporSekelas() {
   const total = daftarSiswa.length;
   for (let i = 0; i < total; i++) {
     const siswa = daftarSiswa[i];
-    const nisnSafe = siswa.nisn || `ROW_${i + 1}`;
 
     if (progressText) progressText.textContent = `Memproses Rapor: ${i + 1} / ${total} Siswa (${siswa.nama})`;
-    await prosesArsipRaporAsli(nisnSafe, siswa.nama);
+    await prosesArsipRaporAsli(i, siswa.nama);
 
     const pct = Math.round(((i + 1) / total) * 100);
     if (progressPercent) progressPercent.textContent = `${pct}%`;
