@@ -650,7 +650,7 @@ async function arsipRaporSekelas() {
     return;
   }
 
-  if (!ARSIP_DRIVE_FOLDER_ID || ARSIP_DRIVE_FOLDER_ID === "ID_FOLDER_GOOGLE_DRIVE_ANDA_DISINI") {
+  if (!ARSIP_DRIVE_FOLDER_ID || ARSIP_DRIVE_FOLDER_ID === "1YjuyK0MB8_6B0e396JkEjCaMbR-l0-Vn") {
     alert("Silakan isi terlebih dahulu ARSIP_DRIVE_FOLDER_ID di file js/app.js dengan ID Folder Google Drive tujuan Anda.");
     return;
   }
