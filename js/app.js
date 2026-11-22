@@ -1,19 +1,7 @@
 // ====================================================
-// KONFIGURASI & STATE GLOBAL
+// Variabel Global (CONFIG & STATE sudah ada di file lain)
 // ====================================================
-const CONFIG = {
-  // PENTING: Ganti tulisan di bawah dengan URL Web App Google Apps Script Anda
-  API_URL: "https://script.google.com/macros/s/AKfycbxB-2-_I2lhQz6hMPdMl3OEKpXXjpnmHJK6pg0N2kX9kC0PRh5_N9_ga4vkxnnrCU6hTw/exec", 
-  MAPEL_DB: {} 
-};
-
-let STATE = {
-  currentUser: JSON.parse(sessionStorage.getItem('USER_SESSION')) || null,
-  currentSasSemester: 1,
-  currentStsSemester: 1
-};
-
-let MAPEL_KELAS_MAPPING = {};
+var MAPEL_KELAS_MAPPING = {};
 
 // ====================================================
 // MAIN ENTRY POINT & CONTROLLER ROUTING
