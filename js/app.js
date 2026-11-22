@@ -310,7 +310,7 @@ function getTingkatKelas() {
 // ====================================================
 
 // PENTING: Ganti dengan ID Folder Google Drive tujuan penyimpanan arsip PDF
-const ARSIP_DRIVE_FOLDER_ID = "ID_FOLDER_GOOGLE_DRIVE_ANDA_DISINI";
+const ARSIP_DRIVE_FOLDER_ID = "1YjuyK0MB8_6B0e396JkEjCaMbR-l0-Vn";
 
 async function loadDataArsip(forceRefresh = false) {
   const tbody = document.getElementById('table-arsip-body');
