@@ -309,24 +309,68 @@ function getTingkatKelas() {
 // FUNGSI ARSIP RAPOR PDF & LEGER EXCEL (DATA ASLI)
 // ====================================================
 
-// ID Folder Google Drive tujuan penyimpanan arsip PDF
+// ID Folder Google Drive Induk tujuan penyimpanan arsip
 const ARSIP_DRIVE_FOLDER_ID = "1YjuyK0MB8_6B0e396JkEjCaMbR-l0-Vn";
 
-function getNamaFileRaporSAS(sem, kelasWalas, namaSiswa) {
-  return `Rapor_SAS_${sem}_${kelasWalas}_${String(namaSiswa || '').replace(/ /g, "_")}.pdf`;
+function getArsipSelection() {
+  const selectJenis = document.getElementById('select-arsip-jenis');
+  const selectSem = document.getElementById('select-arsip-semester');
+
+  const jenis = selectJenis ? selectJenis.value : 'SAS';
+  const semester = selectSem ? Number(selectSem.value) : (STATE.currentSasSemester || 1);
+
+  if (jenis === 'STS') {
+    STATE.currentStsSemester = semester;
+  } else {
+    STATE.currentSasSemester = semester;
+  }
+
+  return { jenis, semester };
+}
+
+function getArsipSubFolders(jenis, semester, kelasWalas) {
+  return [`Rapor ${jenis}`, `Semester ${semester}`, `Kelas ${kelasWalas}`];
+}
+
+function getLegerSubFolders(jenis, semester) {
+  return [`Leger ${jenis}`, `Semester ${semester}`];
+}
+
+function getNamaFileRapor(jenis, sem, kelasWalas, namaSiswa) {
+  return `Rapor_${jenis}_${sem}_${kelasWalas}_${String(namaSiswa || '').replace(/ /g, "_")}.pdf`;
+}
+
+function onChangeArsipFilter() {
+  loadDataArsip(false);
 }
 
 async function loadDataArsip(forceRefresh = false) {
   const tbody = document.getElementById('table-arsip-body');
   const metaInfo = document.getElementById('arsip-meta-info');
+  const folderLinkEl = document.getElementById('link-arsip-folder-drive');
+  const legerBadgeEl = document.getElementById('arsip-leger-badge');
+  const progressContainer = document.getElementById('arsip-progress-container');
 
   if (!STATE.currentUser || !STATE.currentUser.walas_kelas) return;
+  if (progressContainer) progressContainer.classList.add('hidden');
+  if (legerBadgeEl) legerBadgeEl.classList.add('hidden');
 
   const kelasWalas = STATE.currentUser.walas_kelas;
-  const semester = STATE.currentSasSemester || 1;
-  const spreadsheetId = CONFIG.RAPOR_SAS_DB?.[semester]?.[kelasWalas];
+  const { jenis, semester } = getArsipSelection();
 
-  if (metaInfo) metaInfo.textContent = `Kelas: ${kelasWalas} | Semester: ${semester}`;
+  if (metaInfo) {
+    metaInfo.textContent = `Kelas: ${kelasWalas} | Jenis: Rapor ${jenis} | Semester: ${semester}`;
+  }
+
+  // Jika user memilih Rapor STS (akan dihubungkan penuh di Tahap 3 setelah membaca struktur cetak-sts)
+  if (jenis === 'STS') {
+    if (tbody) {
+      tbody.innerHTML = `<tr><td colspan="5" class="text-center p-6 text-indigo-600 font-medium">Mode Rapor STS Semester ${semester} siap dihubungkan pada Tahap 3 (setelah membaca struktur cetak-sts.html & cetak-sts.js).</td></tr>`;
+    }
+    return;
+  }
+
+  const spreadsheetId = CONFIG.RAPOR_SAS_DB?.[semester]?.[kelasWalas];
 
   if (!spreadsheetId) {
     if (tbody) {
@@ -336,24 +380,39 @@ async function loadDataArsip(forceRefresh = false) {
   }
 
   if (tbody) {
-    tbody.innerHTML = '<tr><td colspan="5" class="text-center p-6"><i class="fa-solid fa-circle-notch animate-spin text-indigo-500 mr-2"></i> Memeriksa data siswa & status arsip di Google Drive...</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="5" class="text-center p-6"><i class="fa-solid fa-circle-notch animate-spin text-indigo-500 mr-2"></i> Memeriksa data siswa & status sub-folder di Google Drive...</td></tr>';
   }
 
   try {
     const cacheKey = `${semester}_${kelasWalas}`;
-    const filePrefix = `Rapor_SAS_${semester}_${kelasWalas}_`;
+    const filePrefix = `Rapor_${jenis}_${semester}_${kelasWalas}_`;
+    const subFolders = getArsipSubFolders(jenis, semester, kelasWalas);
+    const legerSubFolders = getLegerSubFolders(jenis, semester);
+    const expectedLegerName = `Leger_${jenis}_${semester}_Kelas_${kelasWalas}.xlsx`;
+
     let res = (!forceRefresh && typeof LEGER_SAS_CACHE !== 'undefined') ? LEGER_SAS_CACHE[cacheKey] : null;
 
-    const legerPromise = (!res || res.status !== 'success')
+    const legerDataPromise = (!res || res.status !== 'success')
       ? callGASAPI("getLegerSAS", { spreadsheetId: spreadsheetId, kelas: kelasWalas })
       : Promise.resolve(res);
 
-    const drivePromise = callGASAPI("getArsipFiles", {
+    const drivePdfPromise = callGASAPI("getArsipFiles", {
       folderId: ARSIP_DRIVE_FOLDER_ID,
+      subFolders: subFolders,
       prefix: filePrefix
     });
 
-    const [legerRes, driveRes] = await Promise.all([legerPromise, drivePromise]);
+    const driveLegerPromise = callGASAPI("getArsipFiles", {
+      folderId: ARSIP_DRIVE_FOLDER_ID,
+      subFolders: legerSubFolders,
+      prefix: expectedLegerName
+    });
+
+    const [legerRes, drivePdfRes, driveLegerRes] = await Promise.all([
+      legerDataPromise,
+      drivePdfPromise,
+      driveLegerPromise
+    ]);
 
     if (legerRes && legerRes.status === 'success' && typeof LEGER_SAS_CACHE !== 'undefined') {
       LEGER_SAS_CACHE[cacheKey] = legerRes;
@@ -363,8 +422,20 @@ async function loadDataArsip(forceRefresh = false) {
       throw new Error(legerRes?.message || "Gagal mengambil data siswa dari Google Apps Script.");
     }
 
+    if (folderLinkEl) {
+      folderLinkEl.href = (drivePdfRes && drivePdfRes.folderUrl)
+        ? drivePdfRes.folderUrl
+        : `https://drive.google.com/drive/folders/${ARSIP_DRIVE_FOLDER_ID}`;
+    }
+
+    if (legerBadgeEl && driveLegerRes && driveLegerRes.status === 'success' && driveLegerRes.files?.[expectedLegerName]) {
+      const legerUrl = driveLegerRes.files[expectedLegerName].fileUrl;
+      legerBadgeEl.innerHTML = `<i class="fa-solid fa-check mr-1"></i> Leger Tersimpan di <a href="${legerUrl}" target="_blank" class="underline">Drive</a>`;
+      legerBadgeEl.classList.remove('hidden');
+    }
+
     const dataSiswa = legerRes.data || [];
-    const archivedFiles = (driveRes && driveRes.status === 'success' && driveRes.files) ? driveRes.files : {};
+    const archivedFiles = (drivePdfRes && drivePdfRes.status === 'success' && drivePdfRes.files) ? drivePdfRes.files : {};
 
     if (dataSiswa.length === 0) {
       if (tbody) tbody.innerHTML = '<tr><td colspan="5" class="text-center p-4 text-gray-500">Belum ada data siswa di kelas ini.</td></tr>';
@@ -374,7 +445,7 @@ async function loadDataArsip(forceRefresh = false) {
     let html = '';
     dataSiswa.forEach((siswa, index) => {
       const namaEscaped = String(siswa.nama || '').replace(/'/g, "\\'");
-      const expectedFileName = getNamaFileRaporSAS(semester, kelasWalas, siswa.nama);
+      const expectedFileName = getNamaFileRapor(jenis, semester, kelasWalas, siswa.nama);
       const existingFile = archivedFiles[expectedFileName];
       const isArchived = Boolean(existingFile);
 
@@ -420,6 +491,7 @@ function prosesArsipRaporAsli(siswaIndex, namaSiswa) {
     const statusCell = document.getElementById(`status-arsip-${siswaIndex}`);
     const rowEl = document.getElementById(`row-arsip-${siswaIndex}`);
     const btnEl = document.getElementById(`btn-arsip-${siswaIndex}`);
+    const folderLinkEl = document.getElementById('link-arsip-folder-drive');
 
     if (!ARSIP_DRIVE_FOLDER_ID) {
       if (statusCell) {
@@ -429,14 +501,22 @@ function prosesArsipRaporAsli(siswaIndex, namaSiswa) {
       return;
     }
 
+    const kelasWalas = STATE.currentUser?.walas_kelas || "";
+    const { jenis, semester: sem } = getArsipSelection();
+
+    if (jenis === 'STS') {
+      alert("Mode Rapor STS akan diaktifkan setelah Tahap 3 selesai.");
+      resolve(false);
+      return;
+    }
+
     if (statusCell) {
       statusCell.innerHTML = `<span class="px-2.5 py-1 bg-amber-100 text-amber-700 text-[10px] rounded-md font-bold"><i class="fa-solid fa-spinner animate-spin"></i> Merender HTML...</span>`;
     }
 
-    const kelasWalas = STATE.currentUser?.walas_kelas || "";
-    const sem = STATE.currentSasSemester || 1;
     const cacheKey = `${sem}_${kelasWalas}`;
-    const targetFileName = getNamaFileRaporSAS(sem, kelasWalas, namaSiswa);
+    const targetFileName = getNamaFileRapor(jenis, sem, kelasWalas, namaSiswa);
+    const subFolders = getArsipSubFolders(jenis, sem, kelasWalas);
 
     // Siapkan sessionStorage agar cetak-sas.html langsung memakai data kelas tanpa fetch ulang
     sessionStorage.setItem("ERAPOR_PRINT_USER", JSON.stringify(STATE.currentUser));
@@ -571,12 +651,14 @@ function prosesArsipRaporAsli(siswaIndex, namaSiswa) {
 
         const result = await callGASAPI("uploadPDF", {
           folderId: ARSIP_DRIVE_FOLDER_ID,
+          subFolders: subFolders,
           fileName: targetFileName,
           base64Data: base64DataClean
         });
 
         if (result && result.status === "success") {
           if (rowEl) rowEl.dataset.archived = "1";
+          if (folderLinkEl && result.folderUrl) folderLinkEl.href = result.folderUrl;
           if (statusCell) {
             statusCell.innerHTML = `<span class="px-2.5 py-1 bg-emerald-100 text-emerald-700 text-[10px] rounded-md font-bold"><i class="fa-solid fa-check"></i> Tersimpan di <a href="${result.fileUrl}" target="_blank" class="underline">Drive</a></span>`;
           }
@@ -604,7 +686,13 @@ function prosesArsipRaporAsli(siswaIndex, namaSiswa) {
 // 1. FUNGSI PEMBUATAN EXCEL (LEGER KELAS DARI DATA ASLI)
 function arsipLegerKelas() {
   const kelasWalas = STATE.currentUser?.walas_kelas;
-  const sem = STATE.currentSasSemester || 1;
+  const { jenis, semester: sem } = getArsipSelection();
+
+  if (jenis === 'STS') {
+    alert("Mode Leger STS akan diaktifkan setelah Tahap 3 & Tahap 4 selesai.");
+    return;
+  }
+
   const cacheKey = `${sem}_${kelasWalas}`;
   const legerObj = (typeof LEGER_SAS_CACHE !== 'undefined') ? LEGER_SAS_CACHE[cacheKey] : null;
 
@@ -663,7 +751,13 @@ function arsipLegerKelas() {
 // 2. FUNGSI GENERATE & ARSIP RAPOR PDF MASSAL (OTOMATIS LEWATI YANG SUDAH TERSIMPAN)
 async function arsipRaporSekelas() {
   const kelasWalas = STATE.currentUser?.walas_kelas;
-  const sem = STATE.currentSasSemester || 1;
+  const { jenis, semester: sem } = getArsipSelection();
+
+  if (jenis === 'STS') {
+    alert("Mode Rapor STS akan diaktifkan setelah Tahap 3 selesai.");
+    return;
+  }
+
   const cacheKey = `${sem}_${kelasWalas}`;
   const legerObj = (typeof LEGER_SAS_CACHE !== 'undefined') ? LEGER_SAS_CACHE[cacheKey] : null;
 
@@ -688,11 +782,11 @@ async function arsipRaporSekelas() {
   });
 
   if (antrianBelumArsip.length === 0) {
-    alert(`Seluruh rapor siswa kelas ${kelasWalas} sudah tersimpan di Google Drive. Jika ada perbaikan nilai pada siswa tertentu, klik tombol "Perbarui" pada baris siswa tersebut.`);
+    alert(`Seluruh rapor ${jenis} Semester ${sem} kelas ${kelasWalas} sudah tersimpan di Google Drive. Jika ada perbaikan nilai pada siswa tertentu, klik tombol "Perbarui" pada baris siswa tersebut.`);
     return;
   }
 
-  if (!confirm(`Ditemukan ${antrianBelumArsip.length} siswa yang belum diarsipkan (siswa yang sudah tersimpan akan dilewati). Lanjutkan proses arsip ke Google Drive?`)) {
+  if (!confirm(`Ditemukan ${antrianBelumArsip.length} siswa yang belum diarsipkan untuk ${jenis} Semester ${sem} (siswa yang sudah tersimpan akan dilewati). Lanjutkan proses arsip ke Google Drive?`)) {
     return;
   }
 
